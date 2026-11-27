@@ -657,7 +657,7 @@
   #home.asset-devnet :is(#vw-card, #recent, #view-all) { display: none; }
   #go-send:disabled { cursor: default; }
   #go-send:disabled .icon { opacity: .45; transform: none; filter: none; }
-  .sol-send-network { display: flex; align-items: center; gap: 6px; align-self: flex-start; margin: 1px 0 4px;
+  .sol-send-network { display: flex; align-items: center; gap: 6px; margin-left: 10px;
     padding: 5px 9px; border: 1px solid var(--line); border-radius: 16px; color: var(--dim); font-size: 12px; }
   .sol-send-network img { width: 14px; height: 14px; object-fit: contain; }
   #solana-send .summary .row { gap: 12px; }
@@ -665,6 +665,8 @@
   #solana-send .summary .mono { min-width: 0; overflow-wrap: anywhere; text-align: right; }
   #solana-send .sol-send-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   #solana-send .sol-send-actions :is(.primary, .secondary) { flex: 1; min-width: min(100%, 140px); padding: 0 12px; }
+  #sol-send-form { display: contents; }
+  #sol-send-form > * { flex-shrink: 0; }
   #sol-send-status { font-size: 16px; font-weight: 600; margin: 12px 0 4px; }
 
   .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
@@ -2094,7 +2096,7 @@
   /* ---- Send ---- */
   /* Send: recent people as a row of faces to pick from. */
   .recent-to { margin: 0 0 14px; }
-  #send .topline { margin-bottom: 12px; }
+  .send-screen .topline { margin-bottom: 12px; }
   .recent-to.tucked { display: none; }
   .recent-to .rt-label { margin: 0 0 7px 2px; font-size: 12px; color: var(--dim); }
   .recent-to .rt-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
@@ -2110,11 +2112,11 @@
   /* The amount box: Max inside it, as in the extension. */
   .field .label-row { display: flex; justify-content: space-between; align-items: baseline; margin: 0 2px 7px; }
   .field .label-row label { margin: 0; }
-  .field .label-row #available { font-size: 12px; color: var(--faint); }
-  .field .amount-box #amount { font: 15px -apple-system, system-ui, sans-serif; }
+  .field .label-row .send-available { font-size: 12px; color: var(--faint); }
+  .field .amount-box input { font: 15px -apple-system, system-ui, sans-serif; }
   .field .amount-box .amount-unit { flex: none; font-size: 12.5px; color: var(--dim); }
   .field + .field { margin-top: 18px; }
-  #send .fee-line { margin: 7px 0 0 2px; }
+  .send-screen .fee-line { margin: 7px 0 0 2px; }
   /* What will happen, once the form is filled: the Review screen's rows,
      on this screen. */
   .summary { margin-top: 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; }
@@ -2124,17 +2126,17 @@
   .summary .row > span:last-child { font-weight: 500; text-align: right; }
   .summary .sm-fee { margin-right: 8px; font-size: 12px; font-weight: 400; color: var(--faint); }
   /* Nothing to say under To: no empty line taking room. */
-  #send #to-check:empty { min-height: 0; margin: 0; }
-  #send #r-pw-field { margin-top: 18px; }
-  #send #confirm { margin-top: 16px; }
-  #send .field + .field { margin-top: 14px; }
+  .send-screen .check:empty { min-height: 0; margin: 0; }
+  .send-screen .send-password { margin-top: 18px; }
+  .send-screen .send-confirm { margin-top: 16px; }
+  .send-screen .field + .field { margin-top: 14px; }
   /* iPhones: Send at the foot of the screen, above the keyboard. While
      typing the recent faces step aside; the total and balance after stay,
      unless the space above the keyboard is too short for them and Send. */
-  body.phone #send .push { flex: 1 1 auto; }
-  body.phone #send #confirm { margin-bottom: 4px; }
-  body.phone.kb-up #send .recent-to { display: none; }
-  @media (max-height: 499px) { body.phone.kb-up #send .summary { display: none; } }
+  body.phone .send-screen .push { flex: 1 1 auto; }
+  body.phone .send-screen .send-confirm { margin-bottom: 4px; }
+  body.phone.kb-up .send-screen .recent-to { display: none; }
+  @media (max-height: 499px) { body.phone.kb-up .send-screen .summary { display: none; } }
   .amount-mirror { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: pre; }
   .fee-line { margin-top: 4px; min-height: 18px; font-size: 12px; color: var(--faint); }
   .fee-line.bad { color: var(--bad); }
@@ -2849,7 +2851,7 @@
        blurred Home drew a ghost beside each contact. */
     body.pop:not(.phone) #contacts .ct-list > .tx { background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
     @media (hover: hover) { body.pop:not(.phone) #contacts .ct-list > .tx:hover { background: color-mix(in srgb, var(--ink) 8%, var(--surface)); } }
-    body.pop:not(.phone) #send #confirm { margin-top: 22px; }
+    body.pop:not(.phone) .send-screen .send-confirm { margin-top: 22px; }
     body.pop:not(.phone) #receive .receive-actions { margin-top: 18px; }
     /* In the pop-up, the card is the frame: no box inside it, no rule above the note. */
     body.pop:not(.phone) #receive .receive-card { border: 0; background: none; box-shadow: none; padding: 4px 0 0; }
@@ -4237,7 +4239,7 @@
 
     <!-- Send: one screen, as in the Safari extension. Recent people to pick
          from above the form; once it's filled, what will happen below it. -->
-    <section class="screen" id="send" hidden>
+    <section class="screen send-screen" id="send" hidden>
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2>Send ORN</h2>
@@ -4262,7 +4264,7 @@
       </div>
 
       <div class="field">
-        <div class="label-row"><label for="amount">Amount</label><span id="available"></span></div>
+        <div class="label-row"><label for="amount">Amount</label><span class="send-available" id="available"></span></div>
         <div class="box amount-box">
           <input id="amount" placeholder="0" inputmode="decimal" autocomplete="off">
           <span class="amount-unit">ORN</span>
@@ -4276,7 +4278,7 @@
         <div class="row"><span>Balance after</span><span id="r-after"></span></div>
       </div>
 
-      <div class="field" id="r-pw-field" hidden>
+      <div class="field send-password" id="r-pw-field" hidden>
         <label for="r-pw">Wallet password</label>
         <div class="box plain"><input id="r-pw" type="password" autocomplete="current-password"></div>
         <label class="agree" id="r-bio-row" hidden data-gap="sm"><input type="checkbox" id="r-bio"> <span id="r-bio-text"></span></label>
@@ -4284,44 +4286,50 @@
 
       <div class="push"></div>
       <div class="problem" id="send-problem" hidden></div>
-      <button class="primary pearl" id="confirm" disabled>Send</button>
+      <button class="primary pearl send-confirm" id="confirm" disabled>Send</button>
     </section>
 
-    <section class="screen" id="solana-send" hidden>
+    <section class="screen send-screen" id="solana-send" hidden>
       <div class="topline">
         <button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2>Send SOL</h2>
+        <span class="sol-send-network"><img src="chains/solana.svg" alt="">Solana Devnet</span>
         <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
-      <div class="sol-send-network"><img src="chains/solana.svg" alt="">Solana Devnet · Test SOL</div>
-
       <form id="sol-send-form">
-        <div class="field">
-          <label for="sol-send-to">Recipient</label>
-          <div class="box plain"><input id="sol-send-to" placeholder="Solana wallet address" maxlength="44" spellcheck="false" autocomplete="off" required></div>
+        <div class="recent-to" id="sol-send-recents" hidden>
+          <div class="rt-label">Recents</div>
+          <div class="rt-row" id="sol-send-recent-row"></div>
         </div>
         <div class="field">
-          <div class="label-row"><label for="sol-send-amount">Amount</label><span id="sol-send-available"></span></div>
-          <div class="box amount-box"><input id="sol-send-amount" placeholder="0" inputmode="decimal" autocomplete="off" required><span class="amount-unit">SOL</span></div>
+          <label for="sol-send-to">To</label>
+          <div class="box">
+            <input id="sol-send-to" placeholder="Solana wallet address" spellcheck="false" autocomplete="off" autocapitalize="none" required>
+            <button class="chip" id="sol-send-paste" type="button">Paste</button>
+            <button class="chip scan-chip" id="sol-send-scan" type="button" aria-label="Scan a QR code" title="Scan a QR code"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></button>
+          </div>
+          <div class="check" id="sol-to-check"></div>
         </div>
-        <div class="sol-send-actions"><button class="primary pearl" id="sol-send-quote" type="submit">Review transfer</button></div>
-      </form>
-
-      <form id="sol-send-review" hidden>
-        <div class="summary">
-          <div class="row"><span>To</span><span class="mono" id="sol-review-to"></span></div>
-          <div class="row"><span>Amount</span><span id="sol-review-amount"></span></div>
-          <div class="row"><span>Network fee</span><span id="sol-review-fee"></span></div>
-          <div class="row"><span>Total</span><span id="sol-review-total"></span></div>
+        <div class="field">
+          <div class="label-row"><label for="sol-send-amount">Amount</label><span class="send-available" id="sol-send-available"></span></div>
+          <div class="box amount-box">
+            <input id="sol-send-amount" placeholder="0" inputmode="decimal" autocomplete="off">
+            <span class="amount-unit">SOL</span>
+            <button class="chip" id="sol-send-max" type="button">Max</button>
+          </div>
+          <div class="fee-line" id="sol-fee-line" aria-live="polite"></div>
         </div>
-        <div class="field" id="sol-send-pw-field" hidden>
+        <div class="summary" id="sol-send-summary" hidden>
+          <div class="row"><span>Total</span><span><span class="sm-fee" id="sol-review-fee"></span><span id="sol-review-total"></span></span></div>
+          <div class="row"><span>Balance after</span><span id="sol-review-after"></span></div>
+        </div>
+        <div class="field send-password" id="sol-send-pw-field" hidden>
           <label for="sol-send-pw">Wallet password</label>
           <div class="box plain"><input id="sol-send-pw" type="password" autocomplete="current-password"></div>
         </div>
-        <div class="sol-send-actions">
-          <button class="secondary" id="sol-send-edit" type="button">Edit</button>
-          <button class="primary pearl" id="sol-send-confirm" type="submit">Approve and send</button>
-        </div>
+        <div class="push"></div>
+        <div class="problem" id="sol-send-problem" role="alert" hidden></div>
+        <button class="primary pearl send-confirm" id="sol-send-confirm" type="submit" disabled>Send</button>
       </form>
 
       <div id="sol-send-receipt" hidden>
@@ -4336,7 +4344,6 @@
           <button class="primary pearl" id="sol-send-done" type="button">Done</button>
         </div>
       </div>
-      <div class="problem" id="sol-send-problem" role="alert" hidden></div>
     </section>
 
     <!-- Send: done -->
@@ -7933,21 +7940,36 @@
   };
   function paintDevnetSend(state) {
     const { quote, receipt, busy, needsPassword } = state;
-    $("sol-send-form").hidden = !!(quote || receipt);
-    $("sol-send-review").hidden = !quote || !!receipt;
+    $("sol-send-form").hidden = !!receipt;
     $("sol-send-receipt").hidden = !receipt;
     const available = devnetAssets.balances?.sol;
     $("sol-send-available").textContent = available != null && !prefs.hide ? `${available} SOL available` : "";
-    $("sol-send-to").disabled = $("sol-send-amount").disabled = $("sol-send-quote").disabled = busy;
-    $("sol-send-quote").textContent = busy ? "Checking…" : "Review transfer";
-    $("sol-send-edit").disabled = $("sol-send-confirm").disabled = busy;
-    $("sol-send-confirm").textContent = busy ? "Sending…" : view?.biometric ? `Send with ${bio}` : "Approve and send";
-    $("sol-send-pw-field").hidden = !needsPassword;
+    const to = $("sol-send-to").value.trim();
+    const validShape = solAddressPattern.test(to);
+    const ownAddress = to && to === devnetAssets.address;
+    const check = $("sol-to-check");
+    check.textContent = ownAddress ? "That is this wallet’s own address" : to && !validShape ? "Enter a Solana wallet address." : quote ? "✓ Valid address" : "";
+    check.classList.toggle("ok", !!quote);
+    $("sol-send-to").disabled = $("sol-send-amount").disabled = busy;
+    $("sol-send-paste").disabled = $("sol-send-scan").disabled = $("sol-send-max").disabled = busy;
+    $("sol-send-paste").textContent = validShape ? "Clear" : "Paste";
+    $("sol-send-scan").hidden = validShape;
+    $("sol-send-max").hidden = available === "0";
+    $("sol-send-amount").placeholder = state.max ? "Max" : "0";
+    $("sol-fee-line").textContent = state.checking ? "Checking network fee…" : state.max && !to ? "Enter a recipient to calculate the maximum." : "";
+    $("sol-fee-line").hidden = !!quote;
+    $("sol-send-confirm").disabled = busy || !quote || (needsPassword && !$("sol-send-pw").value);
+    $("sol-send-confirm").textContent = state.submitting ? "Sending…" : view?.biometric && !needsPassword ? `Send with ${bio}` : "Send";
+    $("sol-send-pw-field").hidden = !quote || !needsPassword;
+    $("sol-send-summary").hidden = !quote;
+    for (const button of $("sol-send-recent-row").children) {
+      button.disabled = busy;
+      button.classList.toggle("on", button.dataset.address === to);
+    }
     if (quote) {
-      $("sol-review-to").textContent = quote.recipient;
-      $("sol-review-amount").textContent = `${quote.amount} SOL`;
-      $("sol-review-fee").textContent = `${quote.fee} SOL`;
+      $("sol-review-fee").textContent = `incl. ${quote.fee} fee`;
       $("sol-review-total").textContent = `${quote.total} SOL`;
+      $("sol-review-after").textContent = prefs.hide ? "••••" : `${quote.after} SOL`;
     }
     if (receipt) {
       $("sol-send-status").textContent = devnetSendLabels[receipt.state];
@@ -7974,6 +7996,7 @@
       if (devnetSendActive(state)) {
         if (opening) state.busy = false;
         paintDevnetSend(state);
+        if (opening && !state.receipt && !phone) $("sol-send-to").focus();
         if (devnetSendPending(state.receipt)) setTimeout(() => { void syncDevnetSend(state); }, 3500);
       }
     }
@@ -7987,54 +8010,105 @@
     }
     devnetSend = { owner: view.address, quote: null, receipt: null, busy: true, submitting: false, needsPassword: false };
     $("sol-send-form").reset();
-    $("sol-send-review").reset();
+    $("sol-send-problem").hidden = true;
+    const recipients = (devnetAssets.history?.rows || []).filter(row => row.sent && !row.failed && row.asset === "SOL" && solAddressPattern.test(row.peer || "")).map(row => row.peer);
+    const recent = [...new Set(recipients)].slice(0, 8);
+    $("sol-send-recent-row").innerHTML = recent.map(address => `<button class="rt" type="button" data-address="${address}" title="${address}"><span class="face">${address.slice(0, 2)}</span><span class="rt-name">${short(address)}</span></button>`).join("");
+    $("sol-send-recents").hidden = !recent.length;
     show("solana-send");
     paintDevnetSend(devnetSend);
     void syncDevnetSend(devnetSend, true);
   }
 
+  const solAddressPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  // The native wallet keeps one prepared transfer. Finish earlier requests before
+  // preparing a newer one, even when the send panel closes and opens again.
+  let solQuoteQueue = Promise.resolve();
+  function updateSolQuote() {
+    const state = devnetSend;
+    if (!state || state.busy || !devnetSendActive(state)) return;
+    clearTimeout(state.timer);
+    const revision = state.revision = (state.revision || 0) + 1;
+    const current = () => devnetSendActive(state) && revision === state.revision;
+    state.quote = null;
+    $("sol-send-problem").hidden = true;
+    const to = $("sol-send-to").value.trim();
+    const amount = $("sol-send-amount").value.trim();
+    state.checking = solAddressPattern.test(to) && to !== devnetAssets.address && (state.max || !!amount);
+    paintDevnetSend(state);
+    if (!state.checking) return;
+    state.timer = setTimeout(() => {
+      solQuoteQueue = solQuoteQueue.then(async () => {
+        if (!current()) return;
+        try {
+          const quote = await invoke("solana_devnet_quote", { walletAddress: state.owner, to, amount, maximum: !!state.max });
+          if (!current()) return;
+          state.quote = quote;
+          if (state.max) $("sol-send-amount").value = quote.amount;
+          state.quotedInput = $("sol-send-amount").value.trim();
+          state.needsPassword = !!view?.locked && !view?.biometric;
+        } catch (error) {
+          if (current()) problem("sol-send-problem", String(error));
+        } finally {
+          if (current()) {
+            state.checking = false;
+            paintDevnetSend(state);
+          }
+        }
+      });
+    }, 350);
+  }
+  $("sol-send-to").oninput = updateSolQuote;
+  $("sol-send-amount").oninput = () => {
+    devnetSend.max = false;
+    if (phone && (1.5).toLocaleString().charAt(1) === ",") $("sol-send-amount").value = $("sol-send-amount").value.replace(",", ".");
+    updateSolQuote();
+  };
+  $("sol-send-max").onclick = () => {
+    devnetSend.max = true;
+    $("sol-send-amount").value = "";
+    updateSolQuote();
+    if (!$("sol-send-to").value) $("sol-send-to").focus();
+  };
+  $("sol-send-recent-row").onclick = event => {
+    const pick = event.target.closest("[data-address]");
+    if (!pick) return;
+    $("sol-send-to").value = pick.dataset.address;
+    updateSolQuote();
+    $("sol-send-amount").focus();
+  };
+  async function fillSolRecipient(scan) {
+    const state = devnetSend;
+    try {
+      const clear = !scan && solAddressPattern.test($("sol-send-to").value.trim());
+      const value = clear ? "" : scan ? await scanQr("Point the camera at their Receive QR code") : await navigator.clipboard.readText();
+      if (!devnetSendActive(state) || state.busy || value == null) return;
+      $("sol-send-to").value = value.trim().replace(/^solana:/i, "");
+      updateSolQuote();
+      (solAddressPattern.test($("sol-send-to").value) ? $("sol-send-amount") : $("sol-send-to")).focus();
+    } catch {
+      if (devnetSendActive(state)) $("sol-send-to").focus();
+    }
+  }
+  $("sol-send-paste").onclick = () => fillSolRecipient(false);
+  $("sol-send-scan").onclick = () => fillSolRecipient(true);
+  $("sol-send-pw").oninput = () => paintDevnetSend(devnetSend);
   $("sol-send-form").onsubmit = async (event) => {
     event.preventDefault();
     const state = devnetSend;
-    if (!state || state.busy || !devnetSendActive(state)) return;
-    $("sol-send-problem").hidden = true;
-    state.busy = true;
-    paintDevnetSend(state);
-    try {
-      state.quote = await invoke("solana_devnet_quote", {
-        walletAddress: state.owner, to: $("sol-send-to").value.trim(), amount: $("sol-send-amount").value,
-      });
-      state.needsPassword = !!view?.locked && !view?.biometric;
-    } catch (error) {
-      if (devnetSendActive(state)) problem("sol-send-problem", String(error));
-    } finally {
-      state.busy = false;
-      if (devnetSendActive(state)) {
-        paintDevnetSend(state);
-        if (state.quote) (state.needsPassword ? $("sol-send-pw") : $("sol-send-confirm")).focus();
-      }
+    if (!state?.quote || state.busy || !devnetSendActive(state) || $("sol-send-confirm").disabled) return;
+    if (state.quote.recipient !== $("sol-send-to").value.trim() || state.quotedInput !== $("sol-send-amount").value.trim()) {
+      state.max = false;
+      updateSolQuote();
+      return;
     }
-  };
-
-  $("sol-send-edit").onclick = () => {
-    devnetSend.quote = null;
-    $("sol-send-pw").value = "";
-    $("sol-send-problem").hidden = true;
-    paintDevnetSend(devnetSend);
-    $("sol-send-to").focus();
-  };
-
-  $("sol-send-review").onsubmit = async (event) => {
-    event.preventDefault();
-    const state = devnetSend;
-    if (!state?.quote || state.busy || !devnetSendActive(state)) return;
     $("sol-send-problem").hidden = true;
     const password = $("sol-send-pw").value;
     $("sol-send-pw").value = "";
     state.busy = state.submitting = true;
     paintDevnetSend(state);
     try {
-      if (view.biometric) await invoke("biometric_unlock");
+      if (view.biometric && !password) await invoke("biometric_unlock");
       if (!devnetSendActive(state)) return;
       state.receipt = await invoke("solana_devnet_send", { walletAddress: state.owner, quoteId: state.quote.id, password: password || null });
       state.quote = null;
@@ -8042,9 +8116,8 @@
       const message = String(error);
       if (message === "review: again") state.quote = null;
       if (message === "password: needed" || message === "password: wrong") state.needsPassword = true;
-      if (devnetSendActive(state)) {
-        problem("sol-send-problem", message === "review: again" ? "This review expired. Review the transfer again."
-          : message === "password: wrong" ? "That is not this wallet’s password."
+      if (devnetSendActive(state) && message !== "review: again") {
+        problem("sol-send-problem", message === "password: wrong" ? "That is not this wallet’s password."
           : message === "password: needed" ? "Enter your wallet password to send." : message);
       }
     } finally {
@@ -8052,6 +8125,10 @@
       if (devnetSendActive(state)) {
         paintDevnetSend(state);
         if (state.receipt) void syncDevnetSend(state);
+        else if (!state.quote) {
+          updateSolQuote();
+          problem("sol-send-problem", "The fee quote expired. Check the updated total and press Send again.");
+        }
       }
     }
   };

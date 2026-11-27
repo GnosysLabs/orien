@@ -30,6 +30,7 @@ pub struct DevnetQuote {
     amount: String,
     fee: String,
     total: String,
+    after: String,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -111,10 +112,10 @@ fn prepare(
     path: &Path,
     owner: String,
     to: &str,
-    amount: &str,
+    amount: Option<&str>,
 ) -> Result<DevnetQuote, String> {
     *review = None;
-    let lamports = crate::money::read(amount)?;
+    let requested = amount.map(crate::money::read).transpose()?;
     let recipient = solana::address(to).map_err(|_| "Enter a Solana wallet address.")?;
     if !solana::is_wallet_key(&recipient) {
         return Err("Enter a Solana wallet address.".into());
@@ -131,8 +132,16 @@ fn prepare(
     }
     let balance = network.balance(&payer).map_err(|error| error.to_string())?;
     let (blockhash, last_valid_height) = network.blockhash_lifetime().map_err(|error| error.to_string())?;
-    let instructions = [solana::transfer(&payer, &recipient, lamports)];
-    let fee = network.fee_for_message(&payer, &instructions, blockhash).map_err(|error| error.to_string())?;
+    let fee_for = |units| {
+        let instructions = [solana::transfer(&payer, &recipient, units)];
+        network.fee_for_message(&payer, &instructions, blockhash).map_err(|error| error.to_string())
+    };
+    let lamports = match requested {
+        Some(units) => units,
+        None => balance.checked_sub(fee_for(balance)?).filter(|units| *units > 0)
+            .ok_or("You don’t have enough Devnet SOL to cover the network fee.")?,
+    };
+    let fee = fee_for(lamports)?;
     let total = lamports.checked_add(fee).ok_or("That amount is too large.")?;
     if total > balance {
         return Err("You don’t have enough Devnet SOL for this amount and the network fee.".into());
@@ -145,15 +154,16 @@ fn prepare(
         amount: crate::money::show(lamports.into()),
         fee: crate::money::show(fee.into()),
         total: crate::money::show(total.into()),
+        after: crate::money::show((balance - total).into()),
     })
 }
 
 #[tauri::command]
-pub async fn solana_devnet_quote(app: AppHandle, wallet_address: String, to: String, amount: String) -> Result<DevnetQuote, String> {
+pub async fn solana_devnet_quote(app: AppHandle, wallet_address: String, to: String, amount: String, maximum: Option<bool>) -> Result<DevnetQuote, String> {
     let (dir, path, owner) = active_wallet(&app, &wallet_address)?;
     tauri::async_runtime::spawn_blocking(move || {
         let mut review = REVIEW.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        prepare(&mut review, &Solana::devnet(), &dir, &path, owner, &to, &amount)
+        prepare(&mut review, &Solana::devnet(), &dir, &path, owner, &to, if maximum == Some(true) { None } else { Some(&amount) })
     })
     .await
     .map_err(|error| error.to_string())?
@@ -244,6 +254,7 @@ mod tests {
             let mut message = String::new();
             for expected in [
                 "getAccountInfo", "getBalance", "getLatestBlockhash", "getFeeForMessage",
+                "getAccountInfo", "getBalance", "getLatestBlockhash", "getFeeForMessage", "getFeeForMessage",
                 "isBlockhashValid", "sendTransaction", "getSignatureStatuses",
             ] {
                 let (stream, _) = listener.accept().unwrap();
@@ -297,9 +308,13 @@ mod tests {
         let recipient = solana::text(&Keypair::random().pubkey());
         let network = Solana::with(&[&url], None);
         let mut review = None;
-        let quote = prepare(&mut review, &network, &dir, &path, owner.clone(), &recipient, "1.25").unwrap();
+        let quote = prepare(&mut review, &network, &dir, &path, owner.clone(), &recipient, Some("1.25")).unwrap();
         assert_eq!(quote.fee, "0.000005");
         assert_eq!(quote.total, "1.250005");
+        assert_eq!(quote.after, "0.749995");
+        let quote = prepare(&mut review, &network, &dir, &path, owner.clone(), &recipient, None).unwrap();
+        assert_eq!(quote.amount, "1.999995");
+        assert_eq!(quote.after, "0");
         assert!(approve(&mut review, &network, &dir, &path, &owner, quote.id, None).is_err());
         let sent = approve(&mut review, &network, &dir, &path, &owner, quote.id, Some("fixture-password")).unwrap();
         assert!(sent.state == State::Pending && !sent.acknowledged);
