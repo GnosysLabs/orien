@@ -420,17 +420,15 @@ async fn the_network_posts_orn_mined_new_validators_and_swaps_to_apps_that_know_
     let (_, new) = ask(&app, "GET", "/api/market/community/feed?only=network&kinds=swap,supply,validator", None, None).await;
     let posts = new["posts"].as_array().unwrap();
     let kinds: Vec<&str> = posts.iter().map(|p| p["kind"].as_str().unwrap()).collect();
-    assert_eq!(kinds.iter().filter(|k| **k == "swap").count(), 1, "one post per swap: {kinds:?}");
+    // Finished swaps are no longer posted: they crowded out everything else.
+    assert_eq!(kinds.iter().filter(|k| **k == "swap").count(), 0, "no swap posts: {kinds:?}");
     assert!(kinds.contains(&"supply") && kinds.contains(&"validator"));
-    let swap = posts.iter().find(|p| p["kind"] == "swap").unwrap();
-    assert_eq!((swap["data"]["orn"].as_u64(), swap["data"]["lamports"].as_u64(), swap["data"]["usd"].as_f64()), (Some(500_000_000_000), Some(500_000_000), Some(36.5)));
-    assert!(swap["subject"].is_null() && swap["author"].is_null(), "no names");
     let supply = posts.iter().find(|p| p["kind"] == "supply").unwrap();
     assert_eq!((supply["data"]["orn"].as_u64(), supply["data"]["share"].as_f64()), (Some(500_000), Some(0.5)));
     let validator = posts.iter().find(|p| p["kind"] == "validator").unwrap();
     assert_eq!((validator["data"]["seat"].as_u64(), validator["data"]["seats"].as_u64()), (Some(5), Some(5)));
-    let (_, some) = ask(&app, "GET", "/api/market/community/feed?only=network&kinds=swap", None, None).await;
-    assert!(some["posts"].as_array().unwrap().iter().all(|p| p["kind"] == "swap"), "only the kinds asked for");
+    let (_, some) = ask(&app, "GET", "/api/market/community/feed?only=network&kinds=validator", None, None).await;
+    assert!(some["posts"].as_array().unwrap().iter().all(|p| p["kind"] == "validator"), "only the kinds asked for");
 }
 
 #[tokio::test]

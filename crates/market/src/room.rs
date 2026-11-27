@@ -110,6 +110,13 @@ impl Store {
                  at INTEGER NOT NULL
              );
              -- What moderators did, for the dashboard: remove, ban, lift.
+             -- How far each person has read, on any of their devices: the
+             -- newest message id they've seen.
+             CREATE TABLE IF NOT EXISTS room_reads (
+                 account INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+                 last INTEGER NOT NULL,
+                 at INTEGER NOT NULL
+             );
              CREATE TABLE IF NOT EXISTS room_log (
                  id INTEGER PRIMARY KEY,
                  -- None: done from the dashboard.
@@ -144,6 +151,28 @@ impl Store {
             [id],
         )?;
         Ok(())
+    }
+
+    /// The newest message `account` has read, on any device (0: none).
+    pub fn room_read(&self, account: i64) -> Result<i64> {
+        Ok(self
+            .db
+            .query_row("SELECT last FROM room_reads WHERE account = ?1", params![account], |row| row.get(0))
+            .optional()?
+            .unwrap_or(0))
+    }
+
+    /// Notes that `account` has read up to `id`; never moves back, and
+    /// never past the newest message. Answers how far they have read.
+    pub fn room_mark_read(&self, account: i64, id: i64) -> Result<i64> {
+        let newest: i64 = self.db.query_row("SELECT COALESCE(MAX(id), 0) FROM room_messages", [], |row| row.get(0))?;
+        let id = id.clamp(0, newest);
+        self.db.execute(
+            "INSERT INTO room_reads (account, last, at) VALUES (?1, ?2, ?3)
+             ON CONFLICT(account) DO UPDATE SET last = MAX(last, excluded.last), at = excluded.at",
+            params![account, id, now()],
+        )?;
+        self.room_read(account)
     }
 
     pub fn room_moderator(&self, account: i64) -> Result<bool> {
@@ -667,6 +696,7 @@ pub fn routes() -> Router<Arc<App>> {
         .route("/api/market/room/messages", get(page).post(send))
         .route("/api/market/room/messages/{id}", axum::routing::delete(remove))
         .route("/api/market/room/messages/{id}/react", post(react))
+        .route("/api/market/room/read", post(mark_read))
         .route("/api/market/room/bans", get(bans).post(ban))
         .route("/api/market/room/bans/{account}", axum::routing::delete(lift))
 }
@@ -734,6 +764,18 @@ async fn send(State(app): State<Arc<App>>, headers: HeaderMap, Json(given): Json
         .room_send(author, &given.body, &given.pictures, given.gif.as_ref(), given.reply_to)
         .map_err(refused)?;
     Ok(Json(json!({ "id": id })).into_response())
+}
+
+#[derive(Deserialize)]
+pub struct Read {
+    id: i64,
+}
+
+/// Read up to a message, on one device: the others see it in /me.
+async fn mark_read(State(app): State<Arc<App>>, headers: HeaderMap, Json(given): Json<Read>) -> Result<Response, Failure> {
+    let account = app.signed_in(&headers)?;
+    let read = app.store().room_mark_read(account, given.id)?;
+    Ok(Json(json!({ "read": read })).into_response())
 }
 
 async fn remove(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>) -> Result<Response, Failure> {
@@ -808,6 +850,19 @@ mod tests {
 
     fn ask(after: Option<i64>, before: Option<i64>, limit: Option<usize>, changes: Option<i64>) -> RoomAsk {
         RoomAsk { after, before, limit, changes }
+    }
+
+    #[test]
+    fn reading_is_kept_for_every_device() {
+        let (store, maya, sam, _ana) = people();
+        assert_eq!(store.room_read(sam).unwrap(), 0);
+        let first = store.room_send(maya, "one", &[], None, None).unwrap();
+        let second = store.room_send(maya, "two", &[], None, None).unwrap();
+        assert_eq!(store.room_mark_read(sam, second).unwrap(), second);
+        // An older device catching up never moves it back, nor past the newest.
+        assert_eq!(store.room_mark_read(sam, first).unwrap(), second);
+        assert_eq!(store.room_mark_read(sam, second + 50).unwrap(), second);
+        assert_eq!(store.room_read(maya).unwrap(), 0);
     }
 
     #[test]
