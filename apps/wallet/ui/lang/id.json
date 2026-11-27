@@ -2031,6 +2031,14 @@
     [
       "^(.+) per ORN$",
       "{0} per ORN"
+    ],
+    [
+      "^of your ([0-9.,]+) SOL$",
+      "dari {0} SOL Anda"
+    ],
+    [
+      "^of your ([0-9.,]+) ORN$",
+      "dari {0} ORN Anda"
     ]
   ],
   "_guides": {

@@ -2031,6 +2031,14 @@
     [
       "^(.+) per ORN$",
       "ORN başına {0}"
+    ],
+    [
+      "^of your ([0-9.,]+) SOL$",
+      "{0} SOL'unuzdan"
+    ],
+    [
+      "^of your ([0-9.,]+) ORN$",
+      "{0} ORN'unuzdan"
     ]
   ],
   "_guides": {

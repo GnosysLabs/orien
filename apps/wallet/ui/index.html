@@ -1781,17 +1781,15 @@
   #swaps :is(.ob-asks, .ob-bids) { display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; max-height: 220px; }
   /* Few sell orders still sit right above the price. */
   #swaps .ob-asks > :first-child { margin-top: auto; }
-  /* Share of what you have: five stops on a line. */
-  .ex-pct { position: relative; display: flex; justify-content: space-between; margin: 2px 0; }
-  .ex-pct-line { position: absolute; left: 17px; right: 17px; top: 6px; height: 3px; border-radius: 2px; background: var(--line); }
-  #ex-pct-fill { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--good); transition: width .15s ease; }
-  .ex-pct button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 34px; padding: 0; border: 0; background: none; color: var(--faint);
-    font: inherit; font-size: 11px; font-variant-numeric: tabular-nums; cursor: pointer; }
-  .ex-pct button i { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); transition: border-color .15s, background .15s; }
-  .ex-pct button.on { color: var(--ink); }
-  .ex-pct button.on i { border-color: var(--good); background: var(--good); }
-  #ex-pane-ticket:has(#ex-side-sell.on) #ex-pct-fill { background: var(--bad); }
-  #ex-pane-ticket:has(#ex-side-sell.on) .ex-pct button.on i { border-color: var(--bad); background: var(--bad); }
+  /* Share of what you have: four buttons, and what they're a share of. */
+  .ex-pct { display: flex; align-items: center; gap: 6px; }
+  .ex-pct button { height: 28px; padding: 0 11px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--dim);
+    font: inherit; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; }
+  .ex-pct button:hover { color: var(--ink); }
+  .ex-pct button.on { background: var(--surface-hover); border-color: color-mix(in srgb, var(--ink) 30%, var(--line)); color: var(--ink); }
+  .ex-pct-of { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  /* What you have shows beside the share buttons, not under the boxes. */
+  #ex-pane-ticket :is(#ex-sol-hint, #ex-bal) { display: none; }
   .ex-rate-bar #ex-rate-what:empty { display: none; }
   /* A longer sentence: the price drops under it, at the right, rather than both squeezing. */
   #ex-rate-bar { flex-wrap: wrap; row-gap: 3px; }
@@ -4978,12 +4976,11 @@
                 <div class="ex-under" id="ex-sol-hint">Min 0.01</div>
               </div>
               <div class="ex-pct" id="ex-pct" role="group" aria-label="Share of what you have">
-                <span class="ex-pct-line" aria-hidden="true"><span id="ex-pct-fill"></span></span>
-                <button type="button" data-pct="0"><i></i><span>0%</span></button>
-                <button type="button" data-pct="25"><i></i><span>25%</span></button>
-                <button type="button" data-pct="50"><i></i><span>50%</span></button>
-                <button type="button" data-pct="75"><i></i><span>75%</span></button>
-                <button type="button" data-pct="100"><i></i><span>100%</span></button>
+                <button type="button" data-pct="25">25%</button>
+                <button type="button" data-pct="50">50%</button>
+                <button type="button" data-pct="75">75%</button>
+                <button type="button" data-pct="100">Max</button>
+                <span class="ex-pct-of" id="ex-pct-of"></span>
               </div>
 
               <div class="ex-rate-bar" id="ex-rate-bar">
@@ -11190,8 +11187,13 @@
   // A share of what this wallet has: SOL to spend on a buy, ORN to sell.
   let exPct = null;
   function exPctPaint() {
-    for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.classList.toggle("on", exPct !== null && Number(b.dataset.pct) <= exPct);
-    $("ex-pct-fill").style.width = `${exPct || 0}%`;
+    for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.classList.toggle("on", Number(b.dataset.pct) === exPct);
+    const buy = exSide === "buy";
+    const sol = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
+    const orn = view && view.spendable;
+    $("ex-pct-of").textContent = buy
+      ? (devnetAssets.balances && Number.isFinite(sol) ? `of your ${exPlain(sol, 4)} SOL` : "")
+      : (orn ? `of your ${orn} ORN` : "");
   }
   for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.onclick = () => {
     exPct = Number(b.dataset.pct);
@@ -11493,6 +11495,7 @@
     return Math.max(0, Math.floor((have - ORDER_SOL_FEES) * 1e4) / 1e4);
   }
   function paintExSolHint() {
+    exPctPaint();
     const max = exSide === "buy" ? exSolMax() : null;
     $("ex-sol-hint").textContent = max == null ? "Min 0.01" : `${max.toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL available`;
   }

@@ -2031,6 +2031,14 @@
     [
       "^(.+) per ORN$",
       "{0} mỗi ORN"
+    ],
+    [
+      "^of your ([0-9.,]+) SOL$",
+      "trong {0} SOL của bạn"
+    ],
+    [
+      "^of your ([0-9.,]+) ORN$",
+      "trong {0} ORN của bạn"
     ]
   ],
   "_guides": {
