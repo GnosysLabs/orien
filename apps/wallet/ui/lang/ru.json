@@ -2203,5 +2203,6 @@
   "Your ORN and Solana addresses and balances will be public on your profile.": "Ваши адреса ORN и Solana и их балансы будут видны в вашем публичном профиле.",
   "Less than 0.001 ORN, fee included.": "Меньше 0,001 ORN с учётом комиссии.",
   "No payment needed.": "Оплата не требуется.",
-  "Send only SOL or USDC on Solana to this address.": "Отправляйте на этот адрес только SOL или USDC в сети Solana."
+  "Send only SOL or USDC on Solana to this address.": "Отправляйте на этот адрес только SOL или USDC в сети Solana.",
+  "Your ORN address is linked to your profile, so your Solana address joins it there.": "Ваш адрес ORN привязан к профилю, поэтому адрес Solana тоже добавится туда."
 }

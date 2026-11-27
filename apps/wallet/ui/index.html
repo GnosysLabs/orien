@@ -712,9 +712,7 @@
   #sol-unlock-description { margin: 12px 0 20px; color: var(--dim); line-height: 1.5; }
   #sol-unlock-form { display: grid; gap: 14px; }
   #sol-unlock-form .field, #sol-unlock-form .primary { margin: 0; }
-  #sol-unlock-go, #sol-unlock-link { justify-self: center; width: fit-content; max-width: 100%; }
-  #sol-unlock-form .primary { padding-inline: 28px; }
-  #sol-unlock-link:focus { outline: none; }
+  #sol-unlock-go { justify-self: center; width: fit-content; max-width: 100%; padding-inline: 28px; }
   #sol-link-note { text-align: center; margin: 3px 0 0; }
   #sol-unlock-error { margin: 0; font-size: 14px; }
   #home.asset-devnet :is(#vw-card, #recent, #view-all) { display: none; }
@@ -4959,8 +4957,7 @@
     </div>
     <p id="sol-unlock-error" role="alert" hidden></p>
     <button type="submit" class="primary pearl" id="sol-unlock-go">Unlock Solana</button>
-    <p class="vc-text" id="sol-link-note" hidden>Your ORN address is linked. You can also show your Solana address on the same public profile.</p>
-    <button type="submit" class="pill" id="sol-unlock-link" hidden>Unlock &amp; link Solana</button>
+    <p class="vc-text" id="sol-link-note" hidden>Your ORN address is linked to your profile, so your Solana address joins it there.</p>
   </form>
 </dialog>
 <dialog id="sol-swap-dialog" aria-labelledby="sol-swap-title">
@@ -5726,28 +5723,22 @@
     $("sol-unlock-go").disabled = false;
     const offer = {account: board.me?.id, orn: view.address, state: devnetAssets};
     unlockOffer = offer;
-    $("sol-link-note").hidden = $("sol-unlock-link").hidden = true;
-    $("sol-unlock-link").disabled = false;
+    $("sol-link-note").hidden = true;
     $("sol-unlock-go").textContent = "Unlock Solana";
-    // Plain unlock: the one big button.
-    $("sol-unlock-go").className = "primary pearl";
-    $("sol-unlock-link").className = "pill";
-    $("sol-unlock-go").before($("sol-unlock-error"));
-    $("sol-unlock-go").after($("sol-link-note"), $("sol-unlock-link"));
     solUnlockDialog.showModal();
-    if (offer.account) invoke("board_wallet_states").then(states => {
-      if (unlockOffer !== offer || board.me?.id !== offer.account || view?.address !== offer.orn || !solUnlockDialog.open || offer.state !== devnetAssets || devnetAssets.pending) return;
-      if (states.some(p => p.address === offer.orn && p.verified && !p.solana_devnet)) {
-        $("sol-link-note").hidden = $("sol-unlock-link").hidden = false;
-        $("sol-unlock-go").textContent = "Unlock only";
-        // Linking is what we hope for: it takes the big button, first (and
-        // Return), with the note above it; Unlock only drops to a quiet pill.
-        $("sol-unlock-link").className = "primary pearl";
-        $("sol-unlock-go").className = "pill";
-        $("sol-unlock-link").after($("sol-unlock-go"));
-        $("sol-unlock-link").before($("sol-link-note"));
-      }
-    }).catch(() => {});
+    // A wallet whose ORN address is linked to the account links its Solana
+    // address too, as it unlocks: one wallet, never half linked. The button
+    // waits for the answer, so an unlock never slips in before it.
+    if (offer.account) {
+      $("sol-unlock-go").disabled = true;
+      invoke("board_wallet_states").then(states => {
+        if (unlockOffer !== offer || board.me?.id !== offer.account || view?.address !== offer.orn || !solUnlockDialog.open || offer.state !== devnetAssets || devnetAssets.pending) return;
+        if (states.some(p => p.address === offer.orn && p.verified && !p.solana_devnet)) {
+          offer.link = true;
+          $("sol-link-note").hidden = false;
+        }
+      }).catch(() => {}).finally(() => { if (unlockOffer === offer) $("sol-unlock-go").disabled = false; });
+    }
     (biometric ? $("sol-unlock-go") : $("asset-devnet-password")).focus();
   }
   async function loadDevnetAssets(unlock = false, offer = null) {
@@ -5758,7 +5749,7 @@
     if (unlock) {
       $("asset-devnet-password").value = "";
       $("sol-unlock-error").hidden = true;
-      $("sol-unlock-link").disabled = $("sol-unlock-go").disabled = true;
+      $("sol-unlock-go").disabled = true;
     }
     state.pending = true;
     state.lastCheck = Date.now();
@@ -5814,7 +5805,7 @@
       state.pending = false;
       if (state === devnetAssets && view?.address === wallet.address) {
         paintWalletAsset();
-        $("sol-unlock-link").disabled = $("sol-unlock-go").disabled = false;
+        $("sol-unlock-go").disabled = false;
         if (state.promptUnlock) {
           state.promptUnlock = false;
           showSolUnlock();
@@ -5992,8 +5983,7 @@
   solUnlockDialog.onclose = () => { if (!solUnlockDialog.open) unlockOffer = null; $("asset-devnet-password").value = ""; };
   $("sol-unlock-form").onsubmit = (event) => {
     event.preventDefault();
-    const link = event.submitter === $("sol-unlock-link") && !event.submitter.hidden;
-    void loadDevnetAssets(true, link ? unlockOffer : null);
+    void loadDevnetAssets(true, unlockOffer?.link ? unlockOffer : null);
   };
   $("asset-devnet-refresh").onclick = () => loadDevnetAssets();
   setInterval(refreshVisibleDevnet, DEVNET_REFRESH_MS);

@@ -2203,5 +2203,6 @@
   "Your ORN and Solana addresses and balances will be public on your profile.": "你的 ORN 和 Solana 地址及其余额将在个人资料中公开显示。",
   "Less than 0.001 ORN, fee included.": "含手续费低于 0.001 ORN。",
   "No payment needed.": "无需付款。",
-  "Send only SOL or USDC on Solana to this address.": "请只向此地址发送 Solana 上的 SOL 或 USDC。"
+  "Send only SOL or USDC on Solana to this address.": "请只向此地址发送 Solana 上的 SOL 或 USDC。",
+  "Your ORN address is linked to your profile, so your Solana address joins it there.": "你的 ORN 地址已关联到个人资料，因此你的 Solana 地址也会一并加入。"
 }

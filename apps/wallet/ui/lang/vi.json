@@ -2203,5 +2203,6 @@
   "Your ORN and Solana addresses and balances will be public on your profile.": "Địa chỉ ORN và Solana cùng số dư của bạn sẽ hiển thị công khai trên hồ sơ.",
   "Less than 0.001 ORN, fee included.": "Dưới 0,001 ORN, đã gồm phí.",
   "No payment needed.": "Không cần thanh toán.",
-  "Send only SOL or USDC on Solana to this address.": "Chỉ gửi SOL hoặc USDC trên Solana đến địa chỉ này."
+  "Send only SOL or USDC on Solana to this address.": "Chỉ gửi SOL hoặc USDC trên Solana đến địa chỉ này.",
+  "Your ORN address is linked to your profile, so your Solana address joins it there.": "Địa chỉ ORN của bạn đã liên kết với hồ sơ, nên địa chỉ Solana cũng được thêm vào đó."
 }

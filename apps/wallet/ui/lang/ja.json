@@ -2203,5 +2203,6 @@
   "Your ORN and Solana addresses and balances will be public on your profile.": "ORN と Solana のアドレスと残高がプロフィールで公開されます。",
   "Less than 0.001 ORN, fee included.": "手数料込みで 0.001 ORN 未満です。",
   "No payment needed.": "支払いは不要です。",
-  "Send only SOL or USDC on Solana to this address.": "このアドレスには Solana 上の SOL または USDC のみを送ってください。"
+  "Send only SOL or USDC on Solana to this address.": "このアドレスには Solana 上の SOL または USDC のみを送ってください。",
+  "Your ORN address is linked to your profile, so your Solana address joins it there.": "ORN アドレスはプロフィールにリンク済みのため、Solana アドレスもそこに追加されます。"
 }
