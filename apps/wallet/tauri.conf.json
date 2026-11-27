@@ -22,7 +22,8 @@
           "y": 26
         },
         "minWidth": 719,
-        "minHeight": 730
+        "minHeight": 730,
+        "acceptFirstMouse": true
       }
     ],
     "security": {
