@@ -11494,6 +11494,16 @@
   }
   // More than that: never changed, only warned about, and the button waits.
   function exOverSol() { const max = exSide === "buy" ? exSolMax() : null; return max != null && parseFloat($("ex-sol").value) > max; }
+  // Clicking into a number selects it, so typing replaces it, as trading
+  // apps do. WebKit would drop the selection on the click's mouse-up, so
+  // that one mouse-up is let pass without touching it.
+  for (const id of ["ex-price", "ex-orn", "ex-sol", "ex-spend"]) {
+    const box = $(id);
+    let fresh = false;
+    box.addEventListener("focus", () => { fresh = true; box.select(); });
+    box.addEventListener("mouseup", (e) => { if (fresh) { e.preventDefault(); fresh = false; } });
+    box.addEventListener("blur", () => { fresh = false; });
+  }
   $("ex-price").oninput = () => { exFromPrice(); updateExRate(); };
   $("ex-orn").oninput = () => {
     const price = parseFloat($("ex-price").value), orn = parseFloat($("ex-orn").value);
