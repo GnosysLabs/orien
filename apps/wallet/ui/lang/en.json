@@ -1489,10 +1489,10 @@
   "Buy / Sell": "Buy / Sell",
   "ORN swap": "ORN swap",
   "Recent": "Recent",
-  "Open buys": "Open buys",
-  "Open sells": "Open sells",
   "No finished swaps yet": "No finished swaps yet",
   "No open buy orders": "No open buy orders",
   "No open sell orders": "No open sell orders",
-  "Your history": "Your history"
+  "Your history": "Your history",
+  "Your open buys": "Your open buys",
+  "Your open sells": "Your open sells"
 }

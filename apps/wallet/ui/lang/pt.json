@@ -2268,7 +2268,7 @@
         "Em uma janela grande, clique em <b>Criar ordem</b>; em uma pequena, na aba <b>Comprar / Vender</b>.",
         "Escolha <b>Comprar ORN</b> e digite quantos ORN você quer e o total de SOL que vai pagar.",
         "Clique em <b>Comprar ORN com Touch ID</b>. O SOL é reservado desta carteira na hora.",
-        "Quando um vendedor aceitar a ordem, os ORN chegam sozinhos, mesmo com o Orien Wallet fechado. Para cancelar, clique em <b>Cancelar</b> na ordem em <b>Compras abertas</b> (<b>Suas trocas</b> em uma janela pequena)."
+        "Quando um vendedor aceitar a ordem, os ORN chegam sozinhos, mesmo com o Orien Wallet fechado. Para cancelar, clique em <b>Cancelar</b> na ordem em <b>Suas compras abertas</b> (<b>Suas trocas</b> em uma janela pequena)."
       ]
     }
   },
@@ -2423,10 +2423,10 @@
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Nada encontrado. Pesquise um endereço (64 letras e dígitos, 0-9 e a-f), um número de checkpoint ou o nome de alguém na Orien Network.",
   "ORN swap": "Troca de ORN",
   "Recent": "Recentes",
-  "Open buys": "Compras abertas",
-  "Open sells": "Vendas abertas",
   "No finished swaps yet": "Ainda não há trocas concluídas",
   "No open buy orders": "Nenhuma ordem de compra aberta",
   "No open sell orders": "Nenhuma ordem de venda aberta",
-  "Your history": "Seu histórico"
+  "Your history": "Seu histórico",
+  "Your open buys": "Suas compras abertas",
+  "Your open sells": "Suas vendas abertas"
 }

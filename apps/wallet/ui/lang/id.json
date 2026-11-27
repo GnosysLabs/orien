@@ -2268,7 +2268,7 @@
         "Di jendela besar, klik <b>Buat pesanan</b>; di jendela kecil, klik tab <b>Beli / Jual</b>.",
         "Pilih <b>Beli ORN</b>, lalu ketik berapa ORN yang Anda inginkan dan total SOL yang akan Anda bayar.",
         "Klik <b>Beli ORN dengan Touch ID</b>. SOL langsung disisihkan dari dompet ini.",
-        "Saat penjual mengisinya, ORN tiba dengan sendirinya, bahkan saat Orien Wallet tertutup. Untuk membatalkan, klik <b>Batal</b> pada pesanan itu di <b>Beli terbuka</b> (<b>Penukaran Anda</b> di jendela kecil)."
+        "Saat penjual mengisinya, ORN tiba dengan sendirinya, bahkan saat Orien Wallet tertutup. Untuk membatalkan, klik <b>Batal</b> pada pesanan itu di <b>Beli terbuka kamu</b> (<b>Penukaran Anda</b> di jendela kecil)."
       ]
     }
   },
@@ -2423,10 +2423,10 @@
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Tidak ada yang ditemukan. Cari alamat (64 huruf dan angka, 0-9 dan a-f), nomor checkpoint, atau nama seseorang di Orien Network.",
   "ORN swap": "Tukar ORN",
   "Recent": "Terbaru",
-  "Open buys": "Beli terbuka",
-  "Open sells": "Jual terbuka",
   "No finished swaps yet": "Belum ada tukar yang selesai",
   "No open buy orders": "Tidak ada order beli terbuka",
   "No open sell orders": "Tidak ada order jual terbuka",
-  "Your history": "Riwayat kamu"
+  "Your history": "Riwayat kamu",
+  "Your open buys": "Beli terbuka kamu",
+  "Your open sells": "Jual terbuka kamu"
 }
