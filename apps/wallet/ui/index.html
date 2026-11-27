@@ -2932,7 +2932,11 @@
   .ct-hero .ct-face { width: 84px; height: 84px; font-size: 32px; font-family: "Jost", sans-serif; font-weight: 700; }
   .ct-hero .ct-face:not(:has(img)) { background: var(--pearl); background-size: 300% 100%; animation: drift 24s linear infinite; color: var(--pearl-ink);
     box-shadow: inset 0 1px 0 #ffffffb0, 0 10px 30px #00000040; }
-  .ct-addr { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
+  /* The contact's addresses, each with its network's mark: ORN, and the
+     Solana address linked with it, if any. */
+  .ct-addrs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+  .ct-glyph { display: inline-flex; }
+  .ct-addr { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
     background: transparent; color: var(--dim); font: 12.5px ui-monospace, "SF Mono", monospace; cursor: pointer; transition: background .15s, color .15s; }
   @media (hover: hover) { .ct-addr:hover { background: var(--surface); color: var(--ink); } }
   .ct-addr.copied { color: var(--good); }
@@ -4263,7 +4267,10 @@
       <!-- A saved contact: who they are, their address, and paying them. -->
       <div class="ct-hero" id="ct-hero" hidden>
         <span class="face ct-face" id="ct-face"></span>
-        <button class="ct-addr" id="ct-copy" title="Copy the address"><span id="ct-addr"></span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+        <div class="ct-addrs">
+          <button class="ct-addr" id="ct-copy" title="Copy the ORN address"><span class="ct-glyph" id="ct-orn-glyph"></span><span id="ct-addr"></span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+          <button class="ct-addr" id="ct-sol-copy" title="Copy the Solana address" hidden><span class="ct-glyph" id="ct-sol-glyph"></span><span id="ct-sol-addr"></span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+        </div>
         <button class="primary pearl ct-send" id="ct-send">Send ORN</button>
         <button class="secondary ct-message" id="ct-message" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span>Message</span></button>
       </div>
@@ -9426,6 +9433,13 @@
         $("ct-message").hidden = !(p && p.name);
         $("ct-face").outerHTML = face(contact.address, contact.name).replace('<span class="face">', '<span class="face ct-face" id="ct-face">');
         $("ct-addr").textContent = short(contact.address);
+        $("ct-orn-glyph").innerHTML = walletGlyph("ORN");
+        // The Solana address linked with this wallet on their profile.
+        const linked = p && p.id && ((memberInfo.get(p.id) || {}).wallets || []).find((w) => (w.address || "").toLowerCase() === contact.address);
+        contactSol = linked && linked.solana_devnet || null;
+        $("ct-sol-copy").hidden = !contactSol;
+        if (contactSol) { $("ct-sol-glyph").innerHTML = walletGlyph("SOL"); $("ct-sol-addr").textContent = short(contactSol); }
+        if (p && p.id && !memberInfo.has(p.id)) fetchMember(p.id).then(() => { if (editing === contact.address) paint(); });
       };
       paint();
       profiles.delete(contact.address);
@@ -9482,6 +9496,15 @@
     } catch (error) { problem("contact-problem", error); }
   }
   $("ct-send").onclick = () => { $("c-send").onclick(); };
+  let contactSol = null;
+  $("ct-sol-copy").onclick = async () => {
+    if (!contactSol) return;
+    await navigator.clipboard.writeText(contactSol);
+    $("ct-sol-copy").classList.add("copied");
+    $("ct-sol-addr").textContent = "Copied";
+    feel("success");
+    setTimeout(() => { $("ct-sol-copy").classList.remove("copied"); if (contactSol) $("ct-sol-addr").textContent = short(contactSol); }, 1400);
+  };
   $("ct-copy").onclick = async () => {
     await navigator.clipboard.writeText(editing);
     $("ct-copy").classList.add("copied");
@@ -12553,13 +12576,9 @@
     $("sl-message").hidden = answer.takes_messages === false;
     // Send: to their Market wallet when it's verified, or their first
     // verified wallet; none, no button.
-    const profileWallets = answer.wallets || [];
-    $("sl-sol-wallets").hidden = !profileWallets.length;
-    $("sl-sol-wallets").innerHTML = profileWallets.map(w => {
-      const chip = (address, network) => `<button class="sl-chip sol-profile-chip" type="button" data-network="${network}" data-address="${esc(address)}" title="${esc(address)}"><span>${walletLabel(w.name || "Wallet", network)}</span> · ${esc(short(address))}</button>`;
-      const orn = chip(w.address, "ORN");
-      return w.solana_devnet ? `<div class="sl-wallet-pair">${orn}${chip(w.solana_devnet, "SOL")}</div>` : orn;
-    }).join("");
+    // No wallet addresses on the banner: Send finds people by name.
+    $("sl-sol-wallets").hidden = true;
+    $("sl-sol-wallets").innerHTML = "";
     const verified = (answer.wallets || []).map((w) => ({ address: (w.address || "").toLowerCase(), name: w.name || null }));
     const market = (a.wallet || "").toLowerCase();
     const to = verified.find((w) => w.address === market) || verified[0];
