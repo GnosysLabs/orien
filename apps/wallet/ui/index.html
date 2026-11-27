@@ -3536,6 +3536,8 @@
   body.phone.at-home .hd-right { right: max(16px, env(safe-area-inset-right)); }
   body.phone.at-home #hd-referrals { right: calc(max(16px, env(safe-area-inset-right)) + 42px); }
   body.phone.at-home #hd-referrals:has(+ #hd-notices[hidden]) { right: max(16px, env(safe-area-inset-right)); }
+  /* iPhones and iPads: Referrals lives in Settings, not on Home. */
+  body:is(.phone, .ipad) :is(#go-referrals, #hd-referrals) { display: none !important; }
   body.phone .home-left :is(#go-settings, #go-notices) { display: none; }
   body.phone #swaps, body.phone #swap-sell, body.phone #swap-buy, body.phone #swap-detail, body.phone #mine,
   body.phone #board-signin, body.phone #board-post, body.phone #board-take { margin: -8px -8px 0; padding: 8px 8px 16px; }
