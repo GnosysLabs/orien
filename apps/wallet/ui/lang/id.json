@@ -2003,6 +2003,34 @@
     [
       "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
       "Beli semua {0} ORN, atau sisakan minimal 0.01 SOL dari order."
+    ],
+    [
+      "^Spend \\(([A-Z]+)\\)$",
+      "Belanjakan ({0})"
+    ],
+    [
+      "^≈ ([0-9.,]+) SOL$",
+      "≈ {0} SOL"
+    ],
+    [
+      "^You get about ([0-9.,]+) ORN$",
+      "Anda mendapat sekitar {0} ORN"
+    ],
+    [
+      "^You get ([0-9.,]+) SOL$",
+      "Anda mendapat {0} SOL"
+    ],
+    [
+      "^Sells ([0-9.,]+) ORN for ([0-9.,]+) SOL$",
+      "Menjual {0} ORN seharga {1} SOL"
+    ],
+    [
+      "^([0-9]+) of ([0-9]+) swaps started\\. Another couldn't: (.+)$",
+      "{0} dari {1} swap dimulai. Satu lagi tidak bisa: {2}"
+    ],
+    [
+      "^(.+) per ORN$",
+      "{0} per ORN"
     ]
   ],
   "_guides": {
@@ -2460,5 +2488,15 @@
   "Waits in the order book": "Menunggu di buku order",
   "Click an order to fill in the form": "Klik order untuk mengisi formulir",
   "Share of what you have": "Bagian dari yang Anda punya",
-  "Buy at least 0.01 SOL worth.": "Beli minimal senilai 0.01 SOL."
+  "Buy at least 0.01 SOL worth.": "Beli minimal senilai 0.01 SOL.",
+  "Market order": "Order pasar",
+  "Limit order": "Order limit",
+  "Buyers": "Pembeli",
+  "Sellers": "Penjual",
+  "Enter how much to spend": "Masukkan jumlah yang ingin dibelanjakan",
+  "Enter an amount": "Masukkan jumlah",
+  "Nothing for sale right now": "Tidak ada yang dijual saat ini",
+  "No buy order fits this amount": "Tidak ada order beli yang cocok dengan jumlah ini",
+  "None of these orders could be taken.": "Tidak satu pun order ini bisa diambil.",
+  "Candle length": "Durasi candle"
 }

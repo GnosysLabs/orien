@@ -2003,6 +2003,34 @@
     [
       "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
       "{0} ORN'nin tamamını alın ya da emirde en az 0.01 SOL değerinde bırakın."
+    ],
+    [
+      "^Spend \\(([A-Z]+)\\)$",
+      "Harca ({0})"
+    ],
+    [
+      "^≈ ([0-9.,]+) SOL$",
+      "≈ {0} SOL"
+    ],
+    [
+      "^You get about ([0-9.,]+) ORN$",
+      "Yaklaşık {0} ORN alırsınız"
+    ],
+    [
+      "^You get ([0-9.,]+) SOL$",
+      "{0} SOL alırsınız"
+    ],
+    [
+      "^Sells ([0-9.,]+) ORN for ([0-9.,]+) SOL$",
+      "{0} ORN'yi {1} SOL'a satar"
+    ],
+    [
+      "^([0-9]+) of ([0-9]+) swaps started\\. Another couldn't: (.+)$",
+      "{1} takastan {0} tanesi başladı. Biri başlayamadı: {2}"
+    ],
+    [
+      "^(.+) per ORN$",
+      "ORN başına {0}"
     ]
   ],
   "_guides": {
@@ -2460,5 +2488,15 @@
   "Waits in the order book": "Emir defterinde bekler",
   "Click an order to fill in the form": "Formu doldurmak için bir emre tıklayın",
   "Share of what you have": "Sahip olduğunuzun payı",
-  "Buy at least 0.01 SOL worth.": "En az 0.01 SOL değerinde alın."
+  "Buy at least 0.01 SOL worth.": "En az 0.01 SOL değerinde alın.",
+  "Market order": "Piyasa emri",
+  "Limit order": "Limit emri",
+  "Buyers": "Alıcılar",
+  "Sellers": "Satıcılar",
+  "Enter how much to spend": "Ne kadar harcayacağınızı girin",
+  "Enter an amount": "Miktar girin",
+  "Nothing for sale right now": "Şu anda satışta bir şey yok",
+  "No buy order fits this amount": "Bu miktara uyan alış emri yok",
+  "None of these orders could be taken.": "Bu emirlerin hiçbiri alınamadı.",
+  "Candle length": "Mum süresi"
 }

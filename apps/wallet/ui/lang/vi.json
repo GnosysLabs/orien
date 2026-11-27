@@ -2003,6 +2003,34 @@
     [
       "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
       "Mua hết {0} ORN, hoặc để lại tối thiểu 0.01 SOL của lệnh."
+    ],
+    [
+      "^Spend \\(([A-Z]+)\\)$",
+      "Chi ({0})"
+    ],
+    [
+      "^≈ ([0-9.,]+) SOL$",
+      "≈ {0} SOL"
+    ],
+    [
+      "^You get about ([0-9.,]+) ORN$",
+      "Bạn nhận khoảng {0} ORN"
+    ],
+    [
+      "^You get ([0-9.,]+) SOL$",
+      "Bạn nhận {0} SOL"
+    ],
+    [
+      "^Sells ([0-9.,]+) ORN for ([0-9.,]+) SOL$",
+      "Bán {0} ORN lấy {1} SOL"
+    ],
+    [
+      "^([0-9]+) of ([0-9]+) swaps started\\. Another couldn't: (.+)$",
+      "Đã bắt đầu {0}/{1} giao dịch hoán đổi. Một giao dịch khác không thể: {2}"
+    ],
+    [
+      "^(.+) per ORN$",
+      "{0} mỗi ORN"
     ]
   ],
   "_guides": {
@@ -2460,5 +2488,15 @@
   "Waits in the order book": "Chờ trong sổ lệnh",
   "Click an order to fill in the form": "Nhấn vào một lệnh để điền biểu mẫu",
   "Share of what you have": "Phần trên số bạn có",
-  "Buy at least 0.01 SOL worth.": "Mua tối thiểu 0.01 SOL."
+  "Buy at least 0.01 SOL worth.": "Mua tối thiểu 0.01 SOL.",
+  "Market order": "Lệnh thị trường",
+  "Limit order": "Lệnh giới hạn",
+  "Buyers": "Người mua",
+  "Sellers": "Người bán",
+  "Enter how much to spend": "Nhập số tiền muốn chi",
+  "Enter an amount": "Nhập số lượng",
+  "Nothing for sale right now": "Hiện không có gì để bán",
+  "No buy order fits this amount": "Không có lệnh mua nào khớp số lượng này",
+  "None of these orders could be taken.": "Không thể nhận lệnh nào trong số này.",
+  "Candle length": "Độ dài nến"
 }

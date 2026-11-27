@@ -2003,6 +2003,34 @@
     [
       "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
       "{0} ORN すべてを購入するか、注文に 0.01 SOL 分以上を残してください。"
+    ],
+    [
+      "^Spend \\(([A-Z]+)\\)$",
+      "支払い ({0})"
+    ],
+    [
+      "^≈ ([0-9.,]+) SOL$",
+      "≈ {0} SOL"
+    ],
+    [
+      "^You get about ([0-9.,]+) ORN$",
+      "約 {0} ORN を受け取ります"
+    ],
+    [
+      "^You get ([0-9.,]+) SOL$",
+      "{0} SOL を受け取ります"
+    ],
+    [
+      "^Sells ([0-9.,]+) ORN for ([0-9.,]+) SOL$",
+      "{0} ORN を {1} SOL で売却"
+    ],
+    [
+      "^([0-9]+) of ([0-9]+) swaps started\\. Another couldn't: (.+)$",
+      "{1} 件中 {0} 件のスワップを開始しました。開始できなかったもの: {2}"
+    ],
+    [
+      "^(.+) per ORN$",
+      "1 ORN あたり {0}"
     ]
   ],
   "_guides": {
@@ -2460,5 +2488,15 @@
   "Waits in the order book": "板で待機",
   "Click an order to fill in the form": "注文をクリックするとフォームに入力されます",
   "Share of what you have": "保有分の割合",
-  "Buy at least 0.01 SOL worth.": "0.01 SOL 分以上購入してください。"
+  "Buy at least 0.01 SOL worth.": "0.01 SOL 分以上購入してください。",
+  "Market order": "成行注文",
+  "Limit order": "指値注文",
+  "Buyers": "買い手",
+  "Sellers": "売り手",
+  "Enter how much to spend": "使う金額を入力",
+  "Enter an amount": "数量を入力",
+  "Nothing for sale right now": "現在売りに出ているものはありません",
+  "No buy order fits this amount": "この数量に合う買い注文はありません",
+  "None of these orders could be taken.": "これらの注文はどれも受けられませんでした。",
+  "Candle length": "ローソク足の期間"
 }

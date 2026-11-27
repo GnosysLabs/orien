@@ -1502,5 +1502,15 @@
   "Waits in the order book": "Waits in the order book",
   "Click an order to fill in the form": "Click an order to fill in the form",
   "Share of what you have": "Share of what you have",
-  "Buy at least 0.01 SOL worth.": "Buy at least 0.01 SOL worth."
+  "Buy at least 0.01 SOL worth.": "Buy at least 0.01 SOL worth.",
+  "Market order": "Market order",
+  "Limit order": "Limit order",
+  "Buyers": "Buyers",
+  "Sellers": "Sellers",
+  "Enter how much to spend": "Enter how much to spend",
+  "Enter an amount": "Enter an amount",
+  "Nothing for sale right now": "Nothing for sale right now",
+  "No buy order fits this amount": "No buy order fits this amount",
+  "None of these orders could be taken.": "None of these orders could be taken.",
+  "Candle length": "Candle length"
 }

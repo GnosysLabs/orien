@@ -2003,6 +2003,34 @@
     [
       "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
       "Koop alle {0} ORN, of laat minstens 0,01 SOL van de order over."
+    ],
+    [
+      "^Spend \\(([A-Z]+)\\)$",
+      "Uitgeven ({0})"
+    ],
+    [
+      "^≈ ([0-9.,]+) SOL$",
+      "≈ {0} SOL"
+    ],
+    [
+      "^You get about ([0-9.,]+) ORN$",
+      "Je krijgt ongeveer {0} ORN"
+    ],
+    [
+      "^You get ([0-9.,]+) SOL$",
+      "Je krijgt {0} SOL"
+    ],
+    [
+      "^Sells ([0-9.,]+) ORN for ([0-9.,]+) SOL$",
+      "Verkoopt {0} ORN voor {1} SOL"
+    ],
+    [
+      "^([0-9]+) of ([0-9]+) swaps started\\. Another couldn't: (.+)$",
+      "{0} van {1} swaps gestart. Een andere niet: {2}"
+    ],
+    [
+      "^(.+) per ORN$",
+      "{0} per ORN"
     ]
   ],
   "_guides": {
@@ -2460,5 +2488,15 @@
   "Waits in the order book": "Wacht in het orderboek",
   "Click an order to fill in the form": "Klik op een order om het formulier in te vullen",
   "Share of what you have": "Deel van wat je hebt",
-  "Buy at least 0.01 SOL worth.": "Koop voor minstens 0,01 SOL."
+  "Buy at least 0.01 SOL worth.": "Koop voor minstens 0,01 SOL.",
+  "Market order": "Marktorder",
+  "Limit order": "Limietorder",
+  "Buyers": "Kopers",
+  "Sellers": "Verkopers",
+  "Enter how much to spend": "Vul in hoeveel je wilt uitgeven",
+  "Enter an amount": "Vul een hoeveelheid in",
+  "Nothing for sale right now": "Er wordt nu niets verkocht",
+  "No buy order fits this amount": "Geen kooporder past bij deze hoeveelheid",
+  "None of these orders could be taken.": "Geen van deze orders kon worden genomen.",
+  "Candle length": "Kaarslengte"
 }

@@ -29,6 +29,8 @@ pub const QUIET_SECONDS: u64 = 5 * 60;
 pub const MAX_OFFERS: i64 = 5;
 /// Lapses in a week after which an account may not take offers for a week.
 pub const LAPSES_ALLOWED: i64 = 2;
+/// Sell offers one buyer may have taken and under way at once.
+pub const MAX_TAKES: i64 = 5;
 const WEEK: u64 = 7 * 24 * 3600;
 /// The smallest swap, as the wallet allows on a quiet Bitcoin day. On a
 /// busy one the wallet asks for more before anyone pays.
@@ -543,8 +545,10 @@ impl Store {
             [buyer],
             |r| r.get(0),
         )?;
-        if busy > 0 {
-            bail!("finish the swap you have under way before taking another");
+        // A market buy fills from several sellers at once, each a swap of
+        // its own; a few at a time, so no one can hold the whole board.
+        if busy >= MAX_TAKES {
+            bail!("you have {MAX_TAKES} swaps under way already: let one finish before taking another");
         }
         let Some(offer) = self.swap_offer(id)? else { bail!("there is no such offer") };
         if offer.side != "sell" {
@@ -1099,7 +1103,14 @@ mod tests {
         let (store, maya, sam) = board();
         let first = store.post_swap(maya, 1, MIN_SATS).unwrap().id;
         store.take_swap(sam, first, SAM_WALLET).unwrap();
-        assert!(store.take_swap(sam, store.post_swap(maya, 2, MIN_SATS).unwrap().id, SAM_WALLET).is_err(), "one at a time");
+        for n in 1..MAX_TAKES {
+            store.take_swap(sam, store.post_swap(maya, 2 + n as u64, MIN_SATS).unwrap().id, SAM_WALLET).unwrap();
+        }
+        let sixth = store.create_account("Tess", "tess").unwrap().id;
+        let extra = store.post_swap(sixth, 9, MIN_SATS).unwrap().id;
+        assert!(store.take_swap(sam, extra, SAM_WALLET).is_err(), "a few at a time");
+        store.db.execute("UPDATE swap_offers SET due = 1 WHERE taker = ?1 AND id != ?2", params![sam, first]).unwrap();
+        store.lapse_swaps().unwrap();
         // The seller's wallet never came: the hold lapses, the buyer is not blamed.
         store.db.execute("UPDATE swap_offers SET due = 1 WHERE taker = ?1", [sam]).unwrap();
         store.lapse_swaps().unwrap();

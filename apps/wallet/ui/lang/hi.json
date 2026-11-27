@@ -2003,6 +2003,34 @@
     [
       "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
       "सभी {0} ORN खरीदें, या ऑर्डर का कम से कम 0.01 SOL छोड़ें।"
+    ],
+    [
+      "^Spend \\(([A-Z]+)\\)$",
+      "खर्च ({0})"
+    ],
+    [
+      "^≈ ([0-9.,]+) SOL$",
+      "≈ {0} SOL"
+    ],
+    [
+      "^You get about ([0-9.,]+) ORN$",
+      "आपको लगभग {0} ORN मिलते हैं"
+    ],
+    [
+      "^You get ([0-9.,]+) SOL$",
+      "आपको {0} SOL मिलते हैं"
+    ],
+    [
+      "^Sells ([0-9.,]+) ORN for ([0-9.,]+) SOL$",
+      "{0} ORN को {1} SOL में बेचता है"
+    ],
+    [
+      "^([0-9]+) of ([0-9]+) swaps started\\. Another couldn't: (.+)$",
+      "{1} में से {0} स्वैप शुरू हुए। एक और नहीं हो सका: {2}"
+    ],
+    [
+      "^(.+) per ORN$",
+      "{0} प्रति ORN"
     ]
   ],
   "_guides": {
@@ -2460,5 +2488,15 @@
   "Waits in the order book": "ऑर्डर बुक में इंतज़ार करता है",
   "Click an order to fill in the form": "फ़ॉर्म भरने के लिए किसी ऑर्डर पर क्लिक करें",
   "Share of what you have": "आपके पास जो है उसका हिस्सा",
-  "Buy at least 0.01 SOL worth.": "कम से कम 0.01 SOL का खरीदें।"
+  "Buy at least 0.01 SOL worth.": "कम से कम 0.01 SOL का खरीदें।",
+  "Market order": "मार्केट ऑर्डर",
+  "Limit order": "लिमिट ऑर्डर",
+  "Buyers": "खरीदार",
+  "Sellers": "विक्रेता",
+  "Enter how much to spend": "कितना खर्च करना है डालें",
+  "Enter an amount": "मात्रा डालें",
+  "Nothing for sale right now": "अभी कुछ बिक्री पर नहीं है",
+  "No buy order fits this amount": "कोई खरीद ऑर्डर इस मात्रा में फिट नहीं होता",
+  "None of these orders could be taken.": "इनमें से कोई ऑर्डर नहीं लिया जा सका।",
+  "Candle length": "कैंडल की अवधि"
 }

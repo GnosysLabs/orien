@@ -2003,6 +2003,34 @@
     [
       "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
       "{0} ORN을 모두 사거나, 주문에 최소 0.01 SOL어치를 남겨 두세요."
+    ],
+    [
+      "^Spend \\(([A-Z]+)\\)$",
+      "지출 ({0})"
+    ],
+    [
+      "^≈ ([0-9.,]+) SOL$",
+      "≈ {0} SOL"
+    ],
+    [
+      "^You get about ([0-9.,]+) ORN$",
+      "약 {0} ORN을 받습니다"
+    ],
+    [
+      "^You get ([0-9.,]+) SOL$",
+      "{0} SOL을 받습니다"
+    ],
+    [
+      "^Sells ([0-9.,]+) ORN for ([0-9.,]+) SOL$",
+      "{0} ORN을 {1} SOL에 판매"
+    ],
+    [
+      "^([0-9]+) of ([0-9]+) swaps started\\. Another couldn't: (.+)$",
+      "{1}건 중 {0}건의 스왑이 시작되었습니다. 시작하지 못한 것: {2}"
+    ],
+    [
+      "^(.+) per ORN$",
+      "ORN당 {0}"
     ]
   ],
   "_guides": {
@@ -2460,5 +2488,15 @@
   "Waits in the order book": "호가창에서 대기",
   "Click an order to fill in the form": "주문을 클릭하면 양식이 채워집니다",
   "Share of what you have": "보유량 중 비율",
-  "Buy at least 0.01 SOL worth.": "최소 0.01 SOL어치를 구매하세요."
+  "Buy at least 0.01 SOL worth.": "최소 0.01 SOL어치를 구매하세요.",
+  "Market order": "시장가 주문",
+  "Limit order": "지정가 주문",
+  "Buyers": "구매자",
+  "Sellers": "판매자",
+  "Enter how much to spend": "얼마를 쓸지 입력하세요",
+  "Enter an amount": "수량을 입력하세요",
+  "Nothing for sale right now": "지금 판매 중인 것이 없습니다",
+  "No buy order fits this amount": "이 수량에 맞는 매수 주문이 없습니다",
+  "None of these orders could be taken.": "이 주문 중 어느 것도 받을 수 없었습니다.",
+  "Candle length": "캔들 기간"
 }

@@ -2003,6 +2003,34 @@
     [
       "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
       "Achetez les {0} ORN, ou laissez au moins 0,01 SOL de l'ordre."
+    ],
+    [
+      "^Spend \\(([A-Z]+)\\)$",
+      "Dépenser ({0})"
+    ],
+    [
+      "^≈ ([0-9.,]+) SOL$",
+      "≈ {0} SOL"
+    ],
+    [
+      "^You get about ([0-9.,]+) ORN$",
+      "Vous recevez environ {0} ORN"
+    ],
+    [
+      "^You get ([0-9.,]+) SOL$",
+      "Vous recevez {0} SOL"
+    ],
+    [
+      "^Sells ([0-9.,]+) ORN for ([0-9.,]+) SOL$",
+      "Vend {0} ORN pour {1} SOL"
+    ],
+    [
+      "^([0-9]+) of ([0-9]+) swaps started\\. Another couldn't: (.+)$",
+      "{0} échanges sur {1} lancés. Un autre n'a pas pu : {2}"
+    ],
+    [
+      "^(.+) per ORN$",
+      "{0} par ORN"
     ]
   ],
   "_guides": {
@@ -2460,5 +2488,15 @@
   "Waits in the order book": "Attend dans le carnet d'ordres",
   "Click an order to fill in the form": "Cliquez sur un ordre pour remplir le formulaire",
   "Share of what you have": "Part de ce que vous avez",
-  "Buy at least 0.01 SOL worth.": "Achetez pour au moins 0,01 SOL."
+  "Buy at least 0.01 SOL worth.": "Achetez pour au moins 0,01 SOL.",
+  "Market order": "Ordre au marché",
+  "Limit order": "Ordre à cours limité",
+  "Buyers": "Acheteurs",
+  "Sellers": "Vendeurs",
+  "Enter how much to spend": "Saisissez combien dépenser",
+  "Enter an amount": "Saisissez un montant",
+  "Nothing for sale right now": "Rien à vendre pour l'instant",
+  "No buy order fits this amount": "Aucun ordre d'achat ne correspond à ce montant",
+  "None of these orders could be taken.": "Aucun de ces ordres n'a pu être pris.",
+  "Candle length": "Durée des bougies"
 }

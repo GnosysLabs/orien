@@ -2003,6 +2003,34 @@
     [
       "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
       "買下全部 {0} ORN，或在訂單中留下至少價值 0.01 SOL。"
+    ],
+    [
+      "^Spend \\(([A-Z]+)\\)$",
+      "花費 ({0})"
+    ],
+    [
+      "^≈ ([0-9.,]+) SOL$",
+      "≈ {0} SOL"
+    ],
+    [
+      "^You get about ([0-9.,]+) ORN$",
+      "你將收到約 {0} ORN"
+    ],
+    [
+      "^You get ([0-9.,]+) SOL$",
+      "你將收到 {0} SOL"
+    ],
+    [
+      "^Sells ([0-9.,]+) ORN for ([0-9.,]+) SOL$",
+      "以 {1} SOL 賣出 {0} ORN"
+    ],
+    [
+      "^([0-9]+) of ([0-9]+) swaps started\\. Another couldn't: (.+)$",
+      "已開始 {1} 筆中的 {0} 筆兌換。另一筆無法開始：{2}"
+    ],
+    [
+      "^(.+) per ORN$",
+      "每 ORN {0}"
     ]
   ],
   "_guides": {
@@ -2460,5 +2488,15 @@
   "Waits in the order book": "在掛單簿中等待",
   "Click an order to fill in the form": "點擊訂單即可填入表單",
   "Share of what you have": "持有量的比例",
-  "Buy at least 0.01 SOL worth.": "至少買入價值 0.01 SOL。"
+  "Buy at least 0.01 SOL worth.": "至少買入價值 0.01 SOL。",
+  "Market order": "市價單",
+  "Limit order": "限價單",
+  "Buyers": "買家",
+  "Sellers": "賣家",
+  "Enter how much to spend": "輸入要花費的金額",
+  "Enter an amount": "輸入數量",
+  "Nothing for sale right now": "目前沒有出售的",
+  "No buy order fits this amount": "沒有符合此數量的買單",
+  "None of these orders could be taken.": "這些訂單都無法成交。",
+  "Candle length": "K 線週期"
 }

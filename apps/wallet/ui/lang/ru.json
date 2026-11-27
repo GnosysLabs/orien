@@ -2003,6 +2003,34 @@
     [
       "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
       "Купите все {0} ORN или оставьте в заявке минимум на 0.01 SOL."
+    ],
+    [
+      "^Spend \\(([A-Z]+)\\)$",
+      "Потратить ({0})"
+    ],
+    [
+      "^≈ ([0-9.,]+) SOL$",
+      "≈ {0} SOL"
+    ],
+    [
+      "^You get about ([0-9.,]+) ORN$",
+      "Вы получите около {0} ORN"
+    ],
+    [
+      "^You get ([0-9.,]+) SOL$",
+      "Вы получите {0} SOL"
+    ],
+    [
+      "^Sells ([0-9.,]+) ORN for ([0-9.,]+) SOL$",
+      "Продаёт {0} ORN за {1} SOL"
+    ],
+    [
+      "^([0-9]+) of ([0-9]+) swaps started\\. Another couldn't: (.+)$",
+      "Запущено {0} из {1} обменов. Ещё один не удалось: {2}"
+    ],
+    [
+      "^(.+) per ORN$",
+      "{0} за ORN"
     ]
   ],
   "_guides": {
@@ -2460,5 +2488,15 @@
   "Waits in the order book": "Ждёт в стакане",
   "Click an order to fill in the form": "Нажмите на заявку, чтобы заполнить форму",
   "Share of what you have": "Доля от того, что у вас есть",
-  "Buy at least 0.01 SOL worth.": "Покупайте минимум на 0.01 SOL."
+  "Buy at least 0.01 SOL worth.": "Покупайте минимум на 0.01 SOL.",
+  "Market order": "Рыночная заявка",
+  "Limit order": "Лимитная заявка",
+  "Buyers": "Покупатели",
+  "Sellers": "Продавцы",
+  "Enter how much to spend": "Введите, сколько потратить",
+  "Enter an amount": "Введите количество",
+  "Nothing for sale right now": "Сейчас ничего не продаётся",
+  "No buy order fits this amount": "Нет заявки на покупку под это количество",
+  "None of these orders could be taken.": "Ни одну из этих заявок не удалось принять.",
+  "Candle length": "Период свечи"
 }

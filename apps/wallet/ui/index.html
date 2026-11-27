@@ -1683,7 +1683,31 @@
   #swaps .ex-panel { border-radius: 22px; }
   /* No price chart: with this little trading it says nothing yet. The last
      trade and the book's prices are on the price card. */
-  #ex-pane-chart { display: none !important; }
+  /* The price chart: big windows only, beside the form. */
+  @media (max-width: 859px) { #ex-pane-chart { display: none !important; } }
+  body.phone #ex-pane-chart { display: none !important; }
+  .ex-chart-head { display: flex; align-items: baseline; gap: 10px; min-width: 0; overflow: hidden; white-space: nowrap; }
+  .ex-chart-head b { font-size: 14px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #ex-chart-chg { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--dim); }
+  #ex-chart-chg.up { color: var(--good); } #ex-chart-chg.down { color: var(--bad); }
+  .ex-chart-ohlc { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+  .ex-tf button { height: 22px; padding: 0 9px; font-size: 11.5px; }
+  #swaps #ex-pane-chart .ex-chart-body { flex: 1; min-height: 0; padding: 0; display: block; overflow: hidden; }
+  .exc { display: block; }
+  .exc-grid { stroke: var(--line); stroke-width: 1; opacity: .6; }
+  .exc-axis { fill: var(--faint); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+  .exc-wick { stroke-width: 1; }
+  .exc-wick.up, .exc-body.up { stroke: var(--good); fill: var(--good); }
+  .exc-wick.down, .exc-body.down { stroke: var(--bad); fill: var(--bad); }
+  .exc-wick.flat, .exc-body.flat { stroke: var(--dim); fill: var(--dim); }
+  .exc-vol { opacity: .28; }
+  .exc-vol.up { fill: var(--good); } .exc-vol.down { fill: var(--bad); } .exc-vol.flat { fill: var(--dim); }
+  .exc-last { stroke-width: 1; stroke-dasharray: 3 3; opacity: .7; }
+  .exc-last.up { stroke: var(--good); } .exc-last.down { stroke: var(--bad); } .exc-last.flat { stroke: var(--dim); }
+  .exc-tag.up { fill: var(--good); } .exc-tag.down { fill: var(--bad); } .exc-tag.flat { fill: var(--dim); }
+  .exc-tag-t { fill: var(--ground-deep); font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .exc-cross { stroke: var(--dim); stroke-width: 1; stroke-dasharray: 2 3; }
+  .exc-hit { fill: transparent; cursor: crosshair; }
   /* Your orders and Recent trades switch like USD / SOL does. */
   #swaps .ex-deck-tabs { display: inline-flex; gap: 3px; padding: 3px; border-radius: 10px; background: var(--ground-deep); border: 1px solid var(--line); }
   #swaps .ex-deck-tab { height: 26px; padding: 0 11px; border: 0; border-radius: 7px; background: transparent; color: var(--dim); font-size: 11.5px; font-weight: 600; }
@@ -1779,6 +1803,15 @@
   #ex-pane-ticket:has(#ex-side-sell.on) #ex-pct-fill { background: var(--bad); }
   #ex-pane-ticket:has(#ex-side-sell.on) .ex-pct button.on i { border-color: var(--bad); background: var(--bad); }
   .ex-rate-bar #ex-rate-what:empty { display: none; }
+  /* A longer sentence: the price drops under it, at the right, rather than both squeezing. */
+  #ex-rate-bar { flex-wrap: wrap; row-gap: 3px; }
+  #ex-rate-bar #ex-rate-val { margin-left: auto; white-space: nowrap; }
+  #ex-rate-bar #ex-rate-what:empty + #ex-rate-val { margin-left: 0; }
+  /* Market or Limit: two quiet tabs under Buy / Sell. */
+  .ex-kinds { display: flex; gap: 22px; padding: 0 4px; border-bottom: 1px solid var(--line); }
+  .ex-kinds button { position: relative; padding: 4px 0 10px; border: 0; background: none; color: var(--dim); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .ex-kinds button.on { color: var(--ink); }
+  .ex-kinds button.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; border-radius: 2px; background: var(--ink); }
   #swaps :is(.ob-asks, .ob-bids) > * { flex: none; }
   /* Price, Amount and Total: the name inside the box on the left, the
      number on the right, as on an exchange. */
@@ -1823,13 +1856,27 @@
     body:not(.phone) #swaps > .ex-grid { flex: 1; min-height: 0; align-items: stretch; }
     body:not(.phone) #swaps .ex-col { min-height: 0; }
     body:not(.phone) #swaps #ex-pane-deck, body:not(.phone) #swaps #tab-offers { flex: 1 1 0; min-height: 0; }
-    body:not(.phone) #swaps #tab-offers { flex-grow: 2.2; }
+    body:not(.phone) #swaps #ex-pane-chart { display: flex; flex: 0.86 1 0; min-height: 0; }
+    /* Slim panel headings: one short line, so the panels get the room. */
+    body:not(.phone) #swaps .ex-phead { padding: 9px 16px; min-height: 42px; }
+    body:not(.phone) #swaps .ex-phead h3 { font-size: 13.5px; }
+    body:not(.phone) #swaps .ex-phead .ex-psub { display: none; }
+    body:not(.phone) #swaps #ex-pane-ticket > .ex-phead { display: none; }
+    body:not(.phone) #swaps .ex-deck-head { padding: 7px 12px; }
+    body:not(.phone) #swaps .ex-deck-tab { height: 28px; }
     body:not(.phone) #swaps #ex-pane-ticket #ex-ticket-sub { display: none; }
-    body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { gap: 14px; padding-top: 16px; }
-    body:not(.phone) #swaps #ex-pane-ticket { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { gap: 10px; padding: 14px 16px 16px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-side { height: 32px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-field .box, body:not(.phone) #swaps #ex-pane-ticket .ex-field.ex-in label { height: 38px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-under { margin-top: 4px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-rate-bar { padding-block: 7px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-go { height: 40px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-kinds button { padding-bottom: 8px; }
+    /* The form as tall as it needs; the order book keeps at least a few rows,
+       the form scrolling inside itself in a short window. */
+    body:not(.phone) #swaps #ex-pane-ticket { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+    body:not(.phone) #swaps #tab-offers { min-height: 170px; }
     body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { flex: 1; justify-content: flex-start; }
-    /* The fields at the top; what Buy or Sell will do, and the button, at the foot. */
-    body:not(.phone) #swaps #ex-pane-ticket .ex-rate-bar { margin-top: auto; }
     body:not(.phone) #swaps #ex-pane-ticket .ex-note { display: none; }
     body:not(.phone) #swaps #board-offers { display: flex; flex-direction: column; overflow: hidden; }
     body:not(.phone) #swaps :is(.ob-asks, .ob-bids) { flex: 1 1 0; min-height: 0; }
@@ -4815,31 +4862,15 @@
 
       <!-- Two-column Exchange Terminal -->
       <div class="ex-grid">
-        <!-- Left column: the order book, and your orders and swaps under it -->
+        <!-- Left column: the price chart, and your orders and swaps under it -->
         <div class="ex-col">
-          <div class="ex-panel" id="tab-offers" data-ex-pane="offers">
-            <div class="ex-phead">
-              <div>
-                <h3>Order book</h3>
-                <div class="ex-psub">Click an order to fill in the form</div>
-              </div>
-              <span class="ex-pill-count" id="ex-ob-count">0 open</span>
-            </div>
-            <span id="board-btc" hidden></span>
-            <button id="board-post-go" hidden></button>
-            <div id="board-offers"><div class="empty">Loading order book…</div></div>
-            <div class="problem" id="board-problem" hidden></div>
-          </div>
-
           <div class="ex-panel" id="ex-pane-chart" data-ex-pane="history">
             <div class="ex-phead">
-              <div>
-                <h3>ORN / SOL price chart</h3>
-                <div class="ex-psub" id="ex-chart-sub">Completed swap prices over time</div>
-              </div>
-              <div class="ex-seg" role="group" aria-label="Chart currency">
-                <button type="button" class="on" id="ex-chart-usd">USD</button>
-                <button type="button" id="ex-chart-sol">SOL</button>
+              <div class="ex-chart-head"><h3>ORN / SOL</h3><b id="ex-chart-last" data-no-i18n></b><span id="ex-chart-chg" data-no-i18n></span><span class="ex-chart-ohlc" id="ex-chart-ohlc" data-no-i18n></span></div>
+              <div class="ex-seg ex-tf" role="group" aria-label="Candle length">
+                <button type="button" data-tf="1h">1H</button>
+                <button type="button" data-tf="4h">4H</button>
+                <button type="button" data-tf="1d">1D</button>
               </div>
             </div>
             <div class="ex-chart-body" id="ex-chart-body">
@@ -4869,7 +4900,7 @@
           </div>
         </div>
 
-        <!-- Right column: the order form -->
+        <!-- Right column: the order form, and the order book under it -->
         <div class="ex-col">
           <div class="ex-panel" id="ex-pane-ticket" data-ex-pane="trade" hidden>
             <div class="ex-phead"><button class="pop-x ex-order-x" id="ex-order-x" aria-label="Close" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
@@ -4883,6 +4914,10 @@
                 <button type="button" class="ex-side on buy" id="ex-side-buy" role="tab">Buy ORN</button>
                 <button type="button" class="ex-side sell" id="ex-side-sell" role="tab">Sell ORN</button>
               </div>
+              <div class="ex-kinds" role="tablist">
+                <button type="button" class="on" id="ex-kind-market" role="tab">Market order</button>
+                <button type="button" id="ex-kind-limit" role="tab">Limit order</button>
+              </div>
 
               <div class="ex-verify" id="ex-verify" hidden>
                 <strong>Link this wallet to place sell orders</strong>
@@ -4890,6 +4925,11 @@
                 <button type="button" class="pill pearl" id="ex-verify-go">Link this wallet</button>
               </div>
 
+              <div class="ex-field ex-in" id="ex-spend-field">
+                <label for="ex-spend"><em id="ex-spend-label">Spend (SOL)</em></label>
+                <div class="box plain"><input id="ex-spend" placeholder="20" inputmode="decimal" autocomplete="off"></div>
+                <div class="ex-under" id="ex-spend-hint"></div>
+              </div>
               <div class="ex-field ex-in">
                 <label for="ex-price"><em id="ex-price-label">Price per ORN (SOL)</em></label>
                 <div class="box plain"><input id="ex-price" placeholder="0.0001" inputmode="decimal" autocomplete="off"></div>
@@ -4934,6 +4974,20 @@
               <button type="button" class="ex-go buy" id="ex-go">Place Buy Order</button>
               <p class="ex-note" id="ex-note"></p>
             </div>
+          </div>
+
+          <div class="ex-panel" id="tab-offers" data-ex-pane="offers">
+            <div class="ex-phead">
+              <div>
+                <h3>Order book</h3>
+                <div class="ex-psub">Click an order to fill in the form</div>
+              </div>
+              <span class="ex-pill-count" id="ex-ob-count">0 open</span>
+            </div>
+            <span id="board-btc" hidden></span>
+            <button id="board-post-go" hidden></button>
+            <div id="board-offers"><div class="empty">Loading order book…</div></div>
+            <div class="problem" id="board-problem" hidden></div>
           </div>
         </div>
       </div>
@@ -10422,8 +10476,6 @@
 
   // ---- Swap history & Exchange Price Chart ----
   const hist = { swaps: [], more: false, last: null };
-  let exChartUnit = "usd";
-  let exChartHover = null;
   function histPrice(x) {
     const orn = x.orn / 1e9;
     const coin = x.coin === "sol" ? `${(x.lamports / 1e9 / orn).toLocaleString(undefined, { maximumSignificantDigits: 3 })} SOL per ORN`
@@ -10431,73 +10483,105 @@
     const usd = x.usd != null && orn > 0 ? fmtUsd(x.usd / orn) : "";
     return { coin, usd };
   }
+  // The price chart, as trading apps draw it: a candle for each hour, four
+  // hours or day of completed ORN / SOL swaps (open, high, low and close,
+  // green up, red down), volume under them, the price scale on the right,
+  // and a crosshair that reads out the candle under it. Prices in the
+  // Exchange's currency, at today's SOL rate, as the order book shows them.
+  const EX_TF = { "1h": 3600, "4h": 14400, "1d": 86400 };
+  let exTf = EX_TF[localStorage.getItem("ex-chart-tf")] ? localStorage.getItem("ex-chart-tf") : "1h";
+  function exCandles() {
+    const step = EX_TF[exTf];
+    const trades = hist.swaps.filter((x) => x.coin === "sol" && x.orn > 0 && x.lamports > 0)
+      .map((x) => ({ at: x.at, p: (x.lamports / 1e9) / (x.orn / 1e9), v: x.orn / 1e9 })).sort((a, b) => a.at - b.at);
+    if (!trades.length) return [];
+    const now = Math.floor(Date.now() / 1000);
+    const last = Math.floor(now / step) * step;
+    const start = Math.max(Math.floor(trades[0].at / step) * step, last - 59 * step);
+    const out = [];
+    let prev = null, i = 0;
+    for (; i < trades.length && trades[i].at < start; i++) prev = trades[i].p;
+    for (let t = start; t <= last; t += step) {
+      const inside = [];
+      while (i < trades.length && trades[i].at < t + step) inside.push(trades[i++]);
+      if (inside.length) {
+        const ps = inside.map((x) => x.p), o = prev ?? ps[0];
+        out.push({ t, o, h: Math.max(o, ...ps), l: Math.min(o, ...ps), c: ps[ps.length - 1], v: inside.reduce((n, x) => n + x.v, 0) });
+        prev = ps[ps.length - 1];
+      } else if (prev != null) out.push({ t, o: prev, h: prev, l: prev, c: prev, v: 0 });
+    }
+    return out;
+  }
+  let exChartPick = null;
   function renderExChart() {
     const body = $("ex-chart-body");
     if (!body) return;
-    $("ex-chart-usd").classList.toggle("on", exChartUnit === "usd");
-    $("ex-chart-sol").classList.toggle("on", exChartUnit === "sol");
-    const solSwaps = hist.swaps.filter((x) => x.coin === "sol" && x.orn > 0);
-    const pts = solSwaps.map((x) => {
-      const orn = x.orn / 1e9;
-      const val = exChartUnit === "usd" ? (x.usd != null ? x.usd / orn : null) : (x.lamports / 1e9) / orn;
-      return val != null && val > 0 ? { at: x.at, val, orn } : null;
-    }).filter(Boolean).reverse();
-    const fmtVal = (v) => exChartUnit === "usd" ? fmtUsd(v) : `${fmtBookUnit(v)} SOL`;
-    const active = exChartHover != null && pts[exChartHover] ? pts[exChartHover] : pts[pts.length - 1];
-    $("ex-chart-sub").textContent = active
-      ? `${fmtVal(active.val)} per ORN · ${active.orn.toLocaleString(undefined, { maximumFractionDigits: 2 })} ORN · ${ago(active.at)}`
-      : "Completed ORN / SOL swap prices over time";
-    if (!pts.length) {
+    for (const b of document.querySelectorAll(".ex-tf [data-tf]")) b.classList.toggle("on", b.dataset.tf === exTf);
+    const fmt = (p) => exUsd() ? exPx(p) : `${fmtBookUnit(p)}`;
+    const cs = exCandles();
+    if (!cs.length) {
+      $("ex-chart-last").textContent = $("ex-chart-chg").textContent = $("ex-chart-ohlc").textContent = "";
       body.innerHTML = '<div class="ex-chart-empty">The chart begins as soon as the first ORN / SOL swap completes.</div>';
       return;
     }
-    const W = 560, H = 190, padL = 58, padR = 18, padT = 20, padB = 28;
-    const plotW = W - padL - padR, plotH = H - padT - padB;
-    const vals = pts.map((p) => p.val);
-    const minRaw = Math.min(...vals), maxRaw = Math.max(...vals), span = maxRaw - minRaw;
-    const minP = span > 0 ? Math.max(0, minRaw - span * 0.18) : minRaw * 0.7;
-    const maxP = span > 0 ? maxRaw + span * 0.18 : maxRaw * 1.3 || 1;
-    const xAt = (i) => pts.length <= 1 ? padL + plotW / 2 : padL + (i / (pts.length - 1)) * plotW;
-    const yAt = (v) => padT + (1 - (v - minP) / (maxP - minP || 1)) * plotH;
-    const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${xAt(i).toFixed(1)},${yAt(p.val).toFixed(1)}`).join(" ");
-    const area = pts.length >= 2 ? `${line} L${xAt(pts.length - 1).toFixed(1)},${(padT + plotH).toFixed(1)} L${xAt(0).toFixed(1)},${(padT + plotH).toFixed(1)} Z` : "";
-    const fmtDate = (sec) => new Date(sec * 1000).toLocaleDateString(undefined, { day: "numeric", month: "short" });
-    const ticks = [maxP, (minP + maxP) / 2, minP].map((tk, idx) =>
-      `<line class="ex-chart-grid${idx === 1 ? " mid" : ""}" x1="${padL}" y1="${yAt(tk).toFixed(1)}" x2="${W - padR}" y2="${yAt(tk).toFixed(1)}"/>`
-      + `<text class="ex-chart-axis" x="${padL - 8}" y="${(yAt(tk) + 3.5).toFixed(1)}" text-anchor="end">${esc(exChartUnit === "usd" ? fmtUsd(tk) : fmtBookUnit(tk))}</text>`
-    ).join("");
-    const dots = pts.map((p, i) =>
-      `<circle class="ex-chart-dot" cx="${xAt(i).toFixed(1)}" cy="${yAt(p.val).toFixed(1)}" r="${exChartHover === i || pts.length === 1 ? 5 : 3.5}"/>`
-      + `<circle class="ex-chart-hit" data-pt="${i}" cx="${xAt(i).toFixed(1)}" cy="${yAt(p.val).toFixed(1)}" r="14"/>`
-    ).join("");
-    const xLabels = pts.length === 1
-      ? `<text class="ex-chart-tag" x="${xAt(0).toFixed(1)}" y="${(yAt(pts[0].val) - 13).toFixed(1)}" text-anchor="middle">${esc(fmtVal(pts[0].val))} · ${esc(fmtDate(pts[0].at))}</text>`
-      : `<text class="ex-chart-axis" x="${padL}" y="${H - 6}" text-anchor="start">${esc(fmtDate(pts[0].at))}</text>`
-        + `<text class="ex-chart-axis" x="${W - padR}" y="${H - 6}" text-anchor="end">${esc(fmtDate(pts[pts.length - 1].at))}</text>`;
-    body.innerHTML = `<svg class="ex-chart-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="ORN / SOL price chart">
-      <defs>
-        <linearGradient id="exChartStroke" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#f4b6d4"/><stop offset="35%" stop-color="#b8c7ff"/>
-          <stop offset="70%" stop-color="#a6ead6"/><stop offset="100%" stop-color="#f9dda4"/>
-        </linearGradient>
-        <linearGradient id="exChartFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#d3b6ff" stop-opacity="0.22"/><stop offset="100%" stop-color="#d3b6ff" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-      ${ticks}
-      ${area ? `<path class="ex-chart-area" d="${area}"/>` : ""}
-      ${pts.length >= 2 ? `<path class="ex-chart-line" d="${line}"/>` : ""}
-      ${dots}
-      ${xLabels}
-    </svg>`;
-    const svg = body.querySelector("svg");
-    if (svg) svg.onmouseleave = () => { if (exChartHover !== null) { exChartHover = null; renderExChart(); } };
-    for (const hit of body.querySelectorAll("[data-pt]")) {
-      hit.onmouseenter = () => { exChartHover = Number(hit.dataset.pt); renderExChart(); };
+    const lastC = cs[cs.length - 1], firstC = cs[0];
+    const change = firstC.o > 0 ? (lastC.c / firstC.o - 1) * 100 : 0;
+    $("ex-chart-last").textContent = fmt(lastC.c);
+    $("ex-chart-chg").textContent = `${change >= 0 ? "+" : ""}${change.toFixed(2)}%`;
+    $("ex-chart-chg").className = change > 0 ? "up" : change < 0 ? "down" : "";
+    const pick = exChartPick != null && cs[exChartPick] ? cs[exChartPick] : lastC;
+    $("ex-chart-ohlc").textContent = `O ${fmt(pick.o)}  H ${fmt(pick.h)}  L ${fmt(pick.l)}  C ${fmt(pick.c)}`;
+    const W = Math.max(240, Math.round(body.clientWidth)), H = Math.max(140, Math.round(body.clientHeight));
+    const padL = 12, padR = 78, padB = 24, padT = 12, plotW = W - padR, plotH = H - padB - padT;
+    const volH = plotH * 0.18, priceH = plotH - volH - 6;
+    let lo = Math.min(...cs.map((c) => c.l)), hi = Math.max(...cs.map((c) => c.h));
+    if (hi === lo) { hi *= 1.02; lo *= 0.98; }
+    const room = (hi - lo) * 0.08; hi += room; lo -= room;
+    const y = (p) => padT + (hi - p) / (hi - lo) * priceH;
+    const slot = (plotW - padL) / cs.length, bw = Math.max(1, Math.min(14, slot * 0.62));
+    const maxV = Math.max(1e-9, ...cs.map((c) => c.v));
+    const tone = (c) => c.c > c.o ? "up" : c.c < c.o ? "down" : "flat";
+    // Four or five round prices on the scale.
+    const span = hi - lo, mag = Math.pow(10, Math.floor(Math.log10(span / 4)));
+    const tick = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((t) => span / t <= 5) || mag * 10;
+    let grid = "";
+    for (let v = Math.ceil(lo / tick) * tick; v <= hi; v += tick) {
+      const yy = y(v).toFixed(1);
+      grid += `<line class="exc-grid" x1="${padL}" x2="${plotW}" y1="${yy}" y2="${yy}"/><text class="exc-axis" x="${plotW + 8}" y="${(+yy + 3.5).toFixed(1)}">${esc(fmt(v))}</text>`;
     }
+    // A few times along the bottom.
+    const every = Math.max(1, Math.ceil(cs.length / 5));
+    const when = (t) => exTf === "1d" ? new Date(t * 1000).toLocaleDateString([], { month: "short", day: "numeric" }) : new Date(t * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    let times = "";
+    for (let i = cs.length - 1; i >= 0; i -= every) {
+      times += `<text class="exc-axis" x="${(padL + i * slot + slot / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${esc(when(cs[i].t))}</text>`;
+    }
+    const candles = cs.map((c, i) => {
+      const x = padL + i * slot + slot / 2, top = y(Math.max(c.o, c.c)), bot = y(Math.min(c.o, c.c));
+      const vh = c.v / maxV * volH;
+      return `<line class="exc-wick ${tone(c)}" x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${y(c.h).toFixed(1)}" y2="${y(c.l).toFixed(1)}"/>`
+        + `<rect class="exc-body ${tone(c)}" x="${(x - bw / 2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, bot - top).toFixed(1)}"/>`
+        + (c.v ? `<rect class="exc-vol ${tone(c)}" x="${(x - bw / 2).toFixed(1)}" y="${(padT + plotH - vh).toFixed(1)}" width="${bw.toFixed(1)}" height="${vh.toFixed(1)}"/>` : "");
+    }).join("");
+    const ly = y(lastC.c).toFixed(1);
+    const lastLine = `<line class="exc-last ${tone(lastC)}" x1="${padL}" x2="${plotW}" y1="${ly}" y2="${ly}"/>`
+      + `<rect class="exc-tag ${tone(lastC)}" x="${plotW + 2}" y="${(+ly - 9).toFixed(1)}" width="${padR - 8}" height="18" rx="4"/>`
+      + `<text class="exc-tag-t" x="${plotW + 8}" y="${(+ly + 4).toFixed(1)}">${esc(fmt(lastC.c))}</text>`;
+    let cross = "";
+    if (exChartPick != null && cs[exChartPick]) {
+      const x = (padL + exChartPick * slot + slot / 2).toFixed(1);
+      cross = `<line class="exc-cross" x1="${x}" x2="${x}" y1="${padT}" y2="${padT + plotH}"/>`;
+    }
+    body.innerHTML = `<svg class="exc" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="ORN / SOL price chart">${grid}${candles}${lastLine}${cross}${times}<rect class="exc-hit" x="0" y="0" width="${plotW}" height="${H}"/></svg>`;
+    const hit = body.querySelector(".exc-hit");
+    hit.onmousemove = (e) => {
+      const i = Math.min(cs.length - 1, Math.max(0, Math.floor((e.offsetX - padL) / slot)));
+      if (i !== exChartPick) { exChartPick = i; renderExChart(); }
+    };
+    hit.onmouseleave = () => { exChartPick = null; renderExChart(); };
   }
-  $("ex-chart-usd").onclick = () => { exChartUnit = "usd"; renderExChart(); };
-  $("ex-chart-sol").onclick = () => { exChartUnit = "sol"; renderExChart(); };
+  for (const b of document.querySelectorAll(".ex-tf [data-tf]")) b.onclick = () => { exTf = b.dataset.tf; localStorage.setItem("ex-chart-tf", exTf); exChartPick = null; renderExChart(); };
+  new ResizeObserver(() => { if (!$("swaps").hidden) renderExChart(); }).observe($("ex-chart-body"));
 
   function paintHistory() {
     const solSwaps = hist.swaps.filter((x) => x.coin === "sol");
@@ -11062,7 +11146,15 @@
   for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.onclick = () => {
     exPct = Number(b.dataset.pct);
     const price = parseFloat($("ex-price").value);
-    if (exSide === "buy") {
+    if (exSide === "buy" && exKind === "market") {
+      const have = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
+      if (!devnetAssets.balances || !Number.isFinite(have)) return;
+      // Room for the Solana fees of the swaps it may take.
+      let sol = Math.max(0, have * exPct / 100 - EX_MAX_TAKES * SOL_SWAP_FEES);
+      const cur = exSpendCur();
+      const shown = cur === "sol" ? Math.floor(sol * 1e4) / 1e4 : Math.floor(sol * exSolRate(cur) * 100) / 100;
+      $("ex-spend").value = shown > 0 ? String(shown) : "";
+    } else if (exSide === "buy") {
       const max = exSolMax();
       if (max == null) return;
       const sol = Math.floor(max * exPct / 100 * 1e4) / 1e4;
@@ -11091,9 +11183,88 @@
     $("ex-orn").value = exPlain(o.orn / 1e9, 9);
     $("ex-sol").value = exPlain(o.lamports / 1e9);
     exPct = null; exPctPaint();
+    exSetKind("limit");
     updateExRate();
     if (handset || !wide.matches) swapTab("trade");
   }
+  // Market (the first tab): buy for an amount at the best prices there
+  // are, or sell an amount into the best buy orders, with no price to set.
+  // Limit: the price is yours, and the order waits for it if no one meets it.
+  let exKind = "market";
+  function exSetKind(kind) {
+    exKind = kind;
+    $("ex-kind-market").classList.toggle("on", kind === "market");
+    $("ex-kind-limit").classList.toggle("on", kind === "limit");
+    const market = kind === "market", buy = exSide === "buy";
+    $("ex-spend-field").hidden = !(market && buy);
+    $("ex-price").closest(".ex-field").hidden = market;
+    $("ex-orn").closest(".ex-field").hidden = market && buy;
+    $("ex-sol").closest(".ex-field").hidden = market;
+    $("ex-spend-label").textContent = `Spend (${exSpendCur().toUpperCase()})`;
+  }
+  $("ex-kind-market").onclick = () => { exSetKind("market"); exPct = null; exPctPaint(); updateExRate(); };
+  $("ex-kind-limit").onclick = () => { exSetKind("limit"); exDefaultPrice(); updateExRate(); };
+  // Spending is typed in the Exchange's currency when its SOL price is
+  // known, otherwise in SOL. Its SOL, for the swaps.
+  const exSpendCur = () => { const cur = exUsd() ? exCur() : "sol"; return cur !== "sol" && exSolRate(cur) ? cur : "sol"; };
+  const exSolRate = (cur) => (board.solRates || {})[cur] || (cur === "usd" ? board.solUsd : null);
+  function exSpendSol() {
+    const typed = parseFloat($("ex-spend").value);
+    if (!(typed > 0)) return 0;
+    const cur = exSpendCur();
+    return cur === "sol" ? typed : typed / exSolRate(cur);
+  }
+  // Sellers' orders filled, cheapest first, for `budget` SOL: all of an
+  // order or part of it (never leaving less than 0.01 SOL of one), at most
+  // as many as can run at once.
+  const EX_MIN_SOL = 0.01, EX_MAX_TAKES = 5;
+  function exBuyPlan(budget) {
+    const asks = (board.offers || []).filter((o) => o.coin === "sol" && o.side !== "buy" && o.seller_online !== false && !(board.me && o.seller === board.me.id))
+      .sort((a, b) => exUnit(a) - exUnit(b));
+    const fills = [];
+    let left = budget;
+    for (const o of asks) {
+      if (fills.length >= EX_MAX_TAKES || left < EX_MIN_SOL) break;
+      const whole = o.lamports / 1e9;
+      let take = Math.min(left, whole);
+      if (take < whole && whole - take < EX_MIN_SOL) take = whole - EX_MIN_SOL;
+      if (take < EX_MIN_SOL) break;
+      // Part of an order: in whole ten-thousandths of an ORN, so amounts read cleanly.
+      const orn = take >= whole ? o.orn : Math.floor(o.orn * take / whole / 1e5) * 1e5;
+      const lamports = orn >= o.orn ? o.lamports : Math.round(o.lamports * orn / o.orn);
+      fills.push({ o, orn, lamports });
+      left -= lamports / 1e9;
+    }
+    return fills;
+  }
+  // Buy orders filled, highest price first, for `orn` units: each whole,
+  // so only those that fit in what's left.
+  function exSellPlan(orn) {
+    const bids = (board.offers || []).filter((o) => o.coin === "sol" && o.side === "buy" && o.seller_online !== false && !(board.me && o.seller === board.me.id))
+      .sort((a, b) => exUnit(b) - exUnit(a));
+    const fills = [];
+    let left = orn;
+    for (const o of bids) {
+      if (fills.length >= EX_MAX_TAKES) break;
+      if (o.orn <= left + 1) { fills.push({ o, orn: o.orn, lamports: o.lamports }); left -= o.orn; }
+    }
+    return fills;
+  }
+  function exPlan() {
+    if (exKind !== "market") return null;
+    if (exSide === "buy") return exBuyPlan(exSpendSol());
+    const orn = Math.round(parseFloat($("ex-orn").value) * 1e9);
+    return orn > 0 ? exSellPlan(orn) : [];
+  }
+  const exPlanSum = (fills) => fills.reduce((t, f) => ({ orn: t.orn + f.orn, lamports: t.lamports + f.lamports }), { orn: 0, lamports: 0 });
+  // Buying from several sellers: each swap's Solana fees on top.
+  function exPlanShort(fills) {
+    if (exSide !== "buy") return false;
+    const have = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
+    if (!devnetAssets.balances || !Number.isFinite(have)) return false;
+    return exPlanSum(fills).lamports / 1e9 + fills.length * SOL_SWAP_FEES > have;
+  }
+  $("ex-spend").oninput = () => { exPct = null; exPctPaint(); updateExRate(); };
   let exAddrBad = false;
   let exUnverified = false;
   let exAddrTimer = 0;
@@ -11114,6 +11285,7 @@
     const solText = $("ex-sol").value.trim();
     const settled = /\.\d{2,}/.test(solText) || document.activeElement !== $("ex-sol");
     const tooLow = /\d/.test(solText) && sol < 0.01 && settled;
+    if (exKind === "market") { paintExMarket(); updateExReady(); return; }
     const maxSol = (board.maxOrderLamports || 10e9) / 1e9;
     const match = exMatch();
     const tooHigh = exSide === "buy" && !match && sol > maxSol;
@@ -11143,6 +11315,31 @@
     }
     updateExReady();
   }
+  // Market: what Buy or Sell will get, from how many orders.
+  function paintExMarket() {
+    const bar = $("ex-rate-bar"), what = $("ex-rate-what"), val = $("ex-rate-val");
+    const buy = exSide === "buy";
+    const cur = exSpendCur();
+    $("ex-spend-hint").textContent = buy && cur !== "sol" && exSpendSol() > 0 ? `≈ ${exPlain(exSpendSol(), 4)} SOL` : "";
+    $("ex-price-hint").textContent = "";
+    const fills = exPlan() || [];
+    const sum = exPlanSum(fills);
+    const typed = buy ? exSpendSol() > 0 : parseFloat($("ex-orn").value) > 0;
+    const short = exPlanShort(fills);
+    let warn = false;
+    what.textContent = "";
+    if (!typed) val.textContent = buy ? "Enter how much to spend" : "Enter an amount";
+    else if (buy && exSpendSol() < EX_MIN_SOL) { val.textContent = "Minimum order is 0.01 SOL"; warn = true; }
+    else if (!fills.length) { val.textContent = buy ? "Nothing for sale right now" : "No buy order fits this amount"; warn = true; }
+    else if (short) { val.textContent = "More than this wallet has"; warn = true; }
+    else {
+      what.textContent = buy ? `You get about ${exOrn(sum.orn, 2)} ORN` : `You get ${exPlain(sum.lamports / 1e9, 4)} SOL`;
+      const avg = (sum.lamports / 1e9) / (sum.orn / 1e9);
+      val.textContent = `${exPx(avg)} per ORN`;
+      if (!buy && Math.abs(sum.orn - Math.round(parseFloat($("ex-orn").value) * 1e9)) > 1) what.textContent = `Sells ${fmtOrn(sum.orn)} ORN for ${exPlain(sum.lamports / 1e9, 4)} SOL`;
+    }
+    bar.classList.toggle("warn", warn);
+  }
   // The label is written only when it changes: rewriting a button's text
   // while it's being pressed (leaving the SOL box repaints this) makes
   // WebKit, the engine Orien Wallet's window uses, drop that click.
@@ -11156,6 +11353,12 @@
       return;
     }
     const buy = exSide === "buy";
+    if (exKind === "market") {
+      const fills = exPlan() || [];
+      setExGo(buy ? "Buy ORN" : "Sell ORN");
+      go.disabled = !fills.length || exPlanShort(fills) || (buy && exSpendSol() < EX_MIN_SOL);
+      return;
+    }
     const match = exMatch();
     // Trading with an order now: its own screen asks for Touch ID.
     setExGo(view && view.biometric && !match
@@ -11186,6 +11389,7 @@
       ? "Your buy order is paid from this wallet's Solana balance. Once paid, it stays live even with Orien Wallet closed, and you can cancel anytime in one click."
       : "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.";
     $("ex-verify").hidden = buy || !exUnverified;
+    exSetKind(exKind);
     $("ex-bal").textContent = !buy && view && view.spendable ? `${view.spendable} ORN available` : "";
     paintExSolHint();
     if (buy) ownSolBalance().then(() => { paintExSolHint(); updateExRate(); });
@@ -11214,7 +11418,9 @@
     $("ex-problem").hidden = true;
     $("ex-price").value = $("ex-orn").value = $("ex-sol").value = "";
     exPct = null; exPctPaint();
+    $("ex-spend").value = "";
     syncExTicket();
+    exSetKind(exKind);
     exDefaultPrice();
     updateExRate();
   };
@@ -11283,6 +11489,14 @@
   var exBusy = false;
   $("ex-go").onclick = async () => {
     if (exBusy || !ready()) return;
+    // Market: the orders the plan fills, on one screen, one approval.
+    if (exKind === "market") {
+      const fills = exPlan() || [];
+      if (!fills.length) return;
+      $("ex-problem").hidden = true;
+      if (fills.length === 1) return startTake(fills[0].o.id, exSide === "sell", fills[0].orn);
+      return startTakeMany(fills);
+    }
     // At an order's price: trade with it now, on its own screen. Buying
     // takes what's typed from the cheapest sell order (all it has, at most);
     // selling fills a buy order, which goes whole.
@@ -11533,6 +11747,29 @@
     }
   }
 
+  // Several orders at once (a market buy or sell): the take screen as for
+  // the first, with the totals, then each order its own swap.
+  async function startTakeMany(fills) {
+    const selling = fills[0].o.side === "buy";
+    await startTake(fills[0].o.id, selling, fills[0].orn);
+    const sum = exPlanSum(fills);
+    const many = { many: fills, side: fills[0].o.side, coin: "sol", funded: selling, orn: sum.orn, lamports: sum.lamports, seller_name: `${fills.length} sellers` };
+    board.taking = many;
+    $("bt-title").textContent = selling ? "Sell ORN" : "Buy ORN";
+    $("bt-orn").textContent = fmtOrn(sum.orn) + " ORN";
+    $("bt-btc").textContent = offerPrice({ ...fills[0].o, orn: sum.orn, lamports: sum.lamports }) + offerValue({ ...fills[0].o, orn: sum.orn, lamports: sum.lamports }).total;
+    $("bt-other-label").textContent = selling ? "Buyers" : "Sellers";
+    $("bt-seller").textContent = fills.map((f) => f.o.seller_name).filter((n, i, all) => all.indexOf(n) === i).join(", ");
+    $("bt-go").textContent = view && view.biometric ? `${selling ? "Sell" : "Buy"} with ${bio}` : selling ? "Sell ORN" : "Buy ORN";
+    if (!selling) {
+      $("bt-go").disabled = true;
+      const short = await shortOfSol(sum.lamports / 1e9, "bt-problem", fills.length * SOL_SWAP_FEES);
+      if (board.taking !== many) return;
+      if (short) { $("bt-go").textContent = "Not enough SOL"; return; }
+      $("bt-go").disabled = false;
+    }
+  }
+
   async function withdraw(id) {
     try { await invoke("board_withdraw", { offer: id }); } catch (e) { problem("board-problem", e); }
     await loadBoard();
@@ -11569,6 +11806,38 @@
       const isBuy = taken.side === "buy";
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("bt-pw-field").hidden ? null : $("bt-pw").value;
+      if (taken.many) {
+        // Each order its own swap; one that can't start doesn't stop the rest.
+        const refund = await ensureOwnSol(password);
+        if (!isBuy && await shortOfSol(taken.lamports / 1e9, "bt-problem", taken.many.length * SOL_SWAP_FEES)) return;
+        let started = 0, failed = "";
+        for (const f of taken.many) {
+          try {
+            if (isBuy) {
+              await invoke("order_fill_buy", { serverId: f.o.id, orderPubkey: f.o.order_pubkey, orn: f.o.orn, lamports: f.o.lamports, hash: f.o.hash,
+                buyerOrien: f.o.buyer_orien, buyerName: f.o.seller_name || null, payout: refund, password });
+            } else {
+              await invoke("board_take_sol", { offer: f.o.id, refund, orn: plainOrn(f.orn), password });
+            }
+            started++;
+          } catch (e) {
+            const t = String(e);
+            if (t.startsWith("password:")) throw e;
+            failed = failed || t;
+          }
+        }
+        if (!started) throw failed || "None of these orders could be taken.";
+        $("bt-pw").value = "";
+        board.taking = null;
+        $("ex-spend").value = $("ex-orn").value = $("ex-sol").value = "";
+        await loadSwaps();
+        show("swaps");
+        if (!handset && wide.matches) setExDeck("recent"); else swapTab("mine");
+        if (failed) problem("ex-problem", `${started} of ${taken.many.length} swaps started. Another couldn't: ${failed}`);
+        loadBoard();
+        stepSwaps();
+        return;
+      }
       if (taken.coin === "sol") {
         $("bt-refund").value = await ensureOwnSol(password);
         if (!isBuy && await shortOfSol(taken.lamports / 1e9, "bt-problem")) return;
@@ -14130,8 +14399,7 @@
     localStorage.setItem("ex-cur", b.dataset.cur);
     $("ex-cur-menu").hidden = true;
     exCurPaint();
-    const c = $(b.dataset.cur === "sol" ? "ex-chart-sol" : "ex-chart-usd");
-    if (c && !c.classList.contains("on")) c.click();
+    renderExChart();
     renderOffers();
     renderSwaps();
   };
