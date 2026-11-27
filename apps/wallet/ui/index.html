@@ -7068,7 +7068,7 @@
   const pictureOf = (url) => new Promise((done, fail) => { const i = new Image(); i.onload = () => done(i); i.onerror = fail; i.src = url; });
   const sharedScenes = () => { try { return JSON.parse(localStorage.getItem("scenes-shared") || "[]"); } catch { return []; } };
   async function shareScenes() {
-    if (phone) return;
+    if (handset) return;
     for (const [id, pic] of scenes) {
       if (sharedScenes().includes(id)) continue;
       try {
@@ -7086,7 +7086,7 @@
   const setSceneVersion = (id, v) => { const all = sceneVersions(); all[id] = v || 0; localStorage.setItem("scene-versions", JSON.stringify(all)); };
   let fetching = false;
   async function fetchScenes() {
-    if (phone || fetching) return;
+    if (handset || fetching) return;
     fetching = true;
     let got = false;
     for (const t of customThemes()) {
