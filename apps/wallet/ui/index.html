@@ -9721,7 +9721,7 @@
       const own = s.pending || paysItself(s);
       const seller = s.seller_name || takenFrom[s.id] || "The seller";
       const steps = [
-        { name: "Seller accepts", what: `${seller} locks ${O} for you`, who: s.stage === "accepting" ? "A few seconds" : "" },
+        { name: "Seller accepts", what: `${seller} locks ${O} for you`, who: s.stage === "accepting" ? "About a minute" : "" },
         own
           ? { name: "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" ? "A few seconds" : "" }
           : { name: "Pay", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: s.stage === "pay" ? "You" : "" },
@@ -11001,7 +11001,7 @@
         waitFor = { since: Date.now() / 1000 - 10, role: "buy", sol: true, name: other };
         pendingTake = { id: `taking-${taken.id}`, pending: true, role: "buy", coin: "sol", board: true, seller_name: other,
           orn: fmtOrn(taken.orn), sol: String(Number((taken.lamports / 1e9).toFixed(9))), stage: "accepting",
-          status: `Waiting for ${other}'s wallet to lock the ORN for you. Usually a few seconds; nothing to do.`,
+          status: `Waiting for ${other}'s wallet to lock the ORN for you. About a minute; nothing to do.`,
           refund: devnetAssets.address, created: Date.now() / 1000 };
         openSwap(pendingTake.id);
         loadBoard();
