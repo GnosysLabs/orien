@@ -10951,18 +10951,35 @@
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("ex-pw-field").hidden ? null : $("ex-pw").value;
       const buy = exSide === "buy";
-      $("ex-addr").value = await ensureOwnSol(password);
-      if (buy && await shortOfSol(parseFloat($("ex-sol").value), "ex-problem")) { updateExReady(); return; }
       if (buy) {
-        const orderId = await invoke("order_create_buy", { orn: $("ex-orn").value, sol: $("ex-sol").value, refund: $("ex-addr").value, password });
-        $("ex-pw").value = "";
-        $("ex-orn").value = $("ex-sol").value = "";
+        // Approved: the order's own screen opens at once, its first step
+        // under way, instead of the form sitting there while SOL is locked.
+        const orn = $("ex-orn").value.trim(), sol = $("ex-sol").value.trim();
+        pendingTake = { id: "placing-order", pending: true, funded_order: true, role: "buy", coin: "sol", stage: "pay",
+          orn, sol, pay_amount: sol, refund: devnetAssets.address, created: Date.now() / 1000,
+          status: "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds." };
         exOrder(false);
-        await loadSwaps();
-        openSwap(orderId);
-        stepSwaps();
-        return;
+        openSwap(pendingTake.id);
+        try {
+          $("ex-addr").value = await ensureOwnSol(password);
+          pendingTake.refund = $("ex-addr").value;
+          renderDetail();
+          if (await shortOfSol(parseFloat(sol), "ex-problem")) throw $("ex-problem").textContent;
+          const orderId = await invoke("order_create_buy", { orn, sol, refund: $("ex-addr").value, password });
+          pendingTake = null;
+          $("ex-pw").value = "";
+          $("ex-orn").value = $("ex-sol").value = "";
+          await loadSwaps();
+          openSwap(orderId);
+          stepSwaps();
+          return;
+        } catch (e) {
+          // Not placed: back to the form, as it was, with the reason under it.
+          if (current === "placing-order") { pendingTake = null; current = null; show("swaps"); if (!handset && wide.matches) exOrder(true); else swapTab("trade"); }
+          throw e;
+        }
       } else {
+        $("ex-addr").value = await ensureOwnSol(password);
         await invoke("board_post_sol", { orn: $("ex-orn").value, sol: $("ex-sol").value, payout: $("ex-addr").value, password });
       }
       const ornVal = $("ex-orn").value.trim(), solVal = $("ex-sol").value.trim();
