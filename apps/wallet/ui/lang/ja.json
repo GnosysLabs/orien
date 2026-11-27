@@ -1987,6 +1987,22 @@
     [
       "^Swap ([\\d.,]+ (?:SOL|USDC))$",
       "{0} をスワップ"
+    ],
+    [
+      "^Only ([0-9.,]+) ORN at this price$",
+      "この価格では {0} ORN のみ"
+    ],
+    [
+      "^This buy order is for ([0-9.,]+) ORN$",
+      "この買い注文は {0} ORN です"
+    ],
+    [
+      "^≈ (.+) per ORN$",
+      "≈ 1 ORN あたり {0}"
+    ],
+    [
+      "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
+      "{0} ORN すべてを購入するか、注文に 0.01 SOL 分以上を残してください。"
     ]
   ],
   "_guides": {
@@ -2436,5 +2452,13 @@
   "History": "履歴",
   "Open buys": "未約定の買い",
   "Open sells": "未約定の売り",
-  "More than this wallet has": "このウォレットの残高を超えています"
+  "More than this wallet has": "このウォレットの残高を超えています",
+  "Price per ORN (SOL)": "1 ORN あたりの価格 (SOL)",
+  "Enter a price and an amount": "価格と数量を入力",
+  "Buys now": "すぐに購入",
+  "Sells now": "すぐに売却",
+  "Waits in the order book": "板で待機",
+  "Click an order to fill in the form": "注文をクリックするとフォームに入力されます",
+  "Share of what you have": "保有分の割合",
+  "Buy at least 0.01 SOL worth.": "0.01 SOL 分以上購入してください。"
 }

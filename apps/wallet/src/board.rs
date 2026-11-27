@@ -400,16 +400,21 @@ pub fn post_sol(dir: &Path, wallet: &Path, orn: u64, lamports: u64, payout: &str
     Ok(())
 }
 
-/// Takes a SOL offer for this wallet, `address`. The buyer pays from
-/// `refund`, their own SOL wallet, and anything left over or refunded goes
-/// back there; it must already hold SOL.
-pub fn take_sol(dir: &Path, wallet: &Path, offer: i64, address: &str, refund: &str) -> Result<(), String> {
+/// Takes `orn` units of a SOL offer for this wallet, `address`: all of it,
+/// or part, which the board splits off as a swap of its own (its id is
+/// returned, with the ORN units it is for). The buyer pays from `refund`,
+/// their own SOL wallet, and anything left over or refunded goes back
+/// there; it must already hold SOL.
+pub fn take_sol(dir: &Path, wallet: &Path, offer: i64, orn: u64, address: &str, refund: &str) -> Result<(i64, u64), String> {
     let refund = check_sol_refund(refund)?;
-    call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 4 })))?;
+    let taken = call(dir, "POST", &format!("/swaps/{offer}/take"), Some(json!({ "address": address, "swap_version": 4, "orn": orn })))?;
+    let offer = taken["swap"]["offer"]["id"].as_i64().unwrap_or(offer);
+    let orn = taken["swap"]["offer"]["orn"].as_u64().unwrap_or(orn);
     let mut saved = load(dir);
     saved.links.retain(|link| link.offer != offer);
     saved.links.push(Link { offer, selling: false, bitcoin: refund, coin: "sol".into(), swap: None, finished: false, wallet: Some(wallet.to_path_buf()) });
-    save(dir, &saved)
+    save(dir, &saved)?;
+    Ok((offer, orn))
 }
 
 pub(crate) fn check_sol_refund(refund: &str) -> Result<String, String> {

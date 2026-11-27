@@ -1987,6 +1987,22 @@
     [
       "^Swap ([\\d.,]+ (?:SOL|USDC))$",
       "Intercambiar {0}"
+    ],
+    [
+      "^Only ([0-9.,]+) ORN at this price$",
+      "Solo {0} ORN a este precio"
+    ],
+    [
+      "^This buy order is for ([0-9.,]+) ORN$",
+      "Esta orden de compra es de {0} ORN"
+    ],
+    [
+      "^≈ (.+) per ORN$",
+      "≈ {0} por ORN"
+    ],
+    [
+      "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
+      "Compra los {0} ORN o deja al menos 0.01 SOL de la orden."
     ]
   ],
   "_guides": {
@@ -2436,5 +2452,13 @@
   "History": "Historial",
   "Open buys": "Compras activas",
   "Open sells": "Ventas activas",
-  "More than this wallet has": "Más de lo que tiene esta billetera"
+  "More than this wallet has": "Más de lo que tiene esta billetera",
+  "Price per ORN (SOL)": "Precio por ORN (SOL)",
+  "Enter a price and an amount": "Escribe un precio y una cantidad",
+  "Buys now": "Compra ahora",
+  "Sells now": "Vende ahora",
+  "Waits in the order book": "Espera en el libro de órdenes",
+  "Click an order to fill in the form": "Haz clic en una orden para rellenar el formulario",
+  "Share of what you have": "Parte de lo que tienes",
+  "Buy at least 0.01 SOL worth.": "Compra al menos 0.01 SOL."
 }

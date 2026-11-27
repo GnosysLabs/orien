@@ -1987,6 +1987,22 @@
     [
       "^Swap ([\\d.,]+ (?:SOL|USDC))$",
       "{0} ruilen"
+    ],
+    [
+      "^Only ([0-9.,]+) ORN at this price$",
+      "Maar {0} ORN tegen deze prijs"
+    ],
+    [
+      "^This buy order is for ([0-9.,]+) ORN$",
+      "Deze kooporder is voor {0} ORN"
+    ],
+    [
+      "^≈ (.+) per ORN$",
+      "≈ {0} per ORN"
+    ],
+    [
+      "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
+      "Koop alle {0} ORN, of laat minstens 0,01 SOL van de order over."
     ]
   ],
   "_guides": {
@@ -2436,5 +2452,13 @@
   "History": "Historie",
   "Open buys": "Open aankopen",
   "Open sells": "Open verkopen",
-  "More than this wallet has": "Meer dan deze wallet heeft"
+  "More than this wallet has": "Meer dan deze wallet heeft",
+  "Price per ORN (SOL)": "Prijs per ORN (SOL)",
+  "Enter a price and an amount": "Vul een prijs en een hoeveelheid in",
+  "Buys now": "Koopt nu",
+  "Sells now": "Verkoopt nu",
+  "Waits in the order book": "Wacht in het orderboek",
+  "Click an order to fill in the form": "Klik op een order om het formulier in te vullen",
+  "Share of what you have": "Deel van wat je hebt",
+  "Buy at least 0.01 SOL worth.": "Koop voor minstens 0,01 SOL."
 }

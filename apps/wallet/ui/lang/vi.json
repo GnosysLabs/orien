@@ -1987,6 +1987,22 @@
     [
       "^Swap ([\\d.,]+ (?:SOL|USDC))$",
       "Hoán đổi {0}"
+    ],
+    [
+      "^Only ([0-9.,]+) ORN at this price$",
+      "Chỉ có {0} ORN ở giá này"
+    ],
+    [
+      "^This buy order is for ([0-9.,]+) ORN$",
+      "Lệnh mua này là {0} ORN"
+    ],
+    [
+      "^≈ (.+) per ORN$",
+      "≈ {0} mỗi ORN"
+    ],
+    [
+      "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
+      "Mua hết {0} ORN, hoặc để lại tối thiểu 0.01 SOL của lệnh."
     ]
   ],
   "_guides": {
@@ -2436,5 +2452,13 @@
   "History": "Lịch sử",
   "Open buys": "Lệnh mua mở",
   "Open sells": "Lệnh bán mở",
-  "More than this wallet has": "Nhiều hơn số ví này có"
+  "More than this wallet has": "Nhiều hơn số ví này có",
+  "Price per ORN (SOL)": "Giá mỗi ORN (SOL)",
+  "Enter a price and an amount": "Nhập giá và số lượng",
+  "Buys now": "Mua ngay",
+  "Sells now": "Bán ngay",
+  "Waits in the order book": "Chờ trong sổ lệnh",
+  "Click an order to fill in the form": "Nhấn vào một lệnh để điền biểu mẫu",
+  "Share of what you have": "Phần trên số bạn có",
+  "Buy at least 0.01 SOL worth.": "Mua tối thiểu 0.01 SOL."
 }

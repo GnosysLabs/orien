@@ -1987,6 +1987,22 @@
     [
       "^Swap ([\\d.,]+ (?:SOL|USDC))$",
       "Обменять {0}"
+    ],
+    [
+      "^Only ([0-9.,]+) ORN at this price$",
+      "По этой цене только {0} ORN"
+    ],
+    [
+      "^This buy order is for ([0-9.,]+) ORN$",
+      "Эта заявка на покупку — на {0} ORN"
+    ],
+    [
+      "^≈ (.+) per ORN$",
+      "≈ {0} за ORN"
+    ],
+    [
+      "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
+      "Купите все {0} ORN или оставьте в заявке минимум на 0.01 SOL."
     ]
   ],
   "_guides": {
@@ -2436,5 +2452,13 @@
   "History": "История",
   "Open buys": "Покупки",
   "Open sells": "Продажи",
-  "More than this wallet has": "Больше, чем есть в этом кошельке"
+  "More than this wallet has": "Больше, чем есть в этом кошельке",
+  "Price per ORN (SOL)": "Цена за ORN (SOL)",
+  "Enter a price and an amount": "Введите цену и количество",
+  "Buys now": "Покупка сразу",
+  "Sells now": "Продажа сразу",
+  "Waits in the order book": "Ждёт в стакане",
+  "Click an order to fill in the form": "Нажмите на заявку, чтобы заполнить форму",
+  "Share of what you have": "Доля от того, что у вас есть",
+  "Buy at least 0.01 SOL worth.": "Покупайте минимум на 0.01 SOL."
 }

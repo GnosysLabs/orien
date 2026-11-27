@@ -1987,6 +1987,22 @@
     [
       "^Swap ([\\d.,]+ (?:SOL|USDC))$",
       "Tukar {0}"
+    ],
+    [
+      "^Only ([0-9.,]+) ORN at this price$",
+      "Hanya {0} ORN di harga ini"
+    ],
+    [
+      "^This buy order is for ([0-9.,]+) ORN$",
+      "Order beli ini untuk {0} ORN"
+    ],
+    [
+      "^≈ (.+) per ORN$",
+      "≈ {0} per ORN"
+    ],
+    [
+      "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
+      "Beli semua {0} ORN, atau sisakan minimal 0.01 SOL dari order."
     ]
   ],
   "_guides": {
@@ -2436,5 +2452,13 @@
   "History": "Riwayat",
   "Open buys": "Beli terbuka",
   "Open sells": "Jual terbuka",
-  "More than this wallet has": "Lebih dari isi dompet ini"
+  "More than this wallet has": "Lebih dari isi dompet ini",
+  "Price per ORN (SOL)": "Harga per ORN (SOL)",
+  "Enter a price and an amount": "Masukkan harga dan jumlah",
+  "Buys now": "Beli sekarang",
+  "Sells now": "Jual sekarang",
+  "Waits in the order book": "Menunggu di buku order",
+  "Click an order to fill in the form": "Klik order untuk mengisi formulir",
+  "Share of what you have": "Bagian dari yang Anda punya",
+  "Buy at least 0.01 SOL worth.": "Beli minimal senilai 0.01 SOL."
 }

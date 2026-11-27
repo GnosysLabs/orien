@@ -1987,6 +1987,22 @@
     [
       "^Swap ([\\d.,]+ (?:SOL|USDC))$",
       "{0} takas et"
+    ],
+    [
+      "^Only ([0-9.,]+) ORN at this price$",
+      "Bu fiyatta yalnızca {0} ORN"
+    ],
+    [
+      "^This buy order is for ([0-9.,]+) ORN$",
+      "Bu alış emri {0} ORN için"
+    ],
+    [
+      "^≈ (.+) per ORN$",
+      "≈ ORN başına {0}"
+    ],
+    [
+      "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
+      "{0} ORN'nin tamamını alın ya da emirde en az 0.01 SOL değerinde bırakın."
     ]
   ],
   "_guides": {
@@ -2436,5 +2452,13 @@
   "History": "Geçmiş",
   "Open buys": "Açık alışlar",
   "Open sells": "Açık satışlar",
-  "More than this wallet has": "Bu cüzdandakinden fazla"
+  "More than this wallet has": "Bu cüzdandakinden fazla",
+  "Price per ORN (SOL)": "ORN başına fiyat (SOL)",
+  "Enter a price and an amount": "Fiyat ve miktar girin",
+  "Buys now": "Hemen alır",
+  "Sells now": "Hemen satar",
+  "Waits in the order book": "Emir defterinde bekler",
+  "Click an order to fill in the form": "Formu doldurmak için bir emre tıklayın",
+  "Share of what you have": "Sahip olduğunuzun payı",
+  "Buy at least 0.01 SOL worth.": "En az 0.01 SOL değerinde alın."
 }

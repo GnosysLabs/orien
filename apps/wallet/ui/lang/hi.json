@@ -1987,6 +1987,22 @@
     [
       "^Swap ([\\d.,]+ (?:SOL|USDC))$",
       "{0} स्वैप करें"
+    ],
+    [
+      "^Only ([0-9.,]+) ORN at this price$",
+      "इस मूल्य पर केवल {0} ORN"
+    ],
+    [
+      "^This buy order is for ([0-9.,]+) ORN$",
+      "यह खरीद ऑर्डर {0} ORN का है"
+    ],
+    [
+      "^≈ (.+) per ORN$",
+      "≈ {0} प्रति ORN"
+    ],
+    [
+      "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
+      "सभी {0} ORN खरीदें, या ऑर्डर का कम से कम 0.01 SOL छोड़ें।"
     ]
   ],
   "_guides": {
@@ -2436,5 +2452,13 @@
   "History": "इतिहास",
   "Open buys": "खुली खरीद",
   "Open sells": "खुली बिक्री",
-  "More than this wallet has": "इस वॉलेट में जितना है उससे ज़्यादा"
+  "More than this wallet has": "इस वॉलेट में जितना है उससे ज़्यादा",
+  "Price per ORN (SOL)": "प्रति ORN मूल्य (SOL)",
+  "Enter a price and an amount": "मूल्य और मात्रा डालें",
+  "Buys now": "अभी खरीदता है",
+  "Sells now": "अभी बेचता है",
+  "Waits in the order book": "ऑर्डर बुक में इंतज़ार करता है",
+  "Click an order to fill in the form": "फ़ॉर्म भरने के लिए किसी ऑर्डर पर क्लिक करें",
+  "Share of what you have": "आपके पास जो है उसका हिस्सा",
+  "Buy at least 0.01 SOL worth.": "कम से कम 0.01 SOL का खरीदें।"
 }

@@ -172,6 +172,11 @@ impl Store {
         if !has_side {
             self.db.execute("ALTER TABLE swap_offers ADD COLUMN side TEXT NOT NULL DEFAULT 'sell'", [])?;
         }
+        // Added for partial fills: the order a taken part was split from.
+        let has_parent = self.db.prepare("SELECT 1 FROM pragma_table_info('swap_offers') WHERE name = 'parent'")?.exists([])?;
+        if !has_parent {
+            self.db.execute("ALTER TABLE swap_offers ADD COLUMN parent INTEGER", [])?;
+        }
         Ok(())
     }
 
@@ -319,12 +324,38 @@ impl Store {
                     )?;
                 }
             } else {
-                self.db.execute(
-                    "UPDATE swap_offers SET state = 'open', taker = NULL, taker_address = NULL, offer_code = NULL, due = NULL,
-                         runner = NULL, runner_at = NULL, updated = ?2
-                     WHERE id = ?1",
-                    params![id, at],
-                )?;
+                // A part split from an order goes back into it while it's
+                // still open; withdrawn, the part goes too.
+                let parent: Option<(i64, String)> = self
+                    .db
+                    .query_row(
+                        "SELECT p.id, p.state FROM swap_offers c JOIN swap_offers p ON p.id = c.parent WHERE c.id = ?1",
+                        [id],
+                        |r| Ok((r.get(0)?, r.get(1)?)),
+                    )
+                    .optional()?;
+                match parent {
+                    Some((parent, state)) if state == "open" => {
+                        self.db.execute(
+                            "UPDATE swap_offers SET orn = orn + (SELECT orn FROM swap_offers WHERE id = ?1),
+                                 sats = sats + (SELECT sats FROM swap_offers WHERE id = ?1), updated = ?3
+                             WHERE id = ?2",
+                            params![id, parent, at],
+                        )?;
+                        self.db.execute("UPDATE swap_offers SET state = 'closed', due = NULL, updated = ?2 WHERE id = ?1", params![id, at])?;
+                    }
+                    Some((_, state)) if state == "closed" => {
+                        self.db.execute("UPDATE swap_offers SET state = 'closed', due = NULL, updated = ?2 WHERE id = ?1", params![id, at])?;
+                    }
+                    _ => {
+                        self.db.execute(
+                            "UPDATE swap_offers SET state = 'open', taker = NULL, taker_address = NULL, offer_code = NULL, due = NULL,
+                                 runner = NULL, runner_at = NULL, updated = ?2
+                             WHERE id = ?1",
+                            params![id, at],
+                        )?;
+                    }
+                }
                 if buyers_turn {
                     self.db.execute("INSERT INTO swap_lapses (account, at) VALUES (?1, ?2)", params![taker, at])?;
                 }
@@ -376,7 +407,7 @@ impl Store {
             bail!("offer more than nothing");
         }
         let open: i64 = self.db.query_row(
-            "SELECT COUNT(*) FROM swap_offers WHERE seller = ?1 AND state IN ('open', 'held', 'swapping')",
+            "SELECT COUNT(*) FROM swap_offers WHERE seller = ?1 AND state IN ('open', 'held', 'swapping') AND parent IS NULL",
             [seller],
             |r| r.get(0),
         )?;
@@ -489,6 +520,14 @@ impl Store {
     /// none can buy their first. A wrong address only hurts its giver, whose
     /// wallet would never see ORN locked for it, and so never pay.
     pub fn take_swap(&self, buyer: i64, id: i64, address: &str) -> Result<MySwap> {
+        self.take_swap_part(buyer, id, address, None)
+    }
+
+    /// `take_swap`, for `orn` of the offer only (all of it when None or
+    /// more): the offer splits into the part taken, a swap of its own at the
+    /// same price, and the rest, which stays on the board. Each must be at
+    /// least the coin's smallest swap.
+    pub fn take_swap_part(&self, buyer: i64, id: i64, address: &str, orn: Option<u64>) -> Result<MySwap> {
         self.lapse_swaps()?;
         let address = crate::store::orien_address(address)?;
         let lapses: i64 = self.db.query_row(
@@ -515,6 +554,9 @@ impl Store {
             bail!("this is your own offer");
         }
         let at = now();
+        if let Some(part) = orn.filter(|part| *part < offer.orn) {
+            return self.take_part(buyer, &offer, part, &address, at);
+        }
         let taken = self.db.execute(
             "UPDATE swap_offers SET state = 'held', taker = ?2, taker_address = ?5, due = ?3, updated = ?4
              WHERE id = ?1 AND state = 'open' AND side = 'sell'",
@@ -523,6 +565,44 @@ impl Store {
         if taken == 0 {
             bail!("someone else took this offer a moment ago");
         }
+        self.my_swap(id, buyer)
+    }
+
+    /// Splits `part` ORN off open sell offer `offer` for `buyer` to take.
+    fn take_part(&self, buyer: i64, offer: &SwapOffer, part: u64, address: &str, at: u64) -> Result<MySwap> {
+        let (price, minimum, unit) = match offer.coin.as_str() {
+            "sol" => (offer.lamports, MIN_LAMPORTS, "SOL"),
+            _ => (offer.sats, MIN_SATS, "BTC"),
+        };
+        // Its share of the price, rounded to the nearest unit; the rest keeps
+        // the remainder, so the two add up to the whole.
+        let paid = ((price as u128 * part as u128 + offer.orn as u128 / 2) / offer.orn as u128) as u64;
+        let show = |units: u64| {
+            let value = units as f64 / if unit == "SOL" { 1e9 } else { 1e8 };
+            format!("{value:.9}").trim_end_matches('0').trim_end_matches('.').to_string()
+        };
+        if part == 0 || paid < minimum {
+            bail!("take at least {} {unit} worth of this offer", show(minimum));
+        }
+        if price - paid < minimum {
+            bail!("take all of this offer, or leave at least {} {unit} worth of it", show(minimum));
+        }
+        let tx = self.db.unchecked_transaction()?;
+        let shrunk = tx.execute(
+            "UPDATE swap_offers SET orn = orn - ?2, sats = sats - ?3, updated = ?4
+             WHERE id = ?1 AND state = 'open' AND side = 'sell' AND orn = ?5 AND sats = ?6",
+            params![offer.id, part as i64, paid as i64, at, offer.orn as i64, price as i64],
+        )?;
+        if shrunk == 0 {
+            bail!("someone else took this offer a moment ago");
+        }
+        tx.execute(
+            "INSERT INTO swap_offers (seller, orn, sats, state, created, updated, payout, wallet, coin, side, taker, taker_address, due, parent)
+             SELECT seller, ?2, ?3, 'held', ?4, ?4, payout, wallet, coin, 'sell', ?5, ?6, ?7, id FROM swap_offers WHERE id = ?1",
+            params![offer.id, part as i64, paid as i64, at, buyer, address, at + HOLD_SECONDS],
+        )?;
+        let id = tx.last_insert_rowid();
+        tx.commit()?;
         self.my_swap(id, buyer)
     }
 
@@ -964,6 +1044,54 @@ mod tests {
         store.db.execute("UPDATE swap_offers SET due = ?2 WHERE id = ?1", params![id, at - 360 + HOLD_SECONDS]).unwrap();
         store.lapse_swaps().unwrap();
         assert_eq!(store.swap_offer(id).unwrap().unwrap().state, "held");
+    }
+
+    #[test]
+    fn part_of_a_sell_offer_can_be_taken_and_the_rest_stays_open() {
+        let (store, maya, sam) = board();
+        let payout = "FoEVrwapoHbNbxLaDCGbwnbeoszu6LHB3ps1BvSZyDh1";
+        let orn = 10_000_000_000_000u64; // 10,000 ORN
+        let price = 10 * MIN_LAMPORTS + 7; // an odd price, to check rounding
+        let id = store.post_offer(maya, "sol", orn, price, Some(payout), Some(MAYA_WALLET)).unwrap().id;
+        // Too small a part, or too little left: refused, nothing changes.
+        assert!(store.take_swap_part(sam, id, SAM_WALLET, Some(orn / 20)).is_err());
+        assert!(store.take_swap_part(sam, id, SAM_WALLET, Some(orn - orn / 20)).is_err());
+        // A quarter: a swap of its own, the rest still open at the same price.
+        let part = store.take_swap_part(sam, id, SAM_WALLET, Some(orn / 4)).unwrap();
+        assert_ne!(part.offer.id, id);
+        assert_eq!(part.offer.orn, orn / 4);
+        assert_eq!(part.offer.state, "held");
+        let rest = store.swap_offer(id).unwrap().unwrap();
+        assert_eq!(rest.state, "open");
+        assert_eq!(rest.orn, orn - orn / 4);
+        assert_eq!(part.offer.lamports + rest.lamports, price, "the two prices add up to the whole");
+        assert_eq!(part.offer.lamports, (price + 2) / 4);
+        // The part runs like any taken offer; the seller can still post.
+        for _ in 0..MAX_OFFERS - 1 {
+            store.post_offer(maya, "sol", orn, price, Some(payout), Some(MAYA_WALLET)).unwrap();
+        }
+        // The buyer never comes back: the part goes back into the offer.
+        store.db.execute("UPDATE swap_offers SET due = 1 WHERE id = ?1", [part.offer.id]).unwrap();
+        store.lapse_swaps().unwrap();
+        let whole = store.swap_offer(id).unwrap().unwrap();
+        assert_eq!((whole.orn, whole.lamports, whole.state.as_str()), (orn, price, "open"));
+        assert_eq!(store.swap_offer(part.offer.id).unwrap().unwrap().state, "closed");
+        // Taking it all (or more) takes the offer itself.
+        let all = store.take_swap_part(sam, id, SAM_WALLET, Some(orn * 2)).unwrap();
+        assert_eq!(all.offer.id, id);
+    }
+
+    #[test]
+    fn a_part_of_a_withdrawn_offer_closes_when_it_lapses() {
+        let (store, maya, sam) = board();
+        let payout = "FoEVrwapoHbNbxLaDCGbwnbeoszu6LHB3ps1BvSZyDh1";
+        let id = store.post_offer(maya, "sol", 4_000, 4 * MIN_LAMPORTS, Some(payout), Some(MAYA_WALLET)).unwrap().id;
+        let part = store.take_swap_part(sam, id, SAM_WALLET, Some(1_000)).unwrap();
+        store.close_swap_short(maya, id, false).unwrap();
+        store.db.execute("UPDATE swap_offers SET due = 1 WHERE id = ?1", [part.offer.id]).unwrap();
+        store.lapse_swaps().unwrap();
+        assert_eq!(store.swap_offer(part.offer.id).unwrap().unwrap().state, "closed");
+        assert!(store.open_swaps_in(&["sol"]).unwrap().is_empty());
     }
 
     #[test]

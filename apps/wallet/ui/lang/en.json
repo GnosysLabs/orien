@@ -1494,5 +1494,13 @@
   "History": "History",
   "Open buys": "Open buys",
   "Open sells": "Open sells",
-  "More than this wallet has": "More than this wallet has"
+  "More than this wallet has": "More than this wallet has",
+  "Price per ORN (SOL)": "Price per ORN (SOL)",
+  "Enter a price and an amount": "Enter a price and an amount",
+  "Buys now": "Buys now",
+  "Sells now": "Sells now",
+  "Waits in the order book": "Waits in the order book",
+  "Click an order to fill in the form": "Click an order to fill in the form",
+  "Share of what you have": "Share of what you have",
+  "Buy at least 0.01 SOL worth.": "Buy at least 0.01 SOL worth."
 }

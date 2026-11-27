@@ -1191,6 +1191,10 @@ struct Take {
     /// 3 for SOL swaps, 4 for buy offers.
     #[serde(default)]
     swap_version: u32,
+    /// For sell offers: how much of it to take, in ORN units; all of it
+    /// without. The rest stays on the board at the same price.
+    #[serde(default)]
+    orn: Option<u64>,
 }
 
 async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, body: Option<Json<Take>>) -> Answer {
@@ -1273,7 +1277,7 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
                 Failure::Refused("take this offer in Orien Wallet, which sends where the ORN should go".into())
             })?,
         };
-        let swap = store.take_swap(account, id, &address).map_err(refused)?;
+        let swap = store.take_swap_part(account, id, &address, request.orn).map_err(refused)?;
         let email = store.email_of(swap.offer.seller)?;
         let taker = store.account(account)?.map(|a| a.name).unwrap_or_default();
         (swap, email, taker)
@@ -1281,9 +1285,13 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
     app.tell(crate::push::Event {
         account: swap.offer.seller,
         address: swap.wallet.clone(),
-        body: format!("{taker} took your offer of {} ORN", crate::store::orn(swap.offer.orn)),
+        body: if swap.offer.id == id {
+            format!("{taker} took your offer of {} ORN", crate::store::orn(swap.offer.orn))
+        } else {
+            format!("{taker} took {} ORN of your offer", crate::store::orn(swap.offer.orn))
+        },
         kind: "swap",
-        open: json!({ "swap": id }),
+        open: json!({ "swap": swap.offer.id }),
     });
     if let Some(to) = seller_email {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());

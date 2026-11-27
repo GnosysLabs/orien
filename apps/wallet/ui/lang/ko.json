@@ -1987,6 +1987,22 @@
     [
       "^Swap ([\\d.,]+ (?:SOL|USDC))$",
       "{0} 스왑"
+    ],
+    [
+      "^Only ([0-9.,]+) ORN at this price$",
+      "이 가격에는 {0} ORN뿐"
+    ],
+    [
+      "^This buy order is for ([0-9.,]+) ORN$",
+      "이 매수 주문은 {0} ORN입니다"
+    ],
+    [
+      "^≈ (.+) per ORN$",
+      "≈ ORN당 {0}"
+    ],
+    [
+      "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
+      "{0} ORN을 모두 사거나, 주문에 최소 0.01 SOL어치를 남겨 두세요."
     ]
   ],
   "_guides": {
@@ -2436,5 +2452,13 @@
   "History": "기록",
   "Open buys": "미체결 매수",
   "Open sells": "미체결 매도",
-  "More than this wallet has": "이 지갑 잔액보다 많습니다"
+  "More than this wallet has": "이 지갑 잔액보다 많습니다",
+  "Price per ORN (SOL)": "ORN당 가격 (SOL)",
+  "Enter a price and an amount": "가격과 수량을 입력하세요",
+  "Buys now": "바로 구매",
+  "Sells now": "바로 판매",
+  "Waits in the order book": "호가창에서 대기",
+  "Click an order to fill in the form": "주문을 클릭하면 양식이 채워집니다",
+  "Share of what you have": "보유량 중 비율",
+  "Buy at least 0.01 SOL worth.": "최소 0.01 SOL어치를 구매하세요."
 }

@@ -1621,6 +1621,29 @@
     body:not(.phone) #swaps .ex-hero { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 32px; align-items: center; }
     body:not(.phone) #swaps .ex-hero > .label, body:not(.phone) #swaps .ex-hero > .amount { grid-column: 1; justify-content: flex-start; }
     body:not(.phone) #swaps .ex-hero-stats { grid-column: 2; grid-row: 1 / span 2; margin: 0; padding: 0 0 0 28px; border-top: 0; border-left: 1px solid rgba(0, 0, 0, 0.12); }
+    /* A slim strip: the price and the figures on one short line, so the
+       order book and the form get the room. */
+    body:not(.phone) #swaps .ex-hero { margin-bottom: 20px; padding: 10px 18px; border-radius: 18px; column-gap: 22px; }
+    /* Every gap the same as the one between the columns. */
+    body:not(.phone) #swaps .ex-col { gap: 20px; }
+    body:not(.phone) #swaps .ex-col > .ex-panel { margin-top: 0; }
+  }
+  /* Shorter big windows: the form a little tighter, so Buy stays in view. */
+  @media (min-width: 860px) and (max-height: 820px) {
+    body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { gap: 9px; padding-top: 12px; padding-bottom: 14px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-side { height: 32px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-field .box, body:not(.phone) #swaps #ex-pane-ticket .ex-field.ex-in label { height: 38px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-rate-bar { padding-block: 7px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-go { height: 40px; }
+    body:not(.phone) #swaps .ex-hero > .label { display: none; }
+    body:not(.phone) #swaps .ex-hero > .amount { grid-row: 1 / span 2; margin: 0; height: auto; }
+    body:not(.phone) #swaps .ex-hero .balance { font-size: 26px; }
+    body:not(.phone) #swaps .ex-hero .amount .unit { font-size: 12px; }
+    body:not(.phone) #swaps .ex-hero-stats { padding-left: 22px; }
+    body:not(.phone) #swaps .ex-hero-stats > div { gap: 1px; }
+    body:not(.phone) #swaps .ex-hero-stats span { font-size: 10px; }
+    body:not(.phone) #swaps .ex-hero-stats b { font-size: 13.5px; }
+    body:not(.phone) #swaps .ex-hero-stats small { display: none; }
   }
   #swaps .ex-hero .amount .unit { font-size: 15px; }
   .ex-hero-sub { margin-top: 6px; font-size: 13px; color: var(--pearl-ink); opacity: 0.7; }
@@ -1688,8 +1711,9 @@
   .ex-order-go, .ex-order-x, .ex-veil { display: none; }
   .ex-cur { margin-left: 10px; flex: none; }
   @media (min-width: 860px) {
-    body:not(.phone) .ex-order-go { display: inline-flex; margin-left: 10px; }
-    body:not(.phone) #ex-pane-ticket { display: none; }
+    /* Big windows: the order form is always there, beside the order book. */
+    body:not(.phone) .ex-order-go { display: none; }
+    body:not(.phone) #ex-pane-ticket { display: flex; }
     body.ex-order:not(.phone) main { isolation: auto; }
     body.ex-order:not(.phone) #swaps { -webkit-mask: none; mask: none; }
     body:not(.phone).ex-order #ex-pane-ticket { display: flex; position: fixed; z-index: 51; inset: 0; margin: auto;
@@ -1700,7 +1724,7 @@
     /* The form opens from Place order here, whichever small-window tab it
        was last hidden by. */
     body:not(.phone).ex-order #ex-pane-ticket[hidden] { display: flex !important; }
-    body:not(.phone) .ex-order-x { display: grid; place-items: center; position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: var(--surface-hover); color: var(--dim); cursor: pointer; }
+    body:not(.phone) .ex-order-x { display: none; place-items: center; position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: var(--surface-hover); color: var(--dim); cursor: pointer; }
     body:not(.phone) .ex-order-x:hover { color: var(--ink); }
     body.ex-order:not(.phone) #ex-veil:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 50;
       background: var(--veil); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: pop-fade .18s ease; }
@@ -1733,6 +1757,33 @@
   .ex-verify { padding: 12px 14px; border-radius: 12px; background: var(--ground-deep); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
   .ex-verify strong { font-size: 13px; color: var(--ink); }
   .ex-verify p { margin: 0; font-size: 12px; line-height: 1.45; color: var(--dim); }
+  /* The order book, as an exchange's: Price, Amount, Total; each order a
+     row to click, its depth shaded behind it. */
+  #swaps .ob-cols, #swaps .ob-row { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); }
+  #swaps .ob-cols span:nth-child(n+2) { text-align: right; }
+  #swaps button.ob-row { width: 100%; padding: 8px 16px; border: 0; border-radius: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  #swaps button.ob-row:hover { background: var(--surface-hover); }
+  #swaps :is(.ob-asks, .ob-bids) { display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; max-height: 220px; }
+  /* Few sell orders still sit right above the price. */
+  #swaps .ob-asks > :first-child { margin-top: auto; }
+  /* Share of what you have: five stops on a line. */
+  .ex-pct { position: relative; display: flex; justify-content: space-between; margin: 2px 0; }
+  .ex-pct-line { position: absolute; left: 17px; right: 17px; top: 6px; height: 3px; border-radius: 2px; background: var(--line); }
+  #ex-pct-fill { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--good); transition: width .15s ease; }
+  .ex-pct button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; width: 34px; padding: 0; border: 0; background: none; color: var(--faint);
+    font: inherit; font-size: 11px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  .ex-pct button i { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); transition: border-color .15s, background .15s; }
+  .ex-pct button.on { color: var(--ink); }
+  .ex-pct button.on i { border-color: var(--good); background: var(--good); }
+  #ex-pane-ticket:has(#ex-side-sell.on) #ex-pct-fill { background: var(--bad); }
+  #ex-pane-ticket:has(#ex-side-sell.on) .ex-pct button.on i { border-color: var(--bad); background: var(--bad); }
+  .ex-rate-bar #ex-rate-what:empty { display: none; }
+  #swaps :is(.ob-asks, .ob-bids) > * { flex: none; }
+  /* Price, Amount and Total: the name inside the box on the left, the
+     number on the right, as on an exchange. */
+  .ex-field.ex-in { position: relative; }
+  .ex-field.ex-in label { position: absolute; left: 13px; top: 0; height: 42px; margin: 0; z-index: 1; pointer-events: none; font-size: 13px; font-weight: 500; }
+  .ex-field.ex-in .box input { text-align: right; padding-left: 170px; }
   /* Bottom Activity Deck: Your swaps + Recent market trades */
   /* Small windows: the tabs above choose Trades or Your swaps, so the
      panel's own pair of tabs would only say it twice. */
@@ -1759,7 +1810,7 @@
   @media (min-width: 860px) {
     body:not(.phone) #swaps > .ex-mobile-tabs { display: none; }
     body:not(.phone) .ex-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-    body:not(.phone) #swaps .ex-panel[data-ex-pane]:not(#ex-pane-ticket):not(#ex-pane-chart)[hidden] { display: flex !important; }
+    body:not(.phone) #swaps .ex-panel[data-ex-pane]:not(#ex-pane-chart)[hidden] { display: flex !important; }
   }
   #swaps #board-offers { max-height: 360px; overflow-y: auto; overscroll-behavior: contain; }
   /* The column headings stay put while the book scrolls under them. */
@@ -1770,7 +1821,15 @@
     body:not(.phone) #swaps { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
     body:not(.phone) #swaps > .ex-grid { flex: 1; min-height: 0; align-items: stretch; }
     body:not(.phone) #swaps .ex-col { min-height: 0; }
-    body:not(.phone) #swaps #ex-pane-deck, body:not(.phone) #swaps #tab-offers { flex: 1; min-height: 0; }
+    body:not(.phone) #swaps #ex-pane-deck, body:not(.phone) #swaps #tab-offers { flex: 1 1 0; min-height: 0; }
+    body:not(.phone) #swaps #tab-offers { flex-grow: 2.2; }
+    body:not(.phone) #swaps #ex-pane-ticket #ex-ticket-sub { display: none; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { gap: 12px; padding-top: 14px; }
+    body:not(.phone) #swaps #ex-pane-ticket { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { flex: 1; justify-content: space-between; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-note { display: none; }
+    body:not(.phone) #swaps #board-offers { display: flex; flex-direction: column; overflow: hidden; }
+    body:not(.phone) #swaps :is(.ob-asks, .ob-bids) { flex: 1 1 0; min-height: 0; }
     body:not(.phone) #swaps #board-offers { flex: 1; min-height: 0; max-height: none; }
     body:not(.phone) #swaps #ex-pane-deck { overflow: hidden; }
     body:not(.phone) #swaps .ex-deck-head { flex: none; }
@@ -1790,6 +1849,7 @@
     body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { flex: 1; justify-content: space-between; gap: clamp(16px, 2.8vh, 30px); padding-top: clamp(18px, 2.8vh, 30px); padding-bottom: clamp(20px, 2.8vh, 30px); }
     body:not(.phone) #swaps #ex-pane-ticket .ex-side { height: clamp(36px, 5.2vh, 52px); font-size: clamp(13px, 1.7vh, 15px); }
     body:not(.phone) #swaps #ex-pane-ticket .ex-field .box { height: clamp(42px, 6.4vh, 62px); }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-field.ex-in label { height: clamp(42px, 6.4vh, 62px); }
     body:not(.phone) #swaps #ex-pane-ticket .ex-field .box input { font-size: clamp(14px, 2vh, 17px); }
     body:not(.phone) #swaps #ex-pane-ticket .ex-rate-bar { padding-block: clamp(11px, 2vh, 19px); }
     body:not(.phone) #swaps #ex-pane-ticket .ex-go { height: clamp(44px, 6.6vh, 62px); font-size: clamp(14px, 1.9vh, 16px); }
@@ -4752,8 +4812,22 @@
 
       <!-- Two-column Exchange Terminal -->
       <div class="ex-grid">
-        <!-- Left column: Price Chart + Activity Deck (Your swaps / Recent trades) -->
+        <!-- Left column: the order book, and your orders and swaps under it -->
         <div class="ex-col">
+          <div class="ex-panel" id="tab-offers" data-ex-pane="offers">
+            <div class="ex-phead">
+              <div>
+                <h3>Order book</h3>
+                <div class="ex-psub">Click an order to fill in the form</div>
+              </div>
+              <span class="ex-pill-count" id="ex-ob-count">0 open</span>
+            </div>
+            <span id="board-btc" hidden></span>
+            <button id="board-post-go" hidden></button>
+            <div id="board-offers"><div class="empty">Loading order book…</div></div>
+            <div class="problem" id="board-problem" hidden></div>
+          </div>
+
           <div class="ex-panel" id="ex-pane-chart" data-ex-pane="history">
             <div class="ex-phead">
               <div>
@@ -4792,23 +4866,8 @@
           </div>
         </div>
 
-        <!-- Right column: Live Order Book + Inline Trade Ticket -->
+        <!-- Right column: the order form -->
         <div class="ex-col">
-          <div class="ex-panel" id="tab-offers" data-ex-pane="offers">
-            <div class="ex-phead">
-              <div>
-                <h3>Order book</h3>
-                <div class="ex-psub">Click Buy or Sell to trade directly</div>
-              </div>
-              <span class="ex-pill-count" id="ex-ob-count">0 open</span>
-            </div>
-            <span id="board-btc" hidden></span>
-            <button id="board-post-go" hidden></button>
-            <div id="board-offers"><div class="empty">Loading order book…</div></div>
-            <div class="problem" id="board-problem" hidden></div>
-          </div>
-
-          <!-- Inline Place Order Ticket -->
           <div class="ex-panel" id="ex-pane-ticket" data-ex-pane="trade" hidden>
             <div class="ex-phead"><button class="pop-x ex-order-x" id="ex-order-x" aria-label="Close" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
               <div>
@@ -4828,22 +4887,33 @@
                 <button type="button" class="pill pearl" id="ex-verify-go">Link this wallet</button>
               </div>
 
-              <div class="ex-row2">
-                <div class="ex-field">
-                  <label for="ex-orn"><em id="ex-orn-label">Amount (ORN)</em></label>
-                  <div class="box plain"><input id="ex-orn" placeholder="500" inputmode="decimal" autocomplete="off"></div>
-                  <div class="ex-under" id="ex-bal"></div>
-                </div>
-                <div class="ex-field">
-                  <label for="ex-sol"><em id="ex-sol-label">Total (SOL)</em></label>
-                  <div class="box plain"><input id="ex-sol" placeholder="0.5" inputmode="decimal" autocomplete="off"></div>
-                  <div class="ex-under" id="ex-sol-hint">Min 0.01</div>
-                </div>
+              <div class="ex-field ex-in">
+                <label for="ex-price"><em id="ex-price-label">Price per ORN (SOL)</em></label>
+                <div class="box plain"><input id="ex-price" placeholder="0.0001" inputmode="decimal" autocomplete="off"></div>
+                <div class="ex-under" id="ex-price-hint"></div>
+              </div>
+              <div class="ex-field ex-in">
+                <label for="ex-orn"><em id="ex-orn-label">Amount (ORN)</em></label>
+                <div class="box plain"><input id="ex-orn" placeholder="500" inputmode="decimal" autocomplete="off"></div>
+                <div class="ex-under" id="ex-bal"></div>
+              </div>
+              <div class="ex-pct" id="ex-pct" role="group" aria-label="Share of what you have">
+                <span class="ex-pct-line" aria-hidden="true"><span id="ex-pct-fill"></span></span>
+                <button type="button" data-pct="0"><i></i><span>0%</span></button>
+                <button type="button" data-pct="25"><i></i><span>25%</span></button>
+                <button type="button" data-pct="50"><i></i><span>50%</span></button>
+                <button type="button" data-pct="75"><i></i><span>75%</span></button>
+                <button type="button" data-pct="100"><i></i><span>100%</span></button>
+              </div>
+              <div class="ex-field ex-in">
+                <label for="ex-sol"><em id="ex-sol-label">Total (SOL)</em></label>
+                <div class="box plain"><input id="ex-sol" placeholder="0.05" inputmode="decimal" autocomplete="off"></div>
+                <div class="ex-under" id="ex-sol-hint">Min 0.01</div>
               </div>
 
               <div class="ex-rate-bar" id="ex-rate-bar">
-                <span>Price per ORN</span>
-                <strong id="ex-rate-val">Enter ORN and SOL</strong>
+                <span id="ex-rate-what"></span>
+                <strong id="ex-rate-val">Enter a price and an amount</strong>
               </div>
 
               <div class="ex-field">
@@ -10900,20 +10970,14 @@
     const maxAsk = Math.max(1, ...asksAsc.map((o) => o.orn));
     const maxBid = Math.max(1, ...bidsDesc.map((o) => o.orn));
     const depthClass = (orn, max) => `d-${Math.max(1, Math.min(10, Math.ceil((orn / max) * 10)))}`;
-    const rowHtml = (o, isBuy, maxOrn) => {
-      const unit = unitOf(o);
-      const usdTxt = exPxOther(unit);
-      return `<div class="ob-row ${isBuy ? "bid" : "ask"}">
+    // As an exchange shows it: sell orders above, cheapest nearest the
+    // middle, the price between, buy orders below. An order fills the form.
+    const row = (o, isBuy, maxOrn) => `<button type="button" class="ob-row ${isBuy ? "bid" : "ask"}" data-pick="${o.id}" data-funded="${o.funded ? "1" : ""}" title="${esc(o.seller_name || "")}">
         <span class="ob-depth ${depthClass(o.orn, maxOrn)}" aria-hidden="true"></span>
-        <div>
-          <div class="ob-price">${esc(exUsd() ? exPx(unit) : fmtBookUnit(unit))}</div>
-          <div class="ob-meta"${usdTxt ? ` title="${esc(usdTxt)} per ORN"` : ""}><b data-user="${esc(o.seller_name || "")}">${esc(o.seller_name)}</b></div>
-        </div>
-        <div class="ob-num">${esc(fmtOrn(o.orn))} ORN</div>
-        <div class="ob-num dim">${esc(exUsd() ? exPx(o.lamports / 1e9) : fmtBookTotal(o))}</div>
-        <button class="ob-act ${isBuy ? "bid-sell" : "ask-buy"}" data-take="${o.id}" data-funded="${o.funded ? "1" : ""}">${isBuy ? "Sell" : "Buy"}</button>
-      </div>`;
-    };
+        <span class="ob-price">${esc(exUsd() ? exPx(unitOf(o)) : fmtBookUnit(unitOf(o)))}</span>
+        <span class="ob-num">${esc(fmtOrn(o.orn))}</span>
+        <span class="ob-num dim">${esc(exUsd() ? exPx(o.lamports / 1e9) : fmtBookTotal(o))}</span>
+      </button>`;
     const bestAsk = asksAsc[0], bestBid = bidsDesc[0];
     const spread = bestAsk && bestBid ? Math.max(0, unitOf(bestAsk) - unitOf(bestBid)) : null;
     const spreadPct = spread !== null && bestAsk && unitOf(bestAsk) > 0 ? (spread / unitOf(bestAsk)) * 100 : null;
@@ -10923,30 +10987,110 @@
       ? `Spread ${exPx(spread)}${spreadPct !== null ? ` (${spreadPct.toFixed(1)}%)` : ""}`
       : lastPrice ? `Last swap · ${ago(hist.last.at)}` : "No trades yet";
     const asksHtml = asksAsc.length
-      ? asksAsc.map((o) => rowHtml(o, false, maxAsk)).join("")
+      ? asksAsc.slice().reverse().map((o) => row(o, false, maxAsk)).join("")
       : '<div class="ob-empty">No open sell offers right now</div>';
     const bidsHtml = bidsDesc.length
-      ? bidsDesc.map((o) => rowHtml(o, true, maxBid)).join("")
+      ? bidsDesc.map((o) => row(o, true, maxBid)).join("")
       : '<div class="ob-empty">No open buy offers right now</div>';
     const awayLine = away ? `<p class="board-away">${away} more offer${away === 1 ? "" : "s"} paused while ${away === 1 ? "its owner's" : "their owners'"} Orien Wallet is closed.</p>` : "";
-    list.innerHTML = `<div class="ob-cols"><span>Price (${exUsd() ? exCur().toUpperCase() : "SOL"})</span><span>Size (ORN)</span><span>Total (${exUsd() ? exCur().toUpperCase() : "SOL"})</span><span>Trade</span></div>`
-      + `<div class="ob-side-head bid"><span>Bids · buying ORN</span><span class="ob-ct">${bidsDesc.length}</span></div>`
-      + bidsHtml
+    const cur = exUsd() ? exCur().toUpperCase() : "SOL";
+    list.innerHTML = `<div class="ob-cols"><span>Price (${cur})</span><span>Amount (ORN)</span><span>Total (${cur})</span></div>`
+      + `<div class="ob-asks">${asksHtml}</div>`
       + `<div class="ob-spread"><span class="ob-spread-price">${esc(midPrice)}</span><span class="ob-spread-meta">${esc(midMeta)}</span></div>`
-      + `<div class="ob-side-head ask"><span>Asks · selling ORN</span><span class="ob-ct">${asksAsc.length}</span></div>`
-      + asksHtml
+      + `<div class="ob-bids">${bidsHtml}</div>`
       + awayLine;
     // The column headings sit above the scrolling list, not stuck inside it:
     // WebKit leaves a strip of rows showing above a stuck heading.
     const cols = list.querySelector(".ob-cols"), was = list.parentNode.querySelector(":scope > .ob-cols");
     if (was) was.remove();
     if (cols) list.parentNode.insertBefore(cols, list);
-    for (const b of list.querySelectorAll("[data-take]")) b.onclick = () => startTake(Number(b.dataset.take), b.dataset.funded === "1");
-    for (const u of list.querySelectorAll("[data-user]")) u.onclick = () => u.dataset.user && openPerson(u.dataset.user, "swaps");
+    // The cheapest sell order shows, beside the price.
+    const asks = list.querySelector(".ob-asks");
+    if (asks) asks.scrollTop = asks.scrollHeight;
+    for (const b of list.querySelectorAll("[data-pick]")) b.onclick = () => exPick(Number(b.dataset.pick), b.dataset.funded === "1");
+    exDefaultPrice();
+    updateExRate();
   }
 
   // ---- Inline Exchange Trade Ticket (Buy ORN / Sell ORN right on screen) ----
   let exSide = "buy";
+  // The order book's best orders, someone else's and open: the cheapest
+  // sell order (to buy from) and the highest buy order (to sell into).
+  const exUnit = (o) => (o.lamports / 1e9) / (o.orn / 1e9);
+  function exBest(side) {
+    const others = (board.offers || []).filter((o) => o.coin === "sol" && o.seller_online !== false && !(board.me && o.seller === board.me.id));
+    const list = others.filter((o) => (o.side === "buy") === (side === "buy"));
+    return list.sort((a, b) => side === "buy" ? exUnit(b) - exUnit(a) : exUnit(a) - exUnit(b))[0] || null;
+  }
+  // A number for a box: as many decimals as it needs, no more than nine.
+  const exPlain = (n, digits = 9) => Number.isFinite(n) ? String(+n.toFixed(digits)) : "";
+  // What Buy or Sell would do at the price typed: trade with an order now
+  // (Buy at or above the cheapest sell order, Sell at or below the highest
+  // buy order), or wait in the order book as an order of its own.
+  function exMatch() {
+    const price = parseFloat($("ex-price").value);
+    if (!(price > 0)) return null;
+    const best = exSide === "buy" ? exBest("sell") : exBest("buy");
+    if (!best) return null;
+    const unit = exUnit(best);
+    const crosses = exSide === "buy" ? price >= unit * (1 - 1e-9) : price <= unit * (1 + 1e-9);
+    return crosses ? best : null;
+  }
+  // A price to start from: the best order on the other side.
+  function exDefaultPrice() {
+    if ($("ex-price").value.trim() || document.activeElement === $("ex-price")) return;
+    const best = exSide === "buy" ? exBest("sell") : (exBest("buy") || exBest("sell"));
+    if (best) { $("ex-price").value = exPlain(exUnit(best), 9); exFromPrice(); }
+  }
+  // The three boxes agree: Total is Price × Amount. Whichever box was typed
+  // in last stays as typed, Amount or Total moving to match.
+  function exFromPrice() {
+    const price = parseFloat($("ex-price").value), orn = parseFloat($("ex-orn").value), sol = parseFloat($("ex-sol").value);
+    if (!(price > 0)) return;
+    if (orn > 0) $("ex-sol").value = exPlain(price * orn);
+    else if (sol > 0) $("ex-orn").value = exPlain(sol / price, 4);
+  }
+  // A share of what this wallet has: SOL to spend on a buy, ORN to sell.
+  let exPct = null;
+  function exPctPaint() {
+    for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.classList.toggle("on", exPct !== null && Number(b.dataset.pct) <= exPct);
+    $("ex-pct-fill").style.width = `${exPct || 0}%`;
+  }
+  for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.onclick = () => {
+    exPct = Number(b.dataset.pct);
+    const price = parseFloat($("ex-price").value);
+    if (exSide === "buy") {
+      const max = exSolMax();
+      if (max == null) return;
+      const sol = Math.floor(max * exPct / 100 * 1e4) / 1e4;
+      $("ex-sol").value = sol ? exPlain(sol) : "";
+      $("ex-orn").value = sol && price > 0 ? exPlain(sol / price, 4) : "";
+    } else {
+      const have = parseFloat(String(view && view.spendable || "").replace(/,/g, ""));
+      if (!(have > 0)) return;
+      const orn = Math.floor(have * exPct / 100 * 1e4) / 1e4;
+      $("ex-orn").value = orn ? exPlain(orn, 4) : "";
+      $("ex-sol").value = orn && price > 0 ? exPlain(orn * price) : "";
+    }
+    exPctPaint();
+    updateExRate();
+  };
+  // An order in the book, clicked: the form takes its side's opposite, its
+  // price and all of it, to change before pressing Buy or Sell.
+  function exPick(id, funded) {
+    const o = (board.offers || []).find((x) => x.id === id && Boolean(x.funded) === Boolean(funded));
+    if (!o) return;
+    exSide = o.side === "buy" ? "sell" : "buy";
+    $("ex-problem").hidden = true;
+    syncExTicket();
+    if (exSide === "sell") checkExWallet();
+    $("ex-price").value = exPlain(exUnit(o), 9);
+    $("ex-orn").value = exPlain(o.orn / 1e9, 9);
+    $("ex-sol").value = exPlain(o.lamports / 1e9);
+    exPct = null; exPctPaint();
+    updateExRate();
+    if (handset || !wide.matches) swapTab("trade");
+  }
   let exAddrBad = false;
   let exUnverified = false;
   let exAddrTimer = 0;
@@ -10968,23 +11112,31 @@
     const settled = /\.\d{2,}/.test(solText) || document.activeElement !== $("ex-sol");
     const tooLow = /\d/.test(solText) && sol < 0.01 && settled;
     const maxSol = (board.maxOrderLamports || 10e9) / 1e9;
-    const tooHigh = exSide === "buy" && sol > maxSol;
+    const match = exMatch();
+    const tooHigh = exSide === "buy" && !match && sol > maxSol;
     const over = exOverSol();
-    bar.classList.toggle("warn", tooLow || tooHigh || over);
+    const price = parseFloat($("ex-price").value);
+    $("ex-price-hint").textContent = price > 0 && board.solUsd ? `≈ ${fmtUsd(price * board.solUsd)} per ORN` : "";
+    // A buy order takes exactly its amount: selling into one, all of it.
+    const wrongSize = !!match && exSide === "sell" && orn > 0 && Math.abs(orn * 1e9 - match.orn) > 1;
+    bar.classList.toggle("warn", tooLow || tooHigh || over || wrongSize);
+    const what = $("ex-rate-what");
+    what.textContent = "";
     if (tooLow) {
       val.textContent = "Minimum order is 0.01 SOL";
     } else if (over) {
       val.textContent = "More than this wallet has";
     } else if (tooHigh) {
       val.textContent = `Buy orders are limited to ${maxSol} SOL per order`;
+    } else if (wrongSize) {
+      val.textContent = `This buy order is for ${fmtOrn(match.orn)} ORN`;
     } else if (orn > 0 && sol > 0) {
-      const unit = sol / orn;
-      const usdEach = board.solUsd ? ` (${fmtUsd(unit * board.solUsd)})` : "";
-      const usdTot = board.solUsd ? ` · ≈ ${fmtUsd(sol * board.solUsd)}` : "";
-      val.textContent = `${fmtBookUnit(unit)} SOL${usdEach}${usdTot}`;
+      // What pressing Buy or Sell will do.
+      if (match && exSide === "buy" && orn * 1e9 > match.orn + 1) what.textContent = `Only ${fmtOrn(match.orn)} ORN at this price`;
+      else what.textContent = match ? (exSide === "buy" ? "Buys now" : "Sells now") : "Waits in the order book";
+      val.textContent = board.solUsd ? `≈ ${fmtUsd(Math.min(sol, match && exSide === "buy" ? match.lamports / 1e9 : sol) * board.solUsd)}` : "";
     } else {
-      // Only a price per ORN goes here: the one the two amounts make.
-      val.textContent = "Enter ORN and SOL";
+      val.textContent = "Enter a price and an amount";
     }
     updateExReady();
   }
@@ -11001,15 +11153,18 @@
       return;
     }
     const buy = exSide === "buy";
-    setExGo(view && view.biometric
+    const match = exMatch();
+    // Trading with an order now: its own screen asks for Touch ID.
+    setExGo(view && view.biometric && !match
       ? (buy ? `Buy ORN with ${bio}` : `Sell ORN with ${bio}`)
-      : (buy ? "Place Buy Order" : "Place Sell Order"));
+      : (buy ? "Buy ORN" : "Sell ORN"));
     const orn = parseFloat($("ex-orn").value);
     const sol = parseFloat($("ex-sol").value);
-    const needVer = !buy && exUnverified;
+    const needVer = !buy && !match && exUnverified;
     const maxSol = (board.maxOrderLamports || 10e9) / 1e9;
-    const ok = !needVer && orn > 0 && sol >= 0.01 && (!buy || sol <= maxSol) && !exOverSol() && exAddrOk()
-      && ($("ex-pw-field").hidden || $("ex-pw").value.length > 0);
+    const wrongSize = !!match && !buy && Math.abs(orn * 1e9 - match.orn) > 1;
+    const ok = !needVer && !wrongSize && orn > 0 && sol >= 0.01 && (!buy || match || sol <= maxSol) && !exOverSol() && (match || exAddrOk())
+      && (match || $("ex-pw-field").hidden || $("ex-pw").value.length > 0);
     go.disabled = !ok;
   }
   function syncExTicket() {
@@ -11018,8 +11173,8 @@
     $("ex-side-sell").classList.toggle("on", !buy);
     $("ex-go").classList.toggle("buy", buy);
     $("ex-go").classList.toggle("sell", !buy);
-    $("ex-orn-label").textContent = buy ? "Buy amount (ORN)" : "Sell amount (ORN)";
-    $("ex-sol-label").textContent = buy ? "Pay total (SOL)" : "Receive total (SOL)";
+    $("ex-orn-label").textContent = "Amount (ORN)";
+    $("ex-sol-label").textContent = "Total (SOL)";
     $("ex-addr-label").textContent = buy ? "Your SOL wallet (for refunds & leftovers)" : "Your SOL payout address";
     $("ex-addr").placeholder = buy ? "Your Phantom / SOL wallet address" : "Where your SOL should go (e.g. Phantom)";
     ownSolAddress($("ex-addr"), true);
@@ -11049,8 +11204,19 @@
     $("ex-verify-go").textContent = busy ? "Linking… usually within a minute" : "Link this wallet";
     updateExReady();
   }
-  $("ex-side-buy").onclick = () => { exSide = "buy"; $("ex-problem").hidden = true; syncExTicket(); };
-  $("ex-side-sell").onclick = () => { exSide = "sell"; $("ex-problem").hidden = true; syncExTicket(); checkExWallet(); };
+  // Switching side starts the form afresh, at the other side's best price.
+  const exSwitch = (side) => {
+    if (exSide === side) return;
+    exSide = side;
+    $("ex-problem").hidden = true;
+    $("ex-price").value = $("ex-orn").value = $("ex-sol").value = "";
+    exPct = null; exPctPaint();
+    syncExTicket();
+    exDefaultPrice();
+    updateExRate();
+  };
+  $("ex-side-buy").onclick = () => exSwitch("buy");
+  $("ex-side-sell").onclick = () => { exSwitch("sell"); checkExWallet(); };
   $("ex-verify-go").onclick = () => quickVerify();
   // Solana's own fees on a SOL swap, kept in hand on top of the price.
   const SOL_SWAP_FEES = 0.005;
@@ -11072,8 +11238,19 @@
   }
   // More than that: never changed, only warned about, and the button waits.
   function exOverSol() { const max = exSide === "buy" ? exSolMax() : null; return max != null && parseFloat($("ex-sol").value) > max; }
-  $("ex-orn").oninput = updateExRate;
-  $("ex-sol").oninput = updateExRate;
+  $("ex-price").oninput = () => { exFromPrice(); updateExRate(); };
+  $("ex-orn").oninput = () => {
+    const price = parseFloat($("ex-price").value), orn = parseFloat($("ex-orn").value);
+    if (price > 0) $("ex-sol").value = orn > 0 ? exPlain(price * orn) : "";
+    exPct = null; exPctPaint();
+    updateExRate();
+  };
+  $("ex-sol").oninput = () => {
+    const price = parseFloat($("ex-price").value), sol = parseFloat($("ex-sol").value);
+    if (price > 0) $("ex-orn").value = sol > 0 ? exPlain(sol / price, 4) : "";
+    exPct = null; exPctPaint();
+    updateExRate();
+  };
   $("ex-sol").onblur = updateExRate;
   $("ex-pw").oninput = updateExReady;
   $("ex-addr").oninput = () => {
@@ -11103,6 +11280,24 @@
   var exBusy = false;
   $("ex-go").onclick = async () => {
     if (exBusy || !ready()) return;
+    // At an order's price: trade with it now, on its own screen. Buying
+    // takes what's typed from the cheapest sell order (all it has, at most);
+    // selling fills a buy order, which goes whole.
+    const match = exMatch();
+    if (match) {
+      $("ex-problem").hidden = true;
+      if (exSide === "buy") {
+        const want = Math.round(parseFloat($("ex-orn").value) * 1e9);
+        const part = Math.min(want, match.orn);
+        const paid = match.lamports * part / match.orn;
+        if (part < match.orn && (paid < 0.01e9 || match.lamports - paid < 0.01e9)) {
+          problem("ex-problem", paid < 0.01e9 ? "Buy at least 0.01 SOL worth." : `Buy all ${fmtOrn(match.orn)} ORN, or leave at least 0.01 SOL worth of the order.`);
+          return;
+        }
+        startTake(match.id, false, part);
+      } else startTake(match.id, true);
+      return;
+    }
     exBusy = true;
     $("ex-problem").hidden = true;
     $("ex-go").disabled = true;
@@ -11258,9 +11453,11 @@
     return true;
   }
 
-  async function startTake(id, isFunded) {
-    const o = board.offers.find((x) => x.id === id && Boolean(x.funded) === Boolean(isFunded));
+  async function startTake(id, isFunded, part) {
+    let o = board.offers.find((x) => x.id === id && Boolean(x.funded) === Boolean(isFunded));
     if (!o) return;
+    // Part of a sell order: the rest stays in the book at the same price.
+    if (part && part < o.orn) o = { ...o, orn: part, lamports: Math.round(o.lamports * part / o.orn) };
     board.taking = o;
     if (!ready()) return;
     const isBuy = o.side === "buy";
@@ -13895,6 +14092,13 @@
   // Place order: the form opens as a card over the Exchange, and closes on
   // its ✕, a click beside it, Escape, or leaving the page.
   function exOrder(open) {
+    // Big windows show the form beside the order book: nothing to open.
+    if (!handset && wide.matches) {
+      document.body.classList.remove("ex-order");
+      $("ex-veil").hidden = true;
+      if (open) { const f = $("ex-orn"); if (f) setTimeout(() => f.focus(), 50); }
+      return;
+    }
     // From another pop-up: the dimming carries straight over, no fade.
     if (open) document.body.classList.toggle("veil-kept", document.body.classList.contains("pop"));
     document.body.classList.toggle("ex-order", open);

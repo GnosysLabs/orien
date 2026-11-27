@@ -2729,19 +2729,21 @@ async fn board_post_sol(app: AppHandle, orn: String, sol: String, payout: String
     .map_err(|error| error.to_string())?
 }
 
-/// Takes SOL offer `offer` for this wallet; the buyer pays from `refund`,
-/// their own SOL wallet, where anything left over goes back.
+/// Takes `orn` ORN of SOL offer `offer` (all of it, or part) for this
+/// wallet; the buyer pays from `refund`, their own SOL wallet, where
+/// anything left over goes back. Returns the swap's offer id: a part taken
+/// is an offer of its own.
 #[tauri::command]
-async fn board_take_sol(app: AppHandle, offer: i64, refund: String, orn: String, password: Option<String>) -> Result<(), String> {
+async fn board_take_sol(app: AppHandle, offer: i64, refund: String, orn: String, password: Option<String>) -> Result<i64, String> {
     let orn = money::read(&orn)?;
     let dir = folder(&app)?;
     let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
     let address = Wallet::peek(&wallet).map_err(|error| error.to_string())?.0.to_string();
     tauri::async_runtime::spawn_blocking(move || {
         let password = approve_take(&wallet, password)?;
-        board::take_sol(&dir, &wallet, offer, &address, &refund)?;
+        let (offer, orn) = board::take_sol(&dir, &wallet, offer, orn, &address, &refund)?;
         approval::approve(&dir, offer, orn, &wallet, password.as_deref());
-        Ok(())
+        Ok(offer)
     })
     .await
     .map_err(|error| error.to_string())?

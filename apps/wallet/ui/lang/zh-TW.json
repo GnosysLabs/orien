@@ -1987,6 +1987,22 @@
     [
       "^Swap ([\\d.,]+ (?:SOL|USDC))$",
       "兌換 {0}"
+    ],
+    [
+      "^Only ([0-9.,]+) ORN at this price$",
+      "此價格只有 {0} ORN"
+    ],
+    [
+      "^This buy order is for ([0-9.,]+) ORN$",
+      "此買單為 {0} ORN"
+    ],
+    [
+      "^≈ (.+) per ORN$",
+      "≈ 每 ORN {0}"
+    ],
+    [
+      "^Buy all ([0-9.,]+) ORN, or leave at least 0\\.01 SOL worth of the order\\.$",
+      "買下全部 {0} ORN，或在訂單中留下至少價值 0.01 SOL。"
     ]
   ],
   "_guides": {
@@ -2436,5 +2452,13 @@
   "History": "歷史",
   "Open buys": "未成交買單",
   "Open sells": "未成交賣單",
-  "More than this wallet has": "超過此錢包的餘額"
+  "More than this wallet has": "超過此錢包的餘額",
+  "Price per ORN (SOL)": "每 ORN 價格 (SOL)",
+  "Enter a price and an amount": "輸入價格和數量",
+  "Buys now": "立即買入",
+  "Sells now": "立即賣出",
+  "Waits in the order book": "在掛單簿中等待",
+  "Click an order to fill in the form": "點擊訂單即可填入表單",
+  "Share of what you have": "持有量的比例",
+  "Buy at least 0.01 SOL worth.": "至少買入價值 0.01 SOL。"
 }
