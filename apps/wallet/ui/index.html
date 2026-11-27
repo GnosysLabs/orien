@@ -11052,7 +11052,6 @@
     const buyAll = all.filter((o) => o.side === "buy");
     const asksAsc = sellAll.filter((o) => o.seller_online !== false).sort((a, b) => unitOf(a) - unitOf(b));
     const bidsDesc = buyAll.filter((o) => o.seller_online !== false).sort((a, b) => unitOf(b) - unitOf(a));
-    const away = (sellAll.length - asksAsc.length) + (buyAll.length - bidsDesc.length);
     $("ex-ob-count").textContent = `${asksAsc.length + bidsDesc.length} open`;
     const maxAsk = Math.max(1, ...asksAsc.map((o) => o.orn));
     const maxBid = Math.max(1, ...bidsDesc.map((o) => o.orn));
@@ -11079,7 +11078,8 @@
     const bidsHtml = bidsDesc.length
       ? bidsDesc.map((o) => row(o, true, maxBid)).join("")
       : '<div class="ob-empty">No open buy offers right now</div>';
-    const awayLine = away ? `<p class="board-away">${away} more offer${away === 1 ? "" : "s"} paused while ${away === 1 ? "its owner's" : "their owners'"} Orien Wallet is closed.</p>` : "";
+    // Orders whose owner's Orien Wallet is closed are simply left out.
+    const awayLine = "";
     const cur = exUsd() ? exCur().toUpperCase() : "SOL";
     list.innerHTML = `<div class="ob-cols"><span>Price (${cur})</span><span>Amount (ORN)</span><span>Total (${cur})</span></div>`
       + `<div class="ob-asks">${asksHtml}</div>`
