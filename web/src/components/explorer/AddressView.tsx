@@ -1,5 +1,6 @@
 'use client'
 
+import { WalletNetworkGlyph } from '@/components/WalletNetworkGlyph'
 import { useEffect, useState } from 'react'
 import { ArrowDownLeft, ArrowUpRight, Pickaxe, RotateCcw, Unlock, Landmark, KeyRound } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
@@ -38,7 +39,7 @@ function Who({ address, names }: { address: string; names: Record<string, Wallet
   const profile = address ? officialProfile(address) ?? names[address] : undefined
   return (
     <a href={addressHref(address)} className="num text-ink underline decoration-line underline-offset-4 hover:decoration-pearl">
-      {profile ? label(profile) : short(address)}
+      {profile ? <><WalletNetworkGlyph />{label(profile)}</> : short(address)}
       {profile?.official && <OfficialTag />}
     </a>
   )
@@ -99,7 +100,7 @@ export function AddressView() {
             >
               <Avatar name={profile.name} picture={profile.picture} size={36} />
               <span>
-                <span className="block font-semibold text-ink">{label(profile)}</span>
+                <span className="block font-semibold text-ink"><WalletNetworkGlyph />{label(profile)}</span>
                 <span className="block text-sm text-muted">Showed on the Market that they hold this wallet</span>
               </span>
             </a>

@@ -1,5 +1,6 @@
 'use client'
 
+import { WalletNetworkGlyph } from '@/components/WalletNetworkGlyph'
 import { useEffect, useState } from 'react'
 import { OfficialTag, WalletFace } from './Official'
 import { ArrowRight, Wallet } from 'lucide-react'
@@ -83,7 +84,7 @@ export function TopWallets({ limit }: { limit?: number }) {
                         {profile ? (
                           <>
                             <span className="block truncate font-semibold text-ink">
-                              {label(profile)}
+                              <WalletNetworkGlyph />{label(profile)}
                               {profile.official && <OfficialTag />}
                             </span>
                             <span className="num block truncate text-sm text-muted">{short(holder.address)}</span>
