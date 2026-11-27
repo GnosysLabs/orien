@@ -565,7 +565,7 @@
      back from the edge instead. */
   /* No fading: a fading background would show as a full-width bar for a
      moment as the pill turns back into the plain title. */
-  body:not(.phone) .screen > .topline { position: sticky; top: 6px; z-index: 6; }
+  body:not(.phone) .screen:not(#profile) > .topline { position: sticky; top: 6px; z-index: 6; }
   /* Not Messages beside a chat: those headers sit flush at the top, and
      neither half scrolls as a whole. */
   body.split :is(#inbox, #chat) > .topline { position: static; }
@@ -3244,19 +3244,21 @@
   .field .plain input { font: 14px -apple-system, system-ui, sans-serif; }
   /* Socials: each box with its app's icon, as on the website. */
   .pf-socials-note { margin: 0 2px 10px; }
-  /* Who can message you: three choices side by side, the chosen one lit. */
-  .pf-dm-picker { color: var(--ink); }
+  .pf-dm-picker { position: relative; color: var(--ink); }
   .pf-dm-picker summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; padding: 8px 14px; cursor: pointer;
     list-style: none; background: var(--field); border: 1px solid var(--line); border-radius: 12px; font-size: 14px; }
   .pf-dm-picker summary::-webkit-details-marker { display: none; }
   .pf-dm-picker summary::after { content: ""; width: 7px; height: 7px; margin-inline-end: 3px; border: solid var(--dim); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
   .pf-dm-picker[open] summary { border-color: var(--accent); }
   .pf-dm-picker[open] summary::after { transform: rotate(225deg); }
-  .pf-dm-options { display: grid; gap: 2px; margin-top: 5px; padding: 4px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
+  .pf-dm-options { position: absolute; z-index: 8; inset-inline: 0; top: calc(100% + 5px); display: grid; gap: 2px; padding: 4px;
+    max-height: var(--menu-room, 50vh); overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 8px 28px #0004; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+  .pf-dm-picker.above .pf-dm-options { top: auto; bottom: calc(100% + 5px); }
+  body:has(#profile:not([hidden])) .more-below { display: none; }
   .pf-dm-options button { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); text-align: start; font: inherit; font-size: 14px; cursor: pointer; }
   .pf-dm-options button:is(:hover, :focus-visible, [aria-checked="true"]) { background: var(--surface-hover); }
   .pf-dm-options button[aria-checked="true"]::after { content: ""; width: 5px; height: 9px; margin-inline-end: 3px; border: solid var(--accent); border-width: 0 2px 2px 0; transform: rotate(45deg); }
-  .pf-account-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+  .pf-account-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   #profile .pf-account-actions .secondary { width: 100%; min-width: 0; min-height: 42px; height: auto; padding: 7px 10px; margin: 0; overflow-wrap: anywhere; font-family: inherit; line-height: 1.25; }
   #pf-delete { color: var(--bad); }
   .bp-verify { margin: 0 0 18px; }
@@ -3307,7 +3309,21 @@
   .pf-wallet-body .vf-row > div:first-child { min-width: 0; }
   #vf-confirm { padding: 14px; margin: 0 0 14px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
   #vf-confirm .vc-text { margin: 0; }
-  @media (min-width: 860px) { .pf-columns { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); } }
+  #pf-panel-details { gap: 0; align-items: stretch; padding: clamp(14px, 2vw, 24px); border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  #pf-panel-details > .pf-card { padding: 0; border: 0; background: transparent; }
+  #pf-panel-details > .pf-card + .pf-card { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .pf-settings-row { grid-column: 1 / -1; display: grid; gap: 14px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .pf-settings-row .report-box { grid-column: 1 / -1; margin: 0; }
+  @media (min-width: 860px) {
+    .pf-columns { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); column-gap: 28px; }
+    #pf-panel-details { column-gap: 28px; }
+    #pf-panel-details > .pf-card + .pf-card { margin-top: 0; padding-top: 0; border: 0; }
+    .pf-settings-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+    .pf-settings-row .pf-dm { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+    .pf-settings-row .pf-dm label { margin: 0; color: var(--ink); font-size: 14px; }
+    .pf-dm-picker { width: min(24ch, 100%); }
+    #profile .pf-account-actions .secondary { padding-inline: 16px; }
+  }
   @media (max-width: 500px) {
     .pf-nav { gap: 0; }
     .pf-nav button { flex: 1; padding-inline: 3px; font-size: 13px; }
@@ -4163,7 +4179,7 @@
             <div class="box plain social"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg><input id="pf-discord" placeholder="Discord" aria-label="Your Discord username" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
           </div>
         </section>
-        <section class="pf-card"><h3>Privacy</h3>
+        <div class="pf-settings-row">
           <div class="field pf-dm">
             <label id="pf-dm-label" for="pf-dm-trigger">Who can message you</label>
             <details class="pf-dm-picker" id="pf-dm">
@@ -4175,8 +4191,6 @@
               </div>
             </details>
           </div>
-        </section>
-        <section class="pf-card"><h3>Account</h3>
           <div class="pf-account-actions">
             <button class="secondary" id="pf-blocks">Manage blocks</button>
             <button class="secondary" id="pf-delete">Delete my account</button>
@@ -4186,7 +4200,7 @@
             <div class="box plain pf-delete-name"><input id="pf-delete-name" autocomplete="off" spellcheck="false" autocapitalize="off"></div>
             <div class="ls-ask-row"><button class="pill" id="pf-delete-cancel">Cancel</button><button class="pill pf-delete-go" id="pf-delete-go">Delete for good</button></div>
           </div>
-        </section>
+        </div>
       </div>
       <div id="pf-panel-wallets" role="tabpanel" aria-labelledby="pf-tab-wallets" hidden>
         <div class="verify-card" id="pf-verify" hidden>
@@ -5446,7 +5460,7 @@
     const screen = e.target;
     if (!(screen instanceof Element) || !screen.classList.contains("screen")) return;
     const top = screen.querySelector(":scope > .topline");
-    if (top) top.classList.toggle("stuck", screen.scrollTop > 4);
+    if (top && screen.id !== "profile") top.classList.toggle("stuck", screen.scrollTop > 4);
   }, { capture: true, passive: true });
   function problem(id, text) { $(id).textContent = String(text); $(id).hidden = false; feel("error"); if (id !== "bug-problem") bugError(text); }
 
@@ -14320,11 +14334,27 @@
       dmButtons[(index + step + dmButtons.length) % dmButtons.length].focus();
     };
   });
+  function positionDmMenu() {
+    const picker = $("pf-dm");
+    if (!picker.open || !picker.getClientRects().length) return;
+    const trigger = $("pf-dm-trigger").getBoundingClientRect();
+    const frame = $("profile").getBoundingClientRect();
+    const below = Math.min(frame.bottom, window.innerHeight) - trigger.bottom - 12;
+    const above = trigger.top - Math.max(frame.top, 0) - 12;
+    const menu = picker.querySelector(".pf-dm-options");
+    const flip = below < menu.scrollHeight + 2 && above > below;
+    picker.classList.toggle("above", flip);
+    picker.style.setProperty("--menu-room", Math.max(0, flip ? above : below) + "px");
+  }
+  $("pf-dm").addEventListener("toggle", positionDmMenu);
+  $("profile").addEventListener("scroll", positionDmMenu, {passive: true});
+  window.addEventListener("resize", positionDmMenu);
   $("pf-dm").onkeydown = event => {
     if (event.key === "Escape" && $("pf-dm").open) { event.preventDefault(); closeDmPicker(); }
     if (event.target === $("pf-dm-trigger") && event.key === "ArrowDown") {
       event.preventDefault();
       $("pf-dm").open = true;
+      positionDmMenu();
       dmButtons.find(button => button.tabIndex === 0)?.focus();
     }
   };
