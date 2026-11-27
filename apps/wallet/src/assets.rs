@@ -1,3 +1,4 @@
+use orien_net::keys::Wallet;
 use orien_net::store::write_replacing;
 use orien_net::unlock::Signing;
 use orien_swap::solana::{self, Keypair, Solana};
@@ -17,14 +18,29 @@ pub(crate) fn cached_devnet_address(dir: &Path, owner: &str) -> Option<String> {
     solana::address(&raw).ok().map(|key| solana::text(&key))
 }
 
+/// Keep only the public Solana address, so balances work after the wallet locks.
+pub(crate) fn remember_devnet_address(dir: &Path, wallet: &Wallet) -> String {
+    let key = Keypair::from_secret(&wallet.solana_devnet_secret());
+    let address = solana::text(&key.pubkey());
+    let owner = wallet.address().to_string();
+    let _cache = DEVNET_ADDRESSES.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    if cached_devnet_address(dir, &owner).as_deref() != Some(address.as_str()) {
+        let cache_dir = dir.join("solana-devnet-addresses-v1");
+        let result = fs::create_dir_all(&cache_dir)
+            .and_then(|()| write_replacing(&cache_dir.join(owner), address.as_bytes(), true));
+        if let Err(error) = result {
+            // The wallet and its recovery phrase must stay available even if a cache write fails.
+            eprintln!("Could not save the public Solana address: {error}");
+        }
+    }
+    address
+}
+
 pub(crate) fn devnet_address(dir: &Path, path: &Path, wallet_address: &str, password: Option<&str>) -> Result<String, String> {
     let (owner, _) = crate::peek(path)?;
     if owner.to_string() != wallet_address {
         return Err("The open wallet changed. Try again.".into());
     }
-    let _cache = DEVNET_ADDRESSES.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-    let cache_dir = dir.join("solana-devnet-addresses-v1");
-    let cache = cache_dir.join(owner.to_string());
     // Only the public key is cached on this device, so checking a balance
     // after a restart never needs to open the secret again.
     if let Some(address) = cached_devnet_address(dir, wallet_address) {
@@ -36,10 +52,7 @@ pub(crate) fn devnet_address(dir: &Path, path: &Path, wallet_address: &str, pass
     if wallet.address() != owner {
         return Err("The open wallet changed. Try again.".into());
     }
-    let key = Keypair::from_secret(&wallet.solana_devnet_secret());
-    let address = solana::text(&key.pubkey());
-    let _ = fs::create_dir_all(cache_dir).and_then(|()| write_replacing(&cache, address.as_bytes(), true));
-    Ok(address)
+    Ok(remember_devnet_address(dir, &wallet))
 }
 
 #[tauri::command]
@@ -125,7 +138,20 @@ pub async fn solana_devnet_history(address: String) -> Result<DevnetHistory, Str
 #[cfg(test)]
 mod tests {
     use super::*;
-    use orien_net::keys::Wallet;
+
+    #[test]
+    fn wallet_setup_remembers_solana_before_locking() {
+        let dir = std::env::temp_dir().join(format!("orien-devnet-setup-{}", std::process::id()));
+        fs::create_dir(&dir).unwrap();
+        let path = dir.join("wallet");
+        let mut wallet = crate::initialize_wallet(&dir, &path, None, 1).unwrap();
+        let owner = wallet.address().to_string();
+        let address = solana::text(&Keypair::from_secret(&wallet.solana_devnet_secret()).pubkey());
+        wallet.set_password(Some("fixture-password")).unwrap();
+        assert_eq!(cached_devnet_address(&dir, &owner), Some(address.clone()));
+        assert_eq!(devnet_address(&dir, &path, &owner, None).unwrap(), address);
+        fs::remove_dir_all(&dir).unwrap();
+    }
 
     #[test]
     fn remembers_the_public_devnet_address_after_unlock() {

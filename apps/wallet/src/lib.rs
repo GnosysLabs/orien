@@ -810,13 +810,24 @@ fn use_shared(app: &AppHandle) -> Result<(), String> {
     save_settings(&dir, &settings)
 }
 
+/// Initialize both public addresses while setup has the unlocked wallet.
+fn initialize_wallet(dir: &Path, path: &Path, master: Option<[u8; 32]>, account: u32) -> Result<Wallet, String> {
+    let wallet = match master {
+        Some(master) => Wallet::from_master(path, master, account),
+        None => Wallet::create(path),
+    }.map_err(|error| error.to_string())?;
+    assets::remember_devnet_address(dir, &wallet);
+    Ok(wallet)
+}
+
 /// Makes a new wallet, as `orien wallet new` does, and returns its 24-word
 /// recovery phrase for the person to write down.
 #[tauri::command]
 async fn create_wallet(app: AppHandle) -> Result<Vec<String>, String> {
+    let dir = folder(&app)?;
     let path = make_home()?;
     let words = tauri::async_runtime::spawn_blocking(move || {
-        let wallet = Wallet::create(&path).map_err(|error| error.to_string())?;
+        let wallet = initialize_wallet(&dir, &path, None, 1)?;
         Ok::<_, String>(wallet.phrase().unwrap_or_default().into_iter().map(str::to_string).collect())
     })
     .await
@@ -834,8 +845,9 @@ async fn restore_wallet(app: AppHandle, words: String) -> Result<(), String> {
         let mut chars = text.chars();
         chars.next().map(|first| first.to_uppercase().chain(chars).collect::<String>() + ".").unwrap_or(text)
     })?;
+    let dir = folder(&app)?;
     let path = make_home()?;
-    tauri::async_runtime::spawn_blocking(move || Wallet::from_master(&path, master, 1).map_err(|error| error.to_string()))
+    tauri::async_runtime::spawn_blocking(move || initialize_wallet(&dir, &path, Some(master), 1).map(|_| ()))
         .await
         .map_err(|error| error.to_string())??;
     use_shared(&app)
@@ -1096,16 +1108,13 @@ async fn add_wallet(app: AppHandle, name: String, words: Option<String>) -> Resu
     let folder = wallets_folder(&dir)?;
     let path = (1..10_000).map(|n| folder.join(format!("wallet-{n}.wallet"))).find(|p| !p.exists()).ok_or("too many wallets")?;
     let made = path.clone();
-    let words = tauri::async_runtime::spawn_blocking(move || match master {
-        Some(master) => {
-            let wallet = Wallet::from_master(&made, master, 1).map_err(|error| error.to_string())?;
-            let _ = wallet;
-            Ok::<_, String>(Vec::new())
-        }
-        None => {
-            let wallet = Wallet::create(&made).map_err(|error| error.to_string())?;
-            Ok(wallet.phrase().unwrap_or_default().into_iter().map(str::to_string).collect())
-        }
+    let cache_dir = dir.clone();
+    let words = tauri::async_runtime::spawn_blocking(move || {
+        let wallet = initialize_wallet(&cache_dir, &made, master, 1)?;
+        let words = if master.is_some() { Vec::new() } else {
+            wallet.phrase().unwrap_or_default().into_iter().map(str::to_string).collect()
+        };
+        Ok::<_, String>(words)
     })
     .await
     .map_err(|error| error.to_string())??;
@@ -2275,8 +2284,7 @@ fn rebuild_wallet(app: &AppHandle, parcel: pair::Parcel) -> Result<String, Strin
         let folder = wallets_folder(&dir)?;
         (1..10_000).map(|n| folder.join(format!("wallet-{n}.wallet"))).find(|p| !p.exists()).ok_or("too many wallets")?
     };
-    Wallet::from_master(&path, master, parcel.account.max(1)).map_err(|error| error.to_string())?;
-    let address = Wallet::peek(&path).map_err(|error| error.to_string())?.0;
+    let address = initialize_wallet(&dir, &path, Some(master), parcel.account.max(1))?.address();
     if !first && known_wallets(&dir).iter().any(|w| w.path != path && Wallet::peek(&w.path).is_ok_and(|(a, _)| a == address)) {
         let _ = fs::remove_file(&path);
         return Err(format!("{name} is already on this device."));
