@@ -467,6 +467,13 @@
   body.ipad { -webkit-tap-highlight-color: transparent; padding-bottom: max(28px, env(safe-area-inset-bottom)); }
   body.ipad header { height: calc(64px + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top); -webkit-app-region: no-drag; }
   body.ipad :is(#hs-mine, #go-size) { display: none !important; }
+  /* iPads, typing in Messages: the ORIEN bar slides away and the chat runs
+     from the status bar down to the keyboard, so more of it shows. */
+  body.ipad header { transition: height 0.25s ease, margin 0.25s ease; }
+  body.ipad header > * { transition: opacity 0.2s ease; }
+  body.ipad.kb-up.split { padding-bottom: 10px; }
+  body.ipad.kb-up.split header { height: env(safe-area-inset-top); margin-bottom: 30px; overflow: hidden; }
+  body.ipad.kb-up.split header > * { opacity: 0; pointer-events: none; }
   body.phone .actions.five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
   /* iPhones keep Settings in the header. */
   body.phone #go-settings-tile { display: none; }
