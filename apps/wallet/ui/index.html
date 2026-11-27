@@ -2965,7 +2965,6 @@
   .mb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; min-width: 140px; height: 44px; padding: 0 22px; }
   .mb-wallet { align-items: center; }
   .mb-wallet .pill { flex: none; }
-  .mb-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: rgba(var(--tint), 0.06); color: var(--dim); font-size: 11px; font-weight: 600; vertical-align: 1px; }
   #mb-wallets .empty { text-align: center; }
   .sl-message, .ct-message { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
   .sl-message svg, .ct-message svg { flex: none; }
@@ -9543,14 +9542,16 @@
     $("mb-name").innerHTML = `<span>${esc(name)}</span>` + (verified.length ? VERIFIED : "");
     $("mb-message").hidden = !!(board.me && board.me.id === id) || (info && (info.takes_messages === false || info.gone));
     $("mb-profile").hidden = !!(info && info.gone);
-    // Their Market wallet first, then the rest; then any saved address of
-    // theirs that isn't verified any more.
-    const market = (a.wallet || "").toLowerCase();
-    const rows = verified.map((w) => ({ address: (w.address || "").toLowerCase(), name: w.name || "Wallet" }))
-      .sort((x, y) => (y.address === market) - (x.address === market));
-    for (const address of group.addresses) if (!rows.some((r) => r.address === address)) rows.push({ address, name: (named(address) || {}).name || "Saved address" });
+    // Each linked wallet's ORN address, with its Solana address right under
+    // it; then any saved address of theirs that isn't linked any more.
+    const rows = verified.flatMap((w) => {
+      const name = w.name || "Wallet";
+      const orn = { address: (w.address || "").toLowerCase(), name, network: "ORN" };
+      return w.solana_devnet ? [orn, { address: w.solana_devnet, name, network: "SOL" }] : [orn];
+    });
+    for (const address of group.addresses) if (!rows.some((r) => r.address === address)) rows.push({ address, name: (named(address) || {}).name || "Saved address", network: "ORN" });
     $("mb-wallets").innerHTML = rows.length
-      ? `<div class="list">${rows.map((r) => `<div class="tx mb-wallet"><div class="tx-main"><div class="title">${walletLabel(r.name)}${r.address === market ? '<span class="mb-tag">Market</span>' : ""}</div><div class="sub">${short(r.address)}</div></div><button class="pill" data-send="${r.address}">Send</button></div>`).join("")}</div>`
+      ? `<div class="list">${rows.map((r) => `<div class="tx mb-wallet"><div class="tx-main"><div class="title">${walletLabel(r.name, r.network)}</div><div class="sub">${short(r.address)}</div></div><button class="pill" data-send="${esc(r.address)}" data-network="${r.network}">Send</button></div>`).join("")}</div>`
       : `<div class="empty">${info && info.gone ? "This profile isn't available." : info ? "No linked wallets yet" : "Loading…"}</div>`;
     $("mb-remove").textContent = mb.armed ? `Remove ${name}? Tap again` : "Remove from contacts";
     $("mb-remove").classList.toggle("armed", mb.armed);
@@ -9558,9 +9559,19 @@
   $("mb-wallets").onclick = (e) => {
     const go = e.target.closest("[data-send]");
     if (!go) return;
+    if (go.dataset.network === "SOL") { void sendSolTo(go.dataset.send); return; }
     $("go-send").onclick();
     $("to").value = go.dataset.send; validate(); $("amount").focus();
   };
+  // Send SOL to `address`, from this wallet's own Solana balance.
+  async function sendSolTo(address) {
+    walletAsset = "SOL";
+    await openDevnetSend();
+    if (!devnetSend || devnetSend.busy) return;
+    $("sol-send-to").value = address;
+    updateSolQuote();
+    $("sol-send-amount").focus();
+  }
   $("mb-back").onclick = () => mb.from === "seller" ? show("seller") : openContacts();
   $("mb-message").onclick = () => {
     const a = (memberInfo.get(mb.id) || {}).account || {};
