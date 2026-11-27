@@ -12584,7 +12584,8 @@
     const to = verified.find((w) => w.address === market) || verified[0];
     sl.sendTo = to ? to.address : null;
     for (const w of verified) keepProfile(w.address, { id: a.id, name: a.name, picture: a.picture, wallet_name: w.name, ...(a.banner ? { banner: a.banner } : {}) });
-    $("sl-send").hidden = !sl.sendTo || !view || sl.sendTo === (view.address || "").toLowerCase();
+    // No Send on profiles: people are paid from Send, found by name.
+    $("sl-send").hidden = true;
     paintSlAdd();
     $("sl-menu").hidden = true;
     $("sl-report-box").hidden = true;
