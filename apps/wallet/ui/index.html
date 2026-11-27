@@ -5755,10 +5755,12 @@
     const tracked = state.trackedTransactions;
     const indexed = history?.rows || [];
     const combined = [...tracked.values(), ...indexed.filter(row => !tracked.has(row.signature))];
+    // Amounts follow the balance's decimals, as ORN payments do.
+    const amt = (x) => { try { return shortAmount(x); } catch { return x; } };
     const rows = combined.sort((a, b) => (b.time || 0) - (a.time || 0)).slice(0, 8).map((entry) => {
       if (entry.received || entry.pending === "swap") {
         const amounts = entry.received
-          ? `<span class="amt received">+${esc(entry.received)}</span><span class="amt sent">−${esc(entry.amount)} ${esc(entry.asset)}</span>`
+          ? `<span class="amt received">+${esc(amt(entry.received))}</span><span class="amt sent">−${esc(amt(entry.amount))} ${esc(entry.asset)}</span>`
           : '<span class="sub">Pending</span>';
         return `<button type="button" class="tx" data-sol-tx="${esc(entry.signature)}">
           <span class="tx-icon">${ICON.swap}</span>
@@ -5771,7 +5773,7 @@
       const name = !label && entry.peer ? solNameOf(entry.peer) : "";
       const subtitle = label || entry.peer || entry.signature;
       const icon = entry.amount ? ICON[direction] : '<img src="chains/solana.svg" width="16" height="16" alt="">';
-      const amount = entry.amount ? `<span class="amt ${direction}">${entry.sent ? "−" : "+"}${esc(entry.amount)} ${esc(entry.asset)}</span>`
+      const amount = entry.amount ? `<span class="amt ${direction}">${entry.sent ? "−" : "+"}${esc(amt(entry.amount))} ${esc(entry.asset)}</span>`
         : entry.pending === "send" ? "Pending" : entry.failed ? "" : entry.finalized ? "Finalized" : "Confirmed";
       return `<button type="button" class="tx" data-sol-tx="${esc(entry.signature)}">
         <span class="tx-icon ${entry.amount ? direction : ""}">${icon}</span>
@@ -9449,7 +9451,7 @@
   // Payments follow the balance: the shorter form until the balance is
   // tapped for every decimal.
   const shortAmount = (text) => balancePeek ? text : shortBalance(text);
-  function repaintAmounts() { renderRecent(); if ($("all-activity").innerHTML) renderAll(); }
+  function repaintAmounts() { renderRecent(); if ($("all-activity").innerHTML) renderAll(); if (walletAsset !== "ORN") paintDevnetHistory(); }
   function renderRecent() {
     $("recent").innerHTML = entries.length
       ? entries.slice(0, 20).map((e) => row(e, relative)).join("")
