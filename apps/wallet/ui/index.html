@@ -3358,7 +3358,9 @@
   .pf-dm-options { position: absolute; z-index: 8; inset-inline: 0; top: calc(100% + 5px); display: grid; gap: 2px; padding: 4px;
     max-height: var(--menu-room, 50vh); overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 8px 28px #0004; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
   .pf-dm-picker.above .pf-dm-options { top: auto; bottom: calc(100% + 5px); }
-  body:has(#profile:not([hidden])) .more-below { display: none; }
+  /* The arrow stays on Edit Profile; it steps aside only while the message
+     picker is open, so it never sits over its choices. */
+  body:has(.pf-dm-picker[open]) .more-below { display: none; }
   .pf-dm-options button { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); text-align: start; font: inherit; font-size: 14px; cursor: pointer; }
   .pf-dm-options button:is(:hover, :focus-visible, [aria-checked="true"]) { background: var(--surface-hover); }
   .pf-dm-options button[aria-checked="true"]::after { content: ""; width: 5px; height: 9px; margin-inline-end: 3px; border: solid var(--accent); border-width: 0 2px 2px 0; transform: rotate(45deg); }
@@ -3416,10 +3418,14 @@
     .pf-columns { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); column-gap: 28px; }
     #pf-panel-details { column-gap: 28px; }
     #pf-panel-details > .pf-card + .pf-card { margin-top: 0; padding-top: 0; border: 0; }
-    .pf-settings-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
-    .pf-settings-row .pf-dm { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
-    .pf-settings-row .pf-dm label { margin: 0; color: var(--ink); font-size: 14px; }
-    .pf-dm-picker { width: min(24ch, 100%); }
+    /* Messages, blocks and the account sit in the right column, under
+       Socials; Profile details takes the left column's full height. */
+    #pf-panel-details { grid-template-rows: auto 1fr; }
+    #pf-panel-details > .pf-card:first-child { grid-row: 1 / span 2; display: flex; flex-direction: column; }
+    #pf-panel-details .field:has(> #pf-bio) { flex: 1; display: flex; flex-direction: column; }
+    #pf-bio { flex: 1; }
+    .pf-settings-row { grid-column: 2; grid-row: 2; align-self: start; gap: 14px; margin-top: 20px; padding-top: 20px; }
+    .pf-settings-row .pf-dm label { color: var(--ink); font-size: 14px; }
     #profile .pf-account-actions .secondary { padding-inline: 16px; }
   }
   @media (max-width: 500px) {
