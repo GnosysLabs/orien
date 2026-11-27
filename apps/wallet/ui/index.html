@@ -8553,8 +8553,10 @@
   // never an outside one: its field is filled in and kept out of sight.
   function ownSolAddress(input, on) {
     const field = input.closest(".ex-field, .field");
-    const own = on && !!devnetAssets.address;
-    if (own) input.value = devnetAssets.address;
+    // Hidden even before the address is known: a wallet that never opened
+    // Solana gets it read as the swap is approved (ensureOwnSol).
+    const own = on;
+    if (own && devnetAssets.address) input.value = devnetAssets.address;
     else if (input.value === devnetAssets.address) input.value = "";
     if (field) field.classList.toggle("own-sol", own);
   }
@@ -10459,6 +10461,8 @@
 
   function exAddrOk() {
     const a = $("ex-addr").value.trim();
+    // The wallet's own address, read on approval if not known yet.
+    if ($("ex-addr").closest(".own-sol")) return true;
     return !exAddrBad && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a);
   }
   function updateExRate() {
@@ -10577,6 +10581,8 @@
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("ex-pw-field").hidden ? null : $("ex-pw").value;
       const buy = exSide === "buy";
+      $("ex-addr").value = await ensureOwnSol(password);
+      if (buy && await shortOfSol(parseFloat($("ex-sol").value), "ex-problem")) { updateExReady(); return; }
       if (buy) {
         const orderId = await invoke("order_create_buy", { orn: $("ex-orn").value, sol: $("ex-sol").value, refund: $("ex-addr").value, password });
         $("ex-pw").value = "";
@@ -10679,6 +10685,12 @@
       if (b.sol != null) devnetAssets.balances = { ...(devnetAssets.balances || {}), sol: b.sol, usdc: b.usdc ?? devnetAssets.balances?.usdc ?? null };
       return b.sol == null ? null : Number(String(b.sol).replace(/,/g, ""));
     } catch { return null; }
+  }
+  // This wallet's Solana address, read with the approval just given when it
+  // was never read before (a wallet that never opened Solana).
+  async function ensureOwnSol(password) {
+    if (!devnetAssets.address) devnetAssets.address = await invoke("solana_devnet_address", { walletAddress: view.address, password: password || null });
+    return devnetAssets.address;
   }
   // Solana's own fees on a SOL swap, kept in hand on top of the price.
   const SOL_SWAP_FEES = 0.005;
@@ -10804,6 +10816,10 @@
       const isBuy = taken.side === "buy";
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("bt-pw-field").hidden ? null : $("bt-pw").value;
+      if (taken.coin === "sol") {
+        $("bt-refund").value = await ensureOwnSol(password);
+        if (!isBuy && await shortOfSol(taken.lamports / 1e9, "bt-problem")) return;
+      }
       if (isBuy && taken.funded) {
         const fillId = await invoke("order_fill_buy", {
           serverId: taken.id,
@@ -11005,7 +11021,7 @@
   let payoutBad = false;
   const payoutOk = () => {
     const a = $("bp-payout").value.trim();
-    if (postCoin === "sol") return !payoutBad && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a);
+    if (postCoin === "sol") return !!$("bp-payout").closest(".own-sol") || (!payoutBad && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a));
     return /^((bc|tb|bcrt)1[02-9ac-hj-np-z]{8,87}|[123mn][1-9A-HJ-NP-Za-km-z]{25,34})$/i.test(a);
   };
   function postReady() {
@@ -11061,6 +11077,10 @@
       if (view && view.biometric) await invoke("biometric_unlock");
       const password = $("bp-pw-field").hidden ? null : $("bp-pw").value;
       const buy = postSide === "buy";
+      if (postCoin === "sol") {
+        $("bp-payout").value = await ensureOwnSol(password);
+        if (buy && await shortOfSol(parseFloat($("bp-btc").value), "bp-problem")) { postReady(); return; }
+      }
       if (buy) {
         if (postCoin === "sol") {
           const orderId = await invoke("order_create_buy", { orn: $("bp-orn").value, sol: $("bp-btc").value, refund: $("bp-payout").value, password });
