@@ -7698,7 +7698,7 @@
   let settingsAt = null;
   // Big windows list the sections beside the one open, so one is always open.
   const settingsWide = matchMedia("(min-width: 860px)");
-  const stWide = () => !phone && settingsWide.matches;
+  const stWide = () => !handset && settingsWide.matches;
   function settingsPage(page) {
     const asked = page;
     if (!page && stWide()) page = "appearance";
