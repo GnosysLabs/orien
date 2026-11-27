@@ -7799,6 +7799,7 @@
     if (row.dataset.page === "link") openPairLink("settings"); else settingsPage(row.dataset.page);
   };
   function openSettings() {
+    settingsDirect = null;
     paintThemeGrid(); paintSettings(); settingsPage(null); show("settings");
   }
   let computerRequest = 0;
@@ -7823,7 +7824,10 @@
   }
   $("st-computer-retry").onclick = loadComputerSettings;
   $("go-settings").onclick = $("go-settings-tile").onclick = openSettings;
+  // A page opened straight from elsewhere, not from Settings' list.
+  var settingsDirect = null;
   $("st-back").onclick = () => {
+    if (settingsDirect && settingsAt === settingsDirect) { settingsDirect = null; home(); return; }
     if (settingsParent[settingsAt]) settingsPage(settingsParent[settingsAt]);
     else if ($("st-menu").hidden) settingsPage(null);
     else home();
@@ -12902,9 +12906,11 @@
     const atLimit = board.me && localStorage.getItem("referral-limit:" + board.me.id) === "1";
     $("go-referrals").hidden = $("hd-referrals").hidden = !!atLimit;
   }
+  // Opened straight from Home: Back returns there, not to Settings.
   function openReferrals() {
     show("settings");
     settingsPage("referrals");
+    settingsDirect = "referrals";
   }
   function refPaint() {
     const data = referral.value;
