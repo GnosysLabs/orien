@@ -135,8 +135,8 @@ def main() -> None:
     for heading, path, address in PAGES:
         text = page_text((ROOT / path).read_text())
         sections.append(f"# {heading}\nSource: {address}\n\n{text}")
-    changelog = changelog_text((ROOT / "web/src/content/changelog.ts").read_text())
-    sections.append(f"# Changelog, newest first\nSource: https://orien.network/changelog/\n\n{changelog}")
+    # Not the changelog: its older entries describe ways the app no longer
+    # works, and answers mixed them in. Announcements read it on their own.
     # The running bot reads the website itself; from here on is what it cannot find there.
     sections.append("<!-- not on the website -->\n\n# Design notes: how coins are created (docs/epochs.md, written for developers)\n\n" + (ROOT / "docs/epochs.md").read_text().strip())
     guide = wallet_guide()
