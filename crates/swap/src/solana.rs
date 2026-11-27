@@ -356,6 +356,11 @@ impl Solana {
         Ok(self.account(at)?.and_then(|account| crate::order::OrderAccount::read(&account, program)))
     }
 
+    /// The orien-book order at `at` owned by `program`, finalized, if open.
+    pub fn book(&self, program: &Pubkey, at: &Pubkey) -> Result<Option<crate::book::BookAccount>> {
+        Ok(self.account(at)?.and_then(|account| crate::book::BookAccount::read(&account, program)))
+    }
+
     /// Solana's clock, finalized: the latest any service reports, so a
     /// deadline is never thought further off than it is.
     pub fn time(&self) -> Result<i64> {
