@@ -446,6 +446,9 @@ pub fn router(app: Arc<App>) -> Router {
             post(set_banner).delete(remove_banner).layer(axum::extract::DefaultBodyLimit::max(images::MAX_UPLOAD)),
         )
         .route("/api/market/me/wallet", get(wallet).post(link_wallet))
+        .route("/api/market/me/wallet/sol-devnet", axum::routing::delete(crate::sol_profile::unlink))
+        .route("/api/market/me/wallet/sol-devnet/challenge", post(crate::sol_profile::challenge))
+        .route("/api/market/me/wallet/sol-devnet/confirm", post(crate::sol_profile::confirm))
         .route("/api/market/me/wallet/verify", post(verify_wallet))
         .route("/api/market/me/referrals", get(crate::referrals::status).post(crate::referrals::claim))
         .route("/api/market/me/wallet/remove", post(remove_verified_wallet))

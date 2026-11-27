@@ -11,6 +11,7 @@
 //! The format is small and fixed; a live test on devnet checks it.
 
 pub mod history;
+pub mod profile;
 
 use crate::chain::{MAX_REST, REST, remember, remembered, rest, resting};
 use anyhow::{Context, Result, anyhow, bail};

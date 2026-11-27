@@ -28,6 +28,8 @@ pub const MAX_WALLETS: usize = 20;
 pub struct Proof {
     /// The wallet being proven.
     pub address: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub solana_devnet: Option<String>,
     /// Its name in the account's Orien Wallet, if an app has said.
     pub name: Option<String>,
     /// The amount to send, in ORN's smallest units, and written out.
@@ -42,6 +44,8 @@ pub struct Proof {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct VerifiedWallet {
     pub address: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub solana_devnet: Option<String>,
     /// Its name in the owner's Orien Wallet, such as "Savings".
     pub name: Option<String>,
 }
@@ -76,6 +80,7 @@ pub struct WalletProfile {
 }
 
 /// The wallet's newest name in any of the account's apps.
+const SOL_LINK: &str = "(SELECT s.sol FROM sol_devnet_links s WHERE s.account=v.account AND s.orn=v.address)";
 const NAME: &str = "(SELECT w.name FROM account_wallets w WHERE w.account = v.account AND w.address = v.address
                     ORDER BY w.updated DESC LIMIT 1)";
 
@@ -157,13 +162,14 @@ impl Store {
     /// Every wallet `account` verified or asked to, verified ones first.
     pub fn proofs(&self, account: i64, to: &str) -> Result<Vec<Proof>> {
         let mut query = self.db.prepare(&format!(
-            "SELECT v.address, {NAME}, v.amount, v.proven FROM verified_wallets v WHERE v.account = ?1
+            "SELECT v.address, {NAME}, v.amount, v.proven, {SOL_LINK} FROM verified_wallets v WHERE v.account = ?1
              ORDER BY v.proven IS NULL, v.created"
         ))?;
         let rows = query.query_map([account], |row| {
             let amount = row.get::<_, i64>(2)? as u64;
             Ok(Proof {
                 address: row.get(0)?,
+                solana_devnet: row.get(4)?,
                 name: row.get(1)?,
                 amount,
                 orn: crate::store::orn(amount),
@@ -235,9 +241,9 @@ impl Store {
     /// `account`'s verified wallets, as its profile shows them.
     pub fn verified_wallets(&self, account: i64) -> Result<Vec<VerifiedWallet>> {
         let mut query = self.db.prepare(&format!(
-            "SELECT v.address, {NAME} FROM verified_wallets v WHERE v.account = ?1 AND v.proven IS NOT NULL ORDER BY v.proven"
+            "SELECT v.address, {NAME}, {SOL_LINK} FROM verified_wallets v WHERE v.account = ?1 AND v.proven IS NOT NULL ORDER BY v.proven"
         ))?;
-        let rows = query.query_map([account], |row| Ok(VerifiedWallet { address: row.get(0)?, name: row.get(1)? }))?;
+        let rows = query.query_map([account], |row| Ok(VerifiedWallet { address: row.get(0)?, name: row.get(1)?, solana_devnet: row.get(2)? }))?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
 
@@ -382,7 +388,7 @@ mod tests {
         store.db.execute_batch("DELETE FROM verified_wallets; CREATE TABLE wallet_proofs (account INTEGER PRIMARY KEY, address TEXT NOT NULL, amount INTEGER NOT NULL, epoch INTEGER NOT NULL, created INTEGER NOT NULL, proven INTEGER);").unwrap();
         store.db.execute("INSERT INTO wallet_proofs VALUES (?1, ?2, 417000, 30, 1, 2)", params![maya, wallet]).unwrap();
         store.create_proof_table().unwrap();
-        assert_eq!(store.verified_wallets(maya).unwrap(), [VerifiedWallet { address: wallet, name: None }]);
+        assert_eq!(store.verified_wallets(maya).unwrap(), [VerifiedWallet { address: wallet, name: None, solana_devnet: None }]);
         let gone: bool = store.db.query_row("SELECT COUNT(*) = 0 FROM sqlite_master WHERE name = 'wallet_proofs'", [], |r| r.get(0)).unwrap();
         assert!(gone);
     }

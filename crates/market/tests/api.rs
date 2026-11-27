@@ -1398,3 +1398,35 @@ async fn the_review_email_signs_in_with_its_fixed_code_again_and_again() {
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert!(body["error"].as_str().unwrap().contains("too many"), "{body}");
 }
+
+#[tokio::test]
+async fn solana_devnet_profile_link_round_trip() {
+    use orien_swap::solana;
+    let market = Market::new();
+    let token = sign_in_for_tests(&market.app, "Maya");
+    let orn = verified_wallet(&market, &token).await;
+    let (_, me) = market.ask("GET", "/api/market/me", Some(&token), None).await;
+    let account = me["account"]["id"].as_i64().unwrap();
+    let signer = solana::Keypair::random();
+    let link = json!({ "account":account, "orn":orn, "sol":solana::text(&signer.pubkey()) });
+    let root = "/api/market/me/wallet/sol-devnet";
+    let challenge = format!("{root}/challenge");
+    assert_eq!(market.ask("POST", &challenge, None, Some(link.clone())).await.0, StatusCode::UNAUTHORIZED);
+    let (status, reply) = market.ask("POST", &challenge, Some(&token), Some(link.clone())).await;
+    assert_eq!(status, StatusCode::OK, "{reply}");
+    let mut nonce = [0; 32];
+    hex::decode_to_slice(reply["nonce"].as_str().unwrap(), &mut nonce).unwrap();
+    let mut signed = link.clone();
+    signed["signature"] = json!(hex::encode(solana::profile::sign(&signer, "https://orien.network", account, &orn, &nonce)));
+    let (status, reply) = market.ask("POST", &format!("{root}/confirm"), Some(&token), Some(signed)).await;
+    assert_eq!(status, StatusCode::OK, "{reply}");
+    let profile = format!("/api/market/profiles/{account}");
+    let (_, data) = market.ask("GET", &profile, None, None).await;
+    assert_eq!(data["wallets"][0]["solana_devnet"], link["sol"]);
+    let (_, personal) = market.ask("GET", "/api/market/me/wallet", Some(&token), None).await;
+    assert_eq!(personal["wallets"][0]["solana_devnet"], link["sol"]);
+    assert_eq!(market.ask("DELETE", root, Some(&token), Some(link)).await.0, StatusCode::OK);
+    let (_, data) = market.ask("GET", &profile, None, None).await;
+    assert!(data["wallets"][0].get("solana_devnet").is_none());
+    assert_eq!(data["wallets"][0]["address"], orn);
+}
