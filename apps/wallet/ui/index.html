@@ -10789,9 +10789,12 @@
     const tooLow = /\d/.test(solText) && sol < 0.01 && settled;
     const maxSol = (board.maxOrderLamports || 10e9) / 1e9;
     const tooHigh = exSide === "buy" && sol > maxSol;
-    bar.classList.toggle("warn", tooLow || tooHigh);
+    const over = exOverSol();
+    bar.classList.toggle("warn", tooLow || tooHigh || over);
     if (tooLow) {
       val.textContent = "Minimum order is 0.01 SOL";
+    } else if (over) {
+      val.textContent = `More than this wallet has: ${exSolMax().toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL available`;
     } else if (tooHigh) {
       val.textContent = `Buy orders are limited to ${maxSol} SOL per order`;
     } else if (orn > 0 && sol > 0) {
@@ -10821,7 +10824,7 @@
     const sol = parseFloat($("ex-sol").value);
     const needVer = !buy && exUnverified;
     const maxSol = (board.maxOrderLamports || 10e9) / 1e9;
-    const ok = !needVer && orn > 0 && sol >= 0.01 && (!buy || sol <= maxSol) && exAddrOk()
+    const ok = !needVer && orn > 0 && sol >= 0.01 && (!buy || sol <= maxSol) && !exOverSol() && exAddrOk()
       && ($("ex-pw-field").hidden || $("ex-pw").value.length > 0);
     go.disabled = !ok;
   }
@@ -10843,7 +10846,7 @@
     $("ex-verify").hidden = buy || !exUnverified;
     $("ex-bal").textContent = !buy && view && view.spendable ? `Avail: ${view.spendable}` : "";
     paintExSolHint();
-    if (buy) ownSolBalance().then(() => { paintExSolHint(); capExSol(); updateExRate(); });
+    if (buy) ownSolBalance().then(() => { paintExSolHint(); updateExRate(); });
     const typed = !!(view && !view.unprotected && !view.biometric);
     $("ex-pw-field").hidden = !typed;
     updateExRate();
@@ -10878,13 +10881,10 @@
     const max = exSide === "buy" ? exSolMax() : null;
     $("ex-sol-hint").textContent = max == null ? "Min 0.01" : `${max.toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL available`;
   }
-  function capExSol() {
-    const max = exSide === "buy" ? exSolMax() : null;
-    const typed = parseFloat($("ex-sol").value);
-    if (max != null && typed > max) $("ex-sol").value = String(max);
-  }
+  // More than that: never changed, only warned about, and the button waits.
+  function exOverSol() { const max = exSide === "buy" ? exSolMax() : null; return max != null && parseFloat($("ex-sol").value) > max; }
   $("ex-orn").oninput = updateExRate;
-  $("ex-sol").oninput = () => { capExSol(); updateExRate(); };
+  $("ex-sol").oninput = updateExRate;
   $("ex-sol").onblur = updateExRate;
   $("ex-pw").oninput = updateExReady;
   $("ex-addr").oninput = () => {
