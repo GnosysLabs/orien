@@ -712,8 +712,9 @@
   #sol-unlock-description { margin: 12px 0 20px; color: var(--dim); line-height: 1.5; }
   #sol-unlock-form { display: grid; gap: 14px; }
   #sol-unlock-form .field, #sol-unlock-form .primary { margin: 0; }
-  #sol-unlock-go { justify-self: center; width: fit-content; max-width: 100%; padding-inline: 28px; }
-  #sol-unlock-link { justify-self: center; }
+  #sol-unlock-go, #sol-unlock-link { justify-self: center; width: fit-content; max-width: 100%; }
+  #sol-unlock-form .primary { padding-inline: 28px; }
+  #sol-unlock-link:focus { outline: none; }
   #sol-link-note { text-align: center; margin: 3px 0 0; }
   #sol-unlock-error { margin: 0; font-size: 14px; }
   #home.asset-devnet :is(#vw-card, #recent, #view-all) { display: none; }
@@ -5728,12 +5729,23 @@
     $("sol-link-note").hidden = $("sol-unlock-link").hidden = true;
     $("sol-unlock-link").disabled = false;
     $("sol-unlock-go").textContent = "Unlock Solana";
+    // Plain unlock: the one big button.
+    $("sol-unlock-go").className = "primary pearl";
+    $("sol-unlock-link").className = "pill";
+    $("sol-unlock-go").before($("sol-unlock-error"));
+    $("sol-unlock-go").after($("sol-link-note"), $("sol-unlock-link"));
     solUnlockDialog.showModal();
     if (offer.account) invoke("board_wallet_states").then(states => {
       if (unlockOffer !== offer || board.me?.id !== offer.account || view?.address !== offer.orn || !solUnlockDialog.open || offer.state !== devnetAssets || devnetAssets.pending) return;
       if (states.some(p => p.address === offer.orn && p.verified && !p.solana_devnet)) {
         $("sol-link-note").hidden = $("sol-unlock-link").hidden = false;
         $("sol-unlock-go").textContent = "Unlock only";
+        // Linking is what we hope for: it takes the big button, first (and
+        // Return), with the note above it; Unlock only drops to a quiet pill.
+        $("sol-unlock-link").className = "primary pearl";
+        $("sol-unlock-go").className = "pill";
+        $("sol-unlock-link").after($("sol-unlock-go"));
+        $("sol-unlock-link").before($("sol-link-note"));
       }
     }).catch(() => {});
     (biometric ? $("sol-unlock-go") : $("asset-devnet-password")).focus();
