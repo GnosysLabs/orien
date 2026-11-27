@@ -164,10 +164,11 @@ type Found = { conversation: Conversation; messages: Message[]; me: number }
  * blanking to "Loading…". */
 const threads = new Map<string, Found>()
 
-/** Reads a conversation ahead, when the pointer comes near it. */
+/** Reads a conversation ahead, when the pointer comes near it: a peek,
+ * so it stays unread until it's opened. */
 function prefetch(id: string) {
   if (threads.has(id)) return
-  ask<Found>(`/conversations/${encodeURIComponent(id)}`)
+  ask<Found>(`/conversations/${encodeURIComponent(id)}?peek=1`)
     .then((found) => threads.set(id, found))
     .catch(() => undefined)
 }
