@@ -102,6 +102,10 @@ struct Args {
     /// Solana RPC endpoints for funded buy orders (comma-separated).
     #[arg(long, value_delimiter = ',')]
     solana_rpc: Vec<String>,
+    /// A file holding the Helius API key the wallet's Solana requests are
+    /// relayed with, at /api/market/solana.
+    #[arg(long)]
+    helius_key: Option<std::path::PathBuf>,
     /// Path to a Solana JSON keypair file paying tiny relay fees for `claim` /
     /// `reopen` / `expire` on funded buy orders.
     #[arg(long)]
@@ -296,6 +300,13 @@ async fn main() -> Result<()> {
         None => String::new(),
     })
     .with_sign_in(args.sign_in_open, args.sign_in_developers.iter().map(|n| n.trim().to_string()).filter(|n| !n.is_empty()).collect());
+    let app = app.with_solana_relay(match &args.helius_key {
+        Some(path) => Some(format!(
+            "https://mainnet.helius-rpc.com/?api-key={}",
+            std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?.trim()
+        )),
+        None => None,
+    });
     let app = app.with_max_order_lamports((args.max_order_sol.max(0.01) * 1e9) as u64);
     let app = match &args.order_program {
         Some(program_id) => {

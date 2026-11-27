@@ -276,21 +276,28 @@ impl Store {
         Ok(())
     }
 
-    /// Whose verified wallets are among `addresses`, by address. When
-    /// several accounts verified one wallet, the latest wins.
+    /// Whose verified wallets are among `addresses`, by address: an Orien
+    /// address, or the Solana address linked with one. When several
+    /// accounts verified one wallet, the latest wins.
     /// Leaves out accounts that blocked `viewer`, or that `viewer` blocked.
     pub fn wallet_profiles(&self, addresses: &[String], viewer: Option<i64>) -> Result<Vec<(String, WalletProfile)>> {
         let mut found: Vec<(String, WalletProfile)> = Vec::new();
         let mut query = self.db.prepare(&format!(
             "SELECT a.id, a.name, a.picture, {NAME}, a.bio, a.banner, a.telegram, a.x, a.discord
              FROM verified_wallets v JOIN accounts a ON a.id = v.account
-             WHERE v.address = ?1 AND v.proven IS NOT NULL
+             WHERE (v.address = ?1 OR {SOL_LINK} = ?1) AND v.proven IS NOT NULL
                AND NOT EXISTS (SELECT 1 FROM suspended s WHERE s.account = a.id)
                AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker = a.id AND b.blocked = ?2) OR (b.blocker = ?2 AND b.blocked = a.id))
              ORDER BY v.proven DESC LIMIT 1"
         ))?;
         for address in addresses {
-            let Ok(address) = orien_address(address) else { continue };
+            let address = match orien_address(address) {
+                Ok(address) => address,
+                // A Solana address: base58, as linked.
+                Err(_) if (32..=44).contains(&address.trim().len())
+                    && address.trim().bytes().all(|b| b.is_ascii_alphanumeric() && !matches!(b, b'0' | b'O' | b'I' | b'l')) => address.trim().to_string(),
+                Err(_) => continue,
+            };
             if found.iter().any(|(a, _)| *a == address) {
                 continue;
             }

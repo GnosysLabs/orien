@@ -700,6 +700,8 @@ impl Store {
                AND (p.author IS NULL OR p.author NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))
                AND (p.subject IS NULL OR p.subject NOT IN (SELECT blocker FROM blocks WHERE blocked = ?2 UNION SELECT blocked FROM blocks WHERE blocker = ?2))
                AND (?4 IS NULL OR p.kind IN ({KNOWN_KINDS}) OR instr(',' || ?4 || ',', ',' || p.kind || ',') > 0)
+               -- Finished swaps are no longer posted: they read as spam.
+               AND p.kind <> 'swap'
              ORDER BY {order} LIMIT {PAGE}"
         ))?;
         let rows = query.query_map(params![key, viewer.unwrap_or(-1), about.unwrap_or(-1), kinds], |row| {
