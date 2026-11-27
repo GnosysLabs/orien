@@ -11169,11 +11169,11 @@
     const crosses = exSide === "buy" ? price >= unit * (1 - 1e-9) : price <= unit * (1 + 1e-9);
     return crosses ? best : null;
   }
-  // A price to start from: the best order on the other side.
+  // The box starts empty, the best order on the other side shown in it as
+  // a hint: nothing to erase before typing your own price.
   function exDefaultPrice() {
-    if ($("ex-price").value.trim() || document.activeElement === $("ex-price")) return;
     const best = exSide === "buy" ? exBest("sell") : (exBest("buy") || exBest("sell"));
-    if (best) { $("ex-price").value = exPlain(exUnit(best), 9); exFromPrice(); }
+    $("ex-price").placeholder = best ? exPlain(exUnit(best), 9) : "0.0001";
   }
   // The three boxes agree: Total is Price × Amount. Whichever box was typed
   // in last stays as typed, Amount or Total moving to match.
