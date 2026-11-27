@@ -26,8 +26,12 @@ type Row = { address: string; name: string | null; proof: WalletProof | null }
 
 /** Your wallets, in one place: which ones are proven yours, which one buyers
  * pay, and adding another, which proves it with one tiny payment. */
-export function YourWallets({ account, onChange }: { account: Account; onChange: () => void }) {
-  const [proofs, setProofs] = useState<WalletProof[] | null>(null)
+export function YourWallets({ account, onChange, proofs, setProofs }: {
+  account: Account
+  onChange: () => void
+  proofs: WalletProof[] | null
+  setProofs: (wallets: WalletProof[]) => void
+}) {
   const [named, setNamed] = useState<Named[]>([])
   const [adding, setAdding] = useState(false)
   const [trouble, setTrouble] = useState('')
@@ -40,16 +44,15 @@ export function YourWallets({ account, onChange }: { account: Account; onChange:
     }
   }, [])
 
+  const previousProofs = useRef(proofs)
   const load = () =>
     ask<{ wallets: WalletProof[] }>('/me/wallet')
       .then((found) => {
-        setProofs((before) => {
-          // A wallet newly verified can change the account: tell the page.
-          if (before && found.wallets.some((w) => w.verified && !before.find((b) => b.address === w.address)?.verified)) {
-            onChange()
-          }
-          return found.wallets
-        })
+        const newlyVerified = previousProofs.current !== null && found.wallets.some(w =>
+          w.verified && !previousProofs.current?.find(before => before.address === w.address)?.verified)
+        previousProofs.current = found.wallets
+        setProofs(found.wallets)
+        if (newlyVerified) onChange()
       })
       .catch(() => {})
   useEffect(() => {
@@ -93,8 +96,7 @@ export function YourWallets({ account, onChange }: { account: Account; onChange:
         <h2 className="text-lg font-bold tracking-tight text-ink">Your wallets</h2>
       </div>
       <p className="text-sm leading-relaxed text-muted">
-        Buyers pay you straight to the wallet marked <strong className="text-ink">Paid here</strong>. Verified wallets show
-        your name and picture when people pay you in Orien Wallet. To sell, you need one.
+        Verified wallets show your name and picture when people pay you in Orien Wallet.
       </p>
 
       {proofs !== null && rows.length > 0 && (
@@ -103,8 +105,6 @@ export function YourWallets({ account, onChange }: { account: Account; onChange:
             <WalletRow
               key={row.address}
               row={row}
-              paidHere={row.address === account.wallet}
-              onPayHere={() => act(() => ask('/me/wallet', 'POST', { address: row.address }))}
               onVerify={() => act(() => ask('/me/wallet/verify', 'POST', { address: row.address }))}
               onRemove={() => act(() => ask('/me/wallet/remove', 'POST', { address: row.address }))}
             />
@@ -139,14 +139,10 @@ export function YourWallets({ account, onChange }: { account: Account; onChange:
 
 function WalletRow({
   row,
-  paidHere,
-  onPayHere,
   onVerify,
   onRemove,
 }: {
   row: Row
-  paidHere: boolean
-  onPayHere: () => void
   onVerify: () => void
   onRemove: () => void
 }) {
@@ -176,15 +172,6 @@ function WalletRow({
           <span className="text-xs font-semibold text-warn">Not verified yet</span>
         )}
         <span className="ml-auto flex items-center gap-3">
-          {paidHere ? (
-            <span className="text-xs font-semibold text-pearl">Paid here</span>
-          ) : (
-            verified && (
-              <button type="button" onClick={onPayHere} className="flex h-8 items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-ink transition hover:border-pearl">
-                Get paid here
-              </button>
-            )
-          )}
           {row.proof === null && (
             <button type="button" onClick={onVerify} className="flex h-8 items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-ink transition hover:border-pearl">
               Verify

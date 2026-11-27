@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { LogOut, Mail, MessageCircle, UserRound } from 'lucide-react'
-import { ask, me, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing } from '@/lib/market'
+import { ask, me, NAME_PATTERN, NAME_RULE, profileHref, type Account, type Listing, type WalletProof } from '@/lib/market'
 import { Card } from './Browse'
 import { ProfileEditor } from './ProfileEditor'
 import { YourWallets } from './WalletCheck'
@@ -42,7 +42,7 @@ export function AccountView() {
   if (found === null) return trouble ? <Notice tone="bad">{trouble}</Notice> : null
   return (
     <div className="pb-16 pt-5 sm:pt-7">
-      <Mine found={found} onChange={reload} />
+      <Mine key={found.account.id} found={found} onChange={reload} />
     </div>
   )
 }
@@ -210,6 +210,7 @@ export function SignIn({
 }
 
 function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
+  const [proofs, setProofs] = useState<WalletProof[] | null>(null)
   const [trouble, setTrouble] = useState('')
   const signOut = async () => {
     await ask('/signout', 'POST').catch(() => {})
@@ -255,8 +256,8 @@ function Mine({ found, onChange }: { found: Found; onChange: () => void }) {
           </button>
         </div>
       </div>
-      <ProfileEditor account={found.account} onSaved={onChange} />
-      <YourWallets account={found.account} onChange={onChange} />
+      <ProfileEditor account={found.account} onSaved={onChange} wallets={proofs ?? []} />
+      <YourWallets account={found.account} onChange={onChange} proofs={proofs} setProofs={setProofs} />
       <h2 className="pt-2 text-xl font-bold tracking-tight text-ink">Your listings on the Market</h2>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
       {found.listings.length === 0 ? (

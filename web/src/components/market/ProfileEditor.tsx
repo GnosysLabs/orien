@@ -4,7 +4,8 @@ import { shrinkPicture } from '@/lib/shrink'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Ban, Camera, ImagePlus } from 'lucide-react'
-import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, type Account, type MessagesFrom } from '@/lib/market'
+import { ask, MarketError, NAME_PATTERN, NAME_RULE, pictureUrl, type Account, type MessagesFrom, type WalletProof } from '@/lib/market'
+import { WalletNetworkGlyph } from '@/components/WalletNetworkGlyph'
 import { Avatar } from './Avatar'
 import { Notice } from './Shell'
 import { AutoTextarea } from '@/components/AutoTextarea'
@@ -21,7 +22,23 @@ const field = 'w-full rounded-xl border border-line bg-bg px-4 py-3 text-ink out
 
 /** Your own profile: picture, name and bio, saved by themselves a moment
  * after you stop typing, once the moderation check passes. */
-export function ProfileEditor({ account, onSaved }: { account: Account; onSaved: () => void }) {
+export function ProfileEditor({ account, onSaved, wallets }: { account: Account; onSaved: () => void; wallets: WalletProof[] }) {
+  const [savingPayout, setSavingPayout] = useState(false)
+  const verified = wallets.filter(w => w.verified)
+  const currentPayout = verified.find(w => w.address === account.wallet)?.address ?? ''
+  async function choosePayout(address: string) {
+    if (savingPayout || !verified.some(w => w.address === address)) return
+    setSavingPayout(true)
+    setTrouble('')
+    try {
+      await ask('/me/wallet', 'POST', { address })
+      await onSaved()
+    } catch (error) {
+      setTrouble((error as Error).message)
+    } finally {
+      setSavingPayout(false)
+    }
+  }
   const [name, setName] = useState(account.name)
   const [bio, setBio] = useState(account.bio)
   const [discord, setDiscord] = useState(account.contact.discord ?? '')
@@ -253,12 +270,26 @@ export function ProfileEditor({ account, onSaved }: { account: Account; onSaved:
           Messages about your Market listings always come through whatever you pick, so buyers can ask about what
           you’re selling. Blocking still works on top of this.
         </p>
-        <Link
-          href="/account/blocked/"
-          className="inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:bg-raised"
-        >
-          <Ban className="h-4 w-4 text-muted" aria-hidden /> Manage blocks
-        </Link>
+        <div className="flex flex-wrap items-end gap-4">
+          <div>
+            <span className="mb-1 block text-sm text-muted">Blocked accounts</span>
+            <Link href="/account/blocked/" className="inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-bg px-4 text-sm font-semibold text-ink transition hover:bg-raised">
+              <Ban className="h-4 w-4 text-muted" aria-hidden /> Manage blocks
+            </Link>
+          </div>
+          {verified.length > 0 && (
+            <label className="min-w-0 max-w-full">
+              <span className="mb-1 block text-sm text-muted">Payout wallet</span>
+              <span className="flex h-10 items-center rounded-xl border border-line bg-bg px-3 text-sm text-ink focus-within:border-pearl">
+                <WalletNetworkGlyph />
+                <select className="min-w-0 max-w-60 bg-bg font-semibold" value={currentPayout} disabled={savingPayout || (verified.length === 1 && !!currentPayout)} onChange={e => void choosePayout(e.target.value)}>
+                  {!currentPayout && <option value="" disabled>Choose a wallet</option>}
+                  {verified.map(w => <option key={w.address} value={w.address}>{w.name || 'Wallet'} · {w.address.slice(0,8)}…{w.address.slice(-8)}</option>)}
+                </select>
+              </span>
+            </label>
+          )}
+        </div>
       </fieldset>
       {trouble && <Notice tone="bad">{trouble}</Notice>}
       <p className="h-5 text-sm" aria-live="polite">
