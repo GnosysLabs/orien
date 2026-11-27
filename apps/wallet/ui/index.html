@@ -1621,9 +1621,10 @@
     body:not(.phone) #swaps .ex-hero { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 32px; align-items: center; }
     body:not(.phone) #swaps .ex-hero > .label, body:not(.phone) #swaps .ex-hero > .amount { grid-column: 1; justify-content: flex-start; }
     body:not(.phone) #swaps .ex-hero-stats { grid-column: 2; grid-row: 1 / span 2; margin: 0; padding: 0 0 0 28px; border-top: 0; border-left: 1px solid rgba(0, 0, 0, 0.12); }
-    /* A slim strip: the price and the figures on one short line, so the
-       order book and the form get the room. */
-    body:not(.phone) #swaps .ex-hero { margin-bottom: 20px; padding: 10px 18px; border-radius: 18px; column-gap: 22px; }
+    /* No price card: the order book's middle row shows the price, with the
+       cheapest sell and highest buy order beside it, so the book and the
+       form get the room. */
+    body:not(.phone) #swaps .ex-hero { display: none !important; }
     /* Every gap the same as the one between the columns. */
     body:not(.phone) #swaps .ex-col { gap: 20px; }
     body:not(.phone) #swaps .ex-col > .ex-panel { margin-top: 0; }
@@ -1824,9 +1825,11 @@
     body:not(.phone) #swaps #ex-pane-deck, body:not(.phone) #swaps #tab-offers { flex: 1 1 0; min-height: 0; }
     body:not(.phone) #swaps #tab-offers { flex-grow: 2.2; }
     body:not(.phone) #swaps #ex-pane-ticket #ex-ticket-sub { display: none; }
-    body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { gap: 12px; padding-top: 14px; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { gap: 14px; padding-top: 16px; }
     body:not(.phone) #swaps #ex-pane-ticket { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-    body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { flex: 1; justify-content: space-between; }
+    body:not(.phone) #swaps #ex-pane-ticket .ex-ticket-body { flex: 1; justify-content: flex-start; }
+    /* The fields at the top; what Buy or Sell will do, and the button, at the foot. */
+    body:not(.phone) #swaps #ex-pane-ticket .ex-rate-bar { margin-top: auto; }
     body:not(.phone) #swaps #ex-pane-ticket .ex-note { display: none; }
     body:not(.phone) #swaps #board-offers { display: flex; flex-direction: column; overflow: hidden; }
     body:not(.phone) #swaps :is(.ob-asks, .ob-bids) { flex: 1 1 0; min-height: 0; }
