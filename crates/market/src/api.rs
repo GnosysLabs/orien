@@ -725,7 +725,8 @@ async fn me(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
     let listings = store.listings_of(id)?;
     let unread = store.unread(id)?;
     let notices = store.unseen_notices(id)?;
-    Ok(Json(json!({ "account": account, "listings": listings, "unread": unread, "notices": notices })).into_response())
+    let room_read = store.room_read(id)?;
+    Ok(Json(json!({ "account": account, "listings": listings, "unread": unread, "notices": notices, "room_read": room_read })).into_response())
 }
 
 #[derive(Deserialize)]

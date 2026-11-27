@@ -205,7 +205,7 @@ export async function takeWalletPass(): Promise<boolean> {
   )
 }
 
-export async function me(): Promise<{ account: Account; listings: Listing[]; unread: number; notices?: number } | null> {
+export async function me(): Promise<{ account: Account; listings: Listing[]; unread: number; notices?: number; room_read?: number } | null> {
   try {
     return await ask('/me')
   } catch (error) {

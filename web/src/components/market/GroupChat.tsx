@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Ban, Check, Flag, ImagePlus, Reply, Send, SmilePlus, Trash2, X } from 'lucide-react'
 import { ago, ask, MarketError, profileHref, sentence } from '@/lib/market'
 import { shrinkPicture } from '@/lib/shrink'
+import { roomReadElsewhere, useMe } from '@/lib/useMe'
 import { AutoTextarea } from '@/components/AutoTextarea'
 import { Avatar } from './Avatar'
 import { GifPicker, Photos, useDismiss, type Gif, type Picture } from './CommunityView'
@@ -48,11 +49,15 @@ const READ = 'room-read'
 /** Sent when the group chat is read, so its row in Messages catches up. */
 const ROOM_READ = 'orien-room-read'
 
-const read = () => Number((typeof localStorage !== 'undefined' && localStorage.getItem(READ)) || 0)
+/** How far the group chat has been read: in this browser, or on any of the
+ * account's devices (kept by the server), whichever is further. */
+const read = () => Math.max(Number((typeof localStorage !== 'undefined' && localStorage.getItem(READ)) || 0), roomReadElsewhere())
 function markRead(id: number) {
   if (id > read()) {
     localStorage.setItem(READ, String(id))
     window.dispatchEvent(new Event(ROOM_READ))
+    // Signed in: the account's other devices catch up too.
+    void ask('/room/read', 'POST', { id }).catch(() => undefined)
   }
 }
 const preview = (m: RoomMessage) => m.body || (m.pictures.length ? 'Sent a picture' : m.gif ? 'Sent a GIF' : '')
@@ -82,6 +87,8 @@ let kept: { messages: RoomMessage[]; more: boolean; version: number; you: You | 
 export function RoomRow({ active, onOpen }: { active: boolean; onOpen: () => void }) {
   const [last, setLast] = useState<RoomMessage | null>(kept?.messages.at(-1) ?? null)
   const [, setReadAt] = useState(0)
+  // Read on another device: the dot goes when the account's mark comes in.
+  useMe()
   useEffect(() => {
     const peek = () =>
       ask<Answer>('/room/messages?limit=1')
