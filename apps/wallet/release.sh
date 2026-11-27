@@ -14,6 +14,15 @@
 #                                     --bundles appimage --config
 #                                     no-updater.json on Linux)
 #
+# With no --windows or --linux, and a private/wallet-builds.sh in the
+# repository (kept out of git: it names the build machines), the Windows and
+# Linux copies are built by that script on their own machines while the Mac
+# copy builds here, and published with it. It is run as
+#   bash private/wallet-builds.sh VERSION SOURCE.tar OUTPUT-FOLDER
+# and leaves Orien-Wallet_VERSION_x64-setup.exe and
+# Orien-Wallet_VERSION_amd64.AppImage in OUTPUT-FOLDER. Nothing is published
+# unless all three build.
+#
 # Windows copies are signed as they are built, with the Certum code-signing
 # certificate (in Matthew Gregorini's name), on a PC where SimplySign Desktop
 # is installed and signed in with a code from the SimplySign phone app.
@@ -122,6 +131,20 @@ else
     echo "Note: no Developer ID certificate on this Mac, so Macs will warn before opening the downloaded app."
 fi
 
+# Windows and Linux, built on their own machines at the same time as the Mac
+# copy, from exactly this source (the version just set included).
+OTHERS_PID=""
+OTHERS=$APP/target/others-$VERSION
+if [ -z "$WINDOWS$LINUX" ] && [ -f "$ROOT/private/wallet-builds.sh" ]; then
+    rm -rf "$OTHERS" && mkdir -p "$OTHERS"
+    (cd "$ROOT" && git archive -o "$OTHERS/source.tar" "$(git stash create 2>/dev/null || true)" 2>/dev/null \
+        || git archive -o "$OTHERS/source.tar" HEAD)
+    echo "Building the Windows and Linux copies at the same time (log: $OTHERS/build.log)"
+    bash "$ROOT/private/wallet-builds.sh" "$VERSION" "$OTHERS/source.tar" "$OTHERS" >"$OTHERS/build.log" 2>&1 &
+    OTHERS_PID=$!
+    trap '[ -n "$OTHERS_PID" ] && kill "$OTHERS_PID" 2>/dev/null' EXIT
+fi
+
 echo "Building the Safari extension"
 # Built and signed on its own, then placed inside the app (Contents/PlugIns)
 # by Tauri, before Tauri signs the app around it.
@@ -157,6 +180,21 @@ COPYFILE_DISABLE=1 tar -czf "$OUT/Orien-Wallet.app.tar.gz" -C "$BUNDLE/macos" "O
 env -u TAURI_SIGNING_PRIVATE_KEY cargo tauri signer sign -f "$KEY" "$OUT/Orien-Wallet.app.tar.gz" >/dev/null
 SIGNATURE=$(cat "$OUT/Orien-Wallet.app.tar.gz.sig")
 FILES=(Orien-Wallet.dmg Orien-Wallet.app.tar.gz)
+if [ -n "$OTHERS_PID" ]; then
+    echo "Waiting for the Windows and Linux copies"
+    if ! wait "$OTHERS_PID"; then
+        OTHERS_PID=""
+        tail -20 "$OTHERS/build.log" >&2
+        echo "The Windows or Linux build failed, so nothing was published; see $OTHERS/build.log" >&2
+        exit 1
+    fi
+    OTHERS_PID=""
+    WINDOWS="$OTHERS/Orien-Wallet_${VERSION}_x64-setup.exe"
+    LINUX="$OTHERS/Orien-Wallet_${VERSION}_amd64.AppImage"
+    for file in "$WINDOWS" "$LINUX"; do
+        [ -f "$file" ] || { tail -20 "$OTHERS/build.log" >&2; echo "no file at $file, so nothing was published" >&2; exit 1; }
+    done
+fi
 # Windows and Linux: the installer and the AppImage are their own updates.
 WINDOWS_SIGNATURE=""
 LINUX_SIGNATURE=""
