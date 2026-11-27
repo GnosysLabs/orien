@@ -565,7 +565,7 @@
      back from the edge instead. */
   /* No fading: a fading background would show as a full-width bar for a
      moment as the pill turns back into the plain title. */
-  body:not(.phone) .screen:not(#profile) > .topline { position: sticky; top: 6px; z-index: 6; }
+  body:not(.phone) .screen > .topline { position: sticky; top: 6px; z-index: 6; }
   /* Not Messages beside a chat: those headers sit flush at the top, and
      neither half scrolls as a whole. */
   body.split :is(#inbox, #chat) > .topline { position: static; }
@@ -5433,7 +5433,7 @@
     const screen = e.target;
     if (!(screen instanceof Element) || !screen.classList.contains("screen")) return;
     const top = screen.querySelector(":scope > .topline");
-    if (top && screen.id !== "profile") top.classList.toggle("stuck", screen.scrollTop > 4);
+    if (top) top.classList.toggle("stuck", screen.scrollTop > 4);
   }, { capture: true, passive: true });
   function problem(id, text) { $(id).textContent = String(text); $(id).hidden = false; feel("error"); if (id !== "bug-problem") bugError(text); }
 
