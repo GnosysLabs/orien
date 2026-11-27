@@ -1657,16 +1657,12 @@
   #swaps .ex-deck-tabs { display: inline-flex; gap: 3px; padding: 3px; border-radius: 10px; background: var(--ground-deep); border: 1px solid var(--line); }
   #swaps .ex-deck-tab { height: 26px; padding: 0 11px; border: 0; border-radius: 7px; background: transparent; color: var(--dim); font-size: 11.5px; font-weight: 600; }
   #swaps .ex-deck-tab.on { background: var(--surface-hover); border: 0; color: var(--ink); }
-  /* Each tab on one line; where the names are long (some languages, narrow
-     windows), the row scrolls sideways instead of wrapping. */
-  #swaps .ex-deck-head { min-width: 0; }
-  #swaps .ex-deck-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
-  #swaps .ex-deck-tabs::-webkit-scrollbar { display: none; }
+  /* Each tab on one line. */
   #swaps .ex-deck-tab { flex: none; white-space: nowrap; padding: 0 9px; }
-  /* A soft fade on the side with more tabs beyond it. */
-  #swaps .ex-deck-tabs.more-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
-  #swaps .ex-deck-tabs.more-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px); mask-image: linear-gradient(90deg, transparent, #000 28px); }
-  #swaps .ex-deck-tabs.more-l.more-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+  /* How many are open: a small number beside the name. */
+  #swaps .ex-deck-tab b { display: inline-grid; place-items: center; min-width: 16px; height: 16px; margin-left: 4px; padding: 0 4px; border-radius: 8px; background: var(--surface-hover); color: var(--ink); font-size: 10px; font-weight: 700; vertical-align: 1px; }
+  #swaps .ex-deck-tab.on b { background: var(--ground-deep); }
+  #swaps .ex-deck-tab b:empty { display: none; }
   /* Order rows: one line each. The price and who's offering side by side,
      the SOL figure only on hover; a slim button. */
   #swaps .ob-row { padding-top: 10px; padding-bottom: 10px; min-height: 0; }
@@ -4757,10 +4753,10 @@
           <div class="ex-panel" id="ex-pane-deck" data-ex-pane="mine history" hidden>
             <div class="ex-deck-head">
               <div class="ex-deck-tabs" role="tablist">
-                <button type="button" class="ex-deck-tab on" id="ex-deck-recent" role="tab">Recent</button>
-                <button type="button" class="ex-deck-tab" id="ex-deck-history" role="tab">Your history</button>
-                <button type="button" class="ex-deck-tab" id="ex-deck-buys" role="tab">Your open buys <span id="ex-buys-count"></span></button>
-                <button type="button" class="ex-deck-tab" id="ex-deck-sells" role="tab">Your open sells <span id="ex-sells-count"></span></button>
+                <button type="button" class="ex-deck-tab on" id="ex-deck-recent" role="tab">Recents</button>
+                <button type="button" class="ex-deck-tab" id="ex-deck-history" role="tab">History</button>
+                <button type="button" class="ex-deck-tab" id="ex-deck-buys" role="tab">Open buys<b id="ex-buys-count" data-no-i18n></b></button>
+                <button type="button" class="ex-deck-tab" id="ex-deck-sells" role="tab">Open sells<b id="ex-sells-count" data-no-i18n></b></button>
               </div>
             </div>
             <div id="tab-mine" hidden>
@@ -8081,7 +8077,7 @@
         BIG,
         "Choose <b>Buy ORN</b>, then type how many ORN and the total SOL you’ll pay.",
         `Click ${apple ? `<b>Buy ORN with ${bio}</b>` : "<b>Place Buy Order</b>"}. The SOL is set aside from this wallet at once.`,
-        "When a seller fills it, the ORN arrive by themselves, even with Orien Wallet closed. To cancel, click <b>Cancel</b> on it under <b>Your open buys</b> (<b>Your swaps</b> in a small window).",
+        "When a seller fills it, the ORN arrive by themselves, even with Orien Wallet closed. To cancel, click <b>Cancel</b> on it under <b>Open buys</b> (<b>Your swaps</b> in a small window).",
       ]);
       add("Getting ORN", "sell", "Sell ORN", [
         "Sign in and link this wallet first.",
@@ -10267,17 +10263,7 @@
   $("tab-trade-go").onclick = () => swapTab("trade");
   $("tab-history-go").onclick = () => swapTab("history");
   $("tab-mine-go").onclick = () => swapTab("mine");
-  for (const t of ["recent", "history", "buys", "sells"]) $(`ex-deck-${t}`).onclick = () => { setExDeck(t); $(`ex-deck-${t}`).scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" }); };
-  {
-    const bar = document.querySelector("#ex-pane-deck .ex-deck-tabs");
-    const edges = () => {
-      bar.classList.toggle("more-l", bar.scrollLeft > 1);
-      bar.classList.toggle("more-r", bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 1);
-    };
-    bar.addEventListener("scroll", edges, { passive: true });
-    new ResizeObserver(edges).observe(bar);
-    new MutationObserver(edges).observe(bar, { subtree: true, characterData: true, childList: true });
-  }
+  for (const t of ["recent", "history", "buys", "sells"]) $(`ex-deck-${t}`).onclick = () => setExDeck(t);
 
   // ---- Swap history & Exchange Price Chart ----
   const hist = { swaps: [], more: false, last: null };
@@ -10400,8 +10386,8 @@
     const open = board.waiting.length + swapList.filter((s) => !["done", "cancelled"].includes(s.stage)).length;
     $("mine-count").textContent = open ? `(${open})` : "";
     const buys = exOpenCount("buy"), sells = exOpenCount("sell");
-    $("ex-buys-count").textContent = buys ? `(${buys})` : "";
-    $("ex-sells-count").textContent = sells ? `(${sells})` : "";
+    $("ex-buys-count").textContent = buys || "";
+    $("ex-sells-count").textContent = sells || "";
     const split = exDeckSplit() && ["history", "buys", "sells"].includes(exDeck);
     if (!split && !swapList.length && !board.waiting.length) { list.innerHTML = '<div class="empty">No swaps yet</div>'; return; }
     // Under way first, then finished ones: two groups.

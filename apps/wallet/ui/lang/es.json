@@ -561,7 +561,7 @@
   "Recent errors": "Errores recientes",
   "Recent screens": "Pantallas recientes",
   "Recent trades": "Operaciones recientes",
-  "Recents": "Recientes",
+  "Recents": "Últimas",
   "Recovery phrase": "Frase de recuperación",
   "Recovery words": "Palabras de recuperación",
   "Refunded": "Reembolsado",
@@ -2268,7 +2268,7 @@
         "En una ventana grande, haz clic en <b>Crear orden</b>; en una pequeña, en la pestaña <b>Comprar / Vender</b>.",
         "Elige <b>Comprar ORN</b> y escribe cuántos ORN quieres y el total de SOL que pagarás.",
         "Haz clic en <b>Comprar ORN con Touch ID</b>. El SOL se reserva de esta billetera al instante.",
-        "Cuando un vendedor la complete, los ORN llegan solos, incluso con Orien Wallet cerrado. Para cancelarla, haz clic en <b>Cancelar</b> sobre ella en <b>Tus compras abiertas</b> (<b>Tus intercambios</b> en una ventana pequeña)."
+        "Cuando un vendedor la complete, los ORN llegan solos, incluso con Orien Wallet cerrado. Para cancelarla, haz clic en <b>Cancelar</b> sobre ella en <b>Compras activas</b> (<b>Tus intercambios</b> en una ventana pequeña)."
       ]
     }
   },
@@ -2422,11 +2422,10 @@
   "Help with the wallet, mining, swaps and more.": "Ayuda con la billetera, la minería, los intercambios y más.",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "No se encontró nada. Busca una dirección (64 letras y dígitos, 0-9 y a-f), un número de punto de control o el nombre de alguien en Orien Network.",
   "ORN swap": "Intercambio de ORN",
-  "Recent": "Recientes",
   "No finished swaps yet": "Aún no hay intercambios terminados",
   "No open buy orders": "No hay órdenes de compra abiertas",
   "No open sell orders": "No hay órdenes de venta abiertas",
-  "Your history": "Tu historial",
-  "Your open buys": "Tus compras abiertas",
-  "Your open sells": "Tus ventas abiertas"
+  "History": "Historial",
+  "Open buys": "Compras activas",
+  "Open sells": "Ventas activas"
 }

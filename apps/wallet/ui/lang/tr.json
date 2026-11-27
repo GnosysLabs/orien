@@ -561,7 +561,7 @@
   "Recent errors": "Son hatalar",
   "Recent screens": "Son ekranlar",
   "Recent trades": "Son işlemler",
-  "Recents": "Son Kullanılanlar",
+  "Recents": "Son işlemler",
   "Recovery phrase": "Kurtarma ifadesi",
   "Recovery words": "Kurtarma kelimeleri",
   "Refunded": "İade edildi",
@@ -2268,7 +2268,7 @@
         "Büyük pencerede <b>Emir ver</b>'e, küçük pencerede <b>Al / Sat</b> sekmesine tıklayın.",
         "<b>ORN Satın Al</b> seçeneğini seçin, ardından kaç ORN alacağınızı ve ödeyeceğiniz toplam SOL'u yazın.",
         "<b>Touch ID ile ORN satın al</b> düğmesine tıklayın. SOL hemen bu cüzdandan kenara ayrılır.",
-        "Bir satıcı emri karşıladığında ORN'ler, Orien Wallet kapalı olsa bile kendiliğinden ulaşır. İptal etmek için <b>Açık alışların</b> (küçük pencerede <b>Takaslarınız</b>) altında emrin üzerindeki <b>İptal</b>'e tıklayın."
+        "Bir satıcı emri karşıladığında ORN'ler, Orien Wallet kapalı olsa bile kendiliğinden ulaşır. İptal etmek için <b>Açık alışlar</b> (küçük pencerede <b>Takaslarınız</b>) altında emrin üzerindeki <b>İptal</b>'e tıklayın."
       ]
     }
   },
@@ -2422,11 +2422,10 @@
   "Help with the wallet, mining, swaps and more.": "Cüzdan, madencilik, takaslar ve daha fazlası için yardım.",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Hiçbir şey bulunamadı. Bir adres (64 harf ve rakam, 0-9 ve a-f), bir kontrol noktası numarası veya Orien Network'teki birinin adını arayın.",
   "ORN swap": "ORN takası",
-  "Recent": "Son",
   "No finished swaps yet": "Henüz tamamlanan takas yok",
   "No open buy orders": "Açık alış emri yok",
   "No open sell orders": "Açık satış emri yok",
-  "Your history": "Geçmişin",
-  "Your open buys": "Açık alışların",
-  "Your open sells": "Açık satışların"
+  "History": "Geçmiş",
+  "Open buys": "Açık alışlar",
+  "Open sells": "Açık satışlar"
 }

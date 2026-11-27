@@ -2268,7 +2268,7 @@
         "Ở cửa sổ lớn, nhấn <b>Đặt lệnh</b>; ở cửa sổ nhỏ, nhấn thẻ <b>Mua / Bán</b>.",
         "Chọn <b>Mua ORN</b>, sau đó nhập số ORN và tổng số SOL bạn sẽ trả.",
         "Nhấn <b>Mua ORN bằng Touch ID</b>. Số SOL được tạm giữ ngay từ ví này.",
-        "Khi có người bán khớp lệnh, ORN sẽ tự động về ví, kể cả khi Orien Wallet đã đóng. Để hủy, nhấn <b>Hủy</b> trên lệnh đó trong mục <b>Lệnh mua đang mở của bạn</b> (<b>Hoán đổi của bạn</b> ở cửa sổ nhỏ)."
+        "Khi có người bán khớp lệnh, ORN sẽ tự động về ví, kể cả khi Orien Wallet đã đóng. Để hủy, nhấn <b>Hủy</b> trên lệnh đó trong mục <b>Lệnh mua mở</b> (<b>Hoán đổi của bạn</b> ở cửa sổ nhỏ)."
       ]
     }
   },
@@ -2422,11 +2422,10 @@
   "Help with the wallet, mining, swaps and more.": "Trợ giúp về ví, đào, hoán đổi và nhiều nội dung khác.",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Không tìm thấy gì. Hãy tìm theo địa chỉ (64 chữ cái và chữ số, 0-9 và a-f), số điểm kiểm tra hoặc tên một người trên Orien Network.",
   "ORN swap": "Hoán đổi ORN",
-  "Recent": "Gần đây",
   "No finished swaps yet": "Chưa có hoán đổi nào hoàn tất",
   "No open buy orders": "Không có lệnh mua đang mở",
   "No open sell orders": "Không có lệnh bán đang mở",
-  "Your history": "Lịch sử của bạn",
-  "Your open buys": "Lệnh mua đang mở của bạn",
-  "Your open sells": "Lệnh bán đang mở của bạn"
+  "History": "Lịch sử",
+  "Open buys": "Lệnh mua mở",
+  "Open sells": "Lệnh bán mở"
 }

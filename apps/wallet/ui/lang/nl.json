@@ -2268,7 +2268,7 @@
         "Klik in een groot venster op <b>Order plaatsen</b>; in een klein venster op het tabblad <b>Kopen / Verkopen</b>.",
         "Kies <b>ORN kopen</b> en typ hoeveel ORN je wilt en hoeveel SOL je in totaal betaalt.",
         "Klik op <b>ORN kopen met Touch ID</b>. De SOL wordt meteen apart gezet uit deze wallet.",
-        "Zodra een verkoper de order vult, komen de ORN vanzelf binnen, ook als Orien Wallet gesloten is. Om te annuleren klik je op <b>Annuleren</b> bij de order onder <b>Jouw open aankopen</b> (<b>Je ruiltransacties</b> in een klein venster)."
+        "Zodra een verkoper de order vult, komen de ORN vanzelf binnen, ook als Orien Wallet gesloten is. Om te annuleren klik je op <b>Annuleren</b> bij de order onder <b>Open aankopen</b> (<b>Je ruiltransacties</b> in een klein venster)."
       ]
     }
   },
@@ -2422,11 +2422,10 @@
   "Help with the wallet, mining, swaps and more.": "Hulp bij de wallet, minen, ruilen en meer.",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "Niets gevonden. Zoek een adres (64 letters en cijfers, 0-9 en a-f), een checkpointnummer of de naam van iemand op Orien Network.",
   "ORN swap": "ORN-swap",
-  "Recent": "Recent",
   "No finished swaps yet": "Nog geen afgeronde swaps",
   "No open buy orders": "Geen open kooporders",
   "No open sell orders": "Geen open verkooporders",
-  "Your history": "Jouw geschiedenis",
-  "Your open buys": "Jouw open aankopen",
-  "Your open sells": "Jouw open verkopen"
+  "History": "Historie",
+  "Open buys": "Open aankopen",
+  "Open sells": "Open verkopen"
 }

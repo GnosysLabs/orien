@@ -2268,7 +2268,7 @@
         "在大視窗中點擊<b>下單</b>；在小視窗中點擊<b>買入 / 賣出</b>分頁。",
         "選擇<b>買入 ORN</b>，然後輸入要買入的 ORN 數量和你將支付的 SOL 總額。",
         "點擊<b>使用 Touch ID 買入 ORN</b>。相應的 SOL 會立即從此錢包中預留出來。",
-        "賣家成交後，ORN 會自動到帳，即使 Orien Wallet 已關閉也不受影響。如需取消，請在<b>你的未成交買單</b>（小視窗中為<b>你的兌換</b>）下找到該訂單並點擊<b>取消</b>。"
+        "賣家成交後，ORN 會自動到帳，即使 Orien Wallet 已關閉也不受影響。如需取消，請在<b>未成交買單</b>（小視窗中為<b>你的兌換</b>）下找到該訂單並點擊<b>取消</b>。"
       ]
     }
   },
@@ -2422,11 +2422,10 @@
   "Help with the wallet, mining, swaps and more.": "有關錢包、挖礦、兌換等的幫助。",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on Orien Network.": "未找到結果。請搜尋地址（64 位字母和數字，0-9 及 a-f）、檢查點編號或 Orien Network 上的使用者名稱。",
   "ORN swap": "ORN 兌換",
-  "Recent": "最近",
   "No finished swaps yet": "還沒有已完成的兌換",
   "No open buy orders": "沒有未成交的買單",
   "No open sell orders": "沒有未成交的賣單",
-  "Your history": "你的歷史",
-  "Your open buys": "你的未成交買單",
-  "Your open sells": "你的未成交賣單"
+  "History": "歷史",
+  "Open buys": "未成交買單",
+  "Open sells": "未成交賣單"
 }
