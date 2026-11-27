@@ -5768,12 +5768,34 @@
   // What a Solana payment was for: the swap or buy order it went to or came
   // back from (each pays through its own one-time address), what a lock paid
   // out for, or which of your own wallets it moved between.
+  // iPhones and iPads run no swaps: buy orders placed or filled on a
+  // computer come from the Market instead, so the Solana activity can still
+  // say what each payment was for. A payment to an order's one-time address
+  // is known by its amount (the order's SOL plus the fees, under 0.01 SOL
+  // more) and its time; the leftovers come back from that same address.
+  let marketOrders = [], marketOrdersAt = 0;
+  const solPaidFor = new Map();
+  async function loadMarketOrders() {
+    try {
+      if (!phone || !board.me || Date.now() - marketOrdersAt < 60000) return;
+      marketOrdersAt = Date.now();
+      const got = await mk("GET", "/orders/mine");
+      const me = board.me.id;
+      const ornOf = (units) => exOrn(units, 9).replace(/\.?0+$/, "");
+      marketOrders = (got.orders || []).map((o) => ({ funded_order: true, role: o.buyer === me ? "buy" : "sell", orn: ornOf(o.orn), sol: String(o.lamports / 1e9), created: o.created }));
+      if (devnetAssets.history) paintDevnetHistory();
+    } catch { /* signed out or offline: the plain labels stay */ }
+  }
   function solActivityLabel(entry) {
     let swaps = [];
-    try { swaps = [...solList, ...orderList]; } catch { /* not loaded yet */ }
+    try { swaps = [...solList, ...orderList, ...marketOrders]; } catch { /* not loaded yet */ }
     const peer = entry.peer;
-    const same = (a, b) => a != null && b != null && Math.abs(parseFloat(String(a).replace(/,/g, "")) - parseFloat(String(b).replace(/,/g, ""))) < 1e-9;
-    const own = peer && swaps.find((s) => s.sol_address === peer);
+    const num = (x) => parseFloat(String(x).replace(/,/g, ""));
+    const same = (a, b) => a != null && b != null && Math.abs(num(a) - num(b)) < 1e-9;
+    const own = peer && (swaps.find((s) => s.sol_address === peer) || solPaidFor.get(peer)
+      || (entry.sent && entry.time && !SOL_PROGRAMS[peer] && swaps.find((s) => s.funded_order && s.role === "buy" && s.created
+        && Math.abs(entry.time - s.created) < 900 && num(entry.amount) >= num(s.sol) && num(entry.amount) < num(s.sol) + 0.01)));
+    if (own && peer && !own.sol_address) solPaidFor.set(peer, own);
     if (own) {
       if (own.funded_order) return entry.sent ? `Buy order for ${own.orn} ORN` : `Leftovers from buy order for ${own.orn} ORN`;
       return entry.sent ? `Paid for ${own.orn} ORN` : `Leftovers from buying ${own.orn} ORN`;
@@ -5795,6 +5817,9 @@
     const combined = [...tracked.values(), ...indexed.filter(row => !tracked.has(row.signature))];
     // Amounts follow the balance's decimals, as ORN payments do.
     const amt = (x) => { try { return shortAmount(x); } catch { return x; } };
+    // Payments first, so their leftovers (newer, listed above) are known too.
+    for (const entry of combined) if (entry.sent && entry.peer) solActivityLabel(entry);
+    loadMarketOrders();
     const rows = combined.sort((a, b) => (b.time || 0) - (a.time || 0)).slice(0, 8).map((entry) => {
       if (entry.received || entry.pending === "swap") {
         const amounts = entry.received
