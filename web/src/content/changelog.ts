@@ -28,6 +28,20 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-27',
     products: ['wallet'],
+    version: '1.9.33',
+    title: 'A tidier Exchange and smoother screens',
+    changes: [
+      'In big windows, the Exchange shows Recents, History, Open buys and Open sells as four tabs, with how many are open on each.',
+      'Place order lines up its two amounts, shows what this wallet has under each, and gives the price per ORN for what you type.',
+      'Buy orders keep back only what Solana can charge, so more of your SOL balance is available to spend.',
+      'Moving from one pop-up to another keeps the background dimmed, with no flash.',
+      'Every chat opens at its newest message.',
+      'The mining status dots pulse smoothly, and on Linux the app’s animations keep running after its window has been hidden.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    products: ['wallet'],
     version: '1.9.32',
     title: 'Clearer Solana activity, smoother buy orders, and Back that goes back',
     changes: [
