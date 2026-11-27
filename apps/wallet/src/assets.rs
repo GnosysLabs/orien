@@ -11,6 +11,12 @@ use tauri::AppHandle;
 use orien_swap::solana::devnet_pool::USDC as DEVNET_USDC;
 static DEVNET_ADDRESSES: Mutex<()> = Mutex::new(());
 
+/// Reading this public address for the switcher never unlocks a wallet.
+pub(crate) fn cached_devnet_address(dir: &Path, owner: &str) -> Option<String> {
+    let raw = fs::read_to_string(dir.join("solana-devnet-addresses-v1").join(owner)).ok()?;
+    solana::address(&raw).ok().map(|key| solana::text(&key))
+}
+
 pub(crate) fn devnet_address(dir: &Path, path: &Path, wallet_address: &str, password: Option<&str>) -> Result<String, String> {
     let (owner, _) = crate::peek(path)?;
     if owner.to_string() != wallet_address {
@@ -21,8 +27,8 @@ pub(crate) fn devnet_address(dir: &Path, path: &Path, wallet_address: &str, pass
     let cache = cache_dir.join(owner.to_string());
     // Only the public key is cached on this device, so checking a balance
     // after a restart never needs to open the secret again.
-    if let Some(key) = fs::read_to_string(&cache).ok().and_then(|text| solana::address(&text).ok()) {
-        return Ok(solana::text(&key));
+    if let Some(address) = cached_devnet_address(dir, wallet_address) {
+        return Ok(address);
     }
     let Signing::Here(wallet) = crate::open_signing(path, password)? else {
         return Err("password: needed".into());

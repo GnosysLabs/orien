@@ -981,6 +981,7 @@ async fn choose_wallet(app: AppHandle) -> Result<bool, String> {
 /// A wallet as the switcher shows it.
 #[derive(Serialize)]
 struct WalletView {
+    solana_address: Option<String>,
     path: String,
     name: String,
     address: String,
@@ -1000,6 +1001,7 @@ fn wallets(app: AppHandle) -> Result<Vec<WalletView>, String> {
         .filter_map(|w| {
             let address = Wallet::peek(&w.path).ok()?.0.to_string();
             Some(WalletView {
+                solana_address: assets::cached_devnet_address(&dir, &address),
                 current: Some(&w.path) == current.as_ref(),
                 shared: w.path == shared_wallet(),
                 path: w.path.display().to_string(),

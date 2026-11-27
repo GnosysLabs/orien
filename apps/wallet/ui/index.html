@@ -186,7 +186,6 @@
   html[data-base="dark"] body .card { box-shadow: 0 6px 16px rgba(var(--shade), var(--shade-a)), inset 0 1px 0 rgba(255, 255, 255, 0.16); }
   html[data-base="dark"] body .primary.pearl { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 4px 12px rgba(var(--shade), var(--shade-a)); }
   html[data-base="dark"] body .pill.pearl { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 9px rgba(var(--shade), var(--shade-a)); }
-  html body .wallet-row.current { box-shadow: 0 0 0 2.5px var(--select), 0 4px 12px rgba(var(--shade), var(--shade-a)); }
   html body .theme-card .tc-mini { box-shadow: 0 6px 14px rgba(var(--shade), var(--shade-a)); }
   html body .screen, html body #mine, html body #board-signin, html body #board-post, html body #board-take,
   html body #swaps, html body #swap-sell, html body #swap-buy, html body #swap-detail {
@@ -880,18 +879,43 @@
   /* Wallets as cards, two to a row: the icon with Edit and Remove beside
      it, always there; the name and address; the balance, large, at the
      foot, never covered. */
-  #wallet-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  #wallet-list > .empty { grid-column: 1 / -1; }
-  .wallet-row { position: relative; display: flex; flex-direction: column; gap: 0; min-width: 0;
-    padding: 14px 14px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); text-align: left; cursor: pointer;
-    transition: background .15s, border-color .15s; }
-  @media (hover: hover) { .wallet-row:hover { background: var(--surface-hover); } }
-  /* The open wallet: a clear outline; its icon stays as it is. */
-  .wallet-row.current { border-color: transparent; box-shadow: 0 0 0 2.5px var(--select), 0 8px 24px #0000002e; }
-  .wallet-row .wc-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
-  .wallet-row .coin { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex: none;
-    font: 700 16px/1 "Jost", sans-serif; color: var(--ink); background: rgba(var(--tint), 0.063); }
-  .wallet-row .coin.emoji { font: 22px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+  #wallets { --col: 820px; }
+  .wl-overview { border: 1px solid var(--line); border-radius: 18px; padding: 18px 22px; margin: 4px 0 18px;
+    background: linear-gradient(110deg, color-mix(in srgb, var(--accent) 9%, var(--surface)), var(--surface) 75%); }
+  .wl-bar, .wl-totals, .wl-switch { display: flex; align-items: center; gap: 8px; }
+  .wl-bar { justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .wl-bar h3 { margin: 0; font-size: 14px; font-weight: 550; color: var(--dim); }
+  .wl-switch { gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 99px; background: var(--field); }
+  .wl-switch button { background: transparent; color: var(--dim); border: 0; border-radius: 99px; padding: 5px 10px; cursor: pointer; font-size: 12px; }
+  .wl-switch button[aria-pressed="true"] { color: var(--ink); background: var(--surface-hover); }
+  .wl-totals { margin-top: 12px; gap: 10px 24px; flex-wrap: wrap; font-size: clamp(21px, 3vw, 32px); font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  #wallets .unit { color: var(--dim); font-size: .58em; margin-left: .35em; font-weight: 500; }
+  #wallet-list { display: grid; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); overflow: hidden; }
+  .wallet-row { display: flex; min-width: 0; align-items: center; padding-right: 10px; }
+  .wallet-row + .wallet-row { border-top: 1px solid var(--line); }
+  .wallet-row.current { background: color-mix(in srgb, var(--accent) 5%, var(--surface)); box-shadow: inset 3px 0 var(--accent); }
+  .wl-open { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; min-width: 0;
+    flex: 1; padding: 13px 12px 13px 16px; border: 0; border-radius: 10px; background: transparent; text-align: left; cursor: pointer; }
+  .wl-open:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+  .wallet-row .coin { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--surface-hover); font-size: 18px; }
+  .wallet-row .who, .wallet-row .name, .wallet-row .addr { min-width: 0; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wallet-row .name { font-size: 15px; font-weight: 600; }
+  .wallet-row .addr { font: 11.5px/1.6 ui-monospace, monospace; color: var(--dim); }
+  .wallet-row .bal { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .wallet-row .bal > span { display: block; }
+  .wallet-row .bal > span + span { font-size: 12px; color: var(--dim); }
+  .wallet-row .bal .unit { font-size: 11px !important; }
+  .wallet-row .here { margin-left: 6px; color: var(--accent); font-size: 11px; }
+  .wallet-row .tool { display: grid; place-items: center; width: 36px; height: 38px; background: transparent; border: 0; border-radius: 10px; color: var(--dim); cursor: pointer; }
+  @media (hover: hover) { .wl-open:hover, .wallet-row .tool:hover { background: var(--surface-hover); } }
+  @media (max-width: 480px) {
+    .wl-overview { padding: 14px; }
+    .wl-open { padding: 12px 5px 12px 9px; gap: 7px; }
+    .wallet-row { padding-right: 2px; }
+    .wallet-row .coin { width: 29px; height: 32px; font-size: 16px; }
+    .wallet-row .here { display: block; margin-left: 0; }
+  }
+  #wr-forget { align-self: flex-start; color: var(--bad); margin-top: 14px; }
   .emoji-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
   .emoji-grid button { min-width: 0; width: 100%; aspect-ratio: 1; padding: 0; border: 1px solid transparent; border-radius: 12px; background: var(--surface); cursor: pointer;
     font: 22px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; color: var(--dim); transition: background .15s; }
@@ -899,40 +923,12 @@
   .emoji-grid button.on { border-color: var(--select); background: var(--surface-hover); }
   .emoji-grid .letter { font: 700 16px/1 "Jost", sans-serif; }
   .wallet-chip .chip-emoji { font: 14px/1 system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif; }
-  .wallet-row .who { min-width: 0; }
-  .wallet-row .name { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; min-width: 0; }
-  .wallet-row .name span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .wallet-row .here { flex: none; padding: 2px 8px; border-radius: 999px; background: rgba(var(--tint), 0.07); font-size: 11px; font-weight: 600; color: var(--dim); }
-  .wallet-row .addr { margin-top: 3px; font: 11.5px ui-monospace, "SF Mono", monospace; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .wallet-row .bal { margin-top: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-  .wallet-row .bal .unit { margin-left: 5px; font-size: 12px; font-weight: 500; color: var(--faint); letter-spacing: 0.04em; }
-  .wallet-row .tools { display: flex; gap: 6px; }
   .wl-add { display: inline-flex; align-items: center; gap: 6px; }
   /* A wallet's settings: the name, and Recovery phrase beside it. */
   .wr-name-row { display: flex; align-items: stretch; gap: 10px; }
   .wr-name-row .box { flex: 1; min-width: 0; }
   .wr-name-row .pill.wr-reveal { flex: none; display: inline-flex; align-items: center; gap: 7px; height: auto; align-self: stretch; padding: 0 16px; border-radius: 14px; }
   .wr-reveal svg { flex: none; }
-  .wallet-row .tool { width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center;
-    background: rgba(var(--tint), 0.06); color: var(--dim); cursor: pointer; transition: background .15s, color .15s; }
-  @media (hover: hover) { .wallet-row .tool:hover { background: rgba(var(--tint), 0.11); color: var(--ink); } }
-  @media (hover: hover) { .wallet-row .tool[data-forget]:hover { background: #e5484d; color: #1b1113; } }
-  /* iPhones: one card to a row. */
-  body.phone #wallet-list { grid-template-columns: minmax(0, 1fr); gap: 10px; }
-  /* All your wallets together, above the cards, when there are several. */
-  .wl-total { display: flex; align-items: baseline; gap: 10px; margin: 0 2px 16px; }
-  .wl-total[hidden] { display: none; }
-  .wl-total .k { font-size: 12.5px; color: var(--dim); }
-  .wl-total .v { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-  .wl-total .v .unit { margin-left: 5px; font-size: 12px; font-weight: 500; color: var(--faint); letter-spacing: 0.04em; }
-  /* Big windows: the wide page, three wallets to a row. */
-  @media (min-width: 860px) {
-    body:not(.phone) #wallets { --col: 1040px; }
-    body:not(.phone) #wallet-list { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-    body:not(.phone) .wallet-row .bal { font-size: 24px; }
-  }
-  body.phone .wallet-row { padding: 12px 12px 14px; }
-  body.phone .wallet-row .bal { font-size: 18px; }
   /* The swap board */
   .board-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;
     font-size: 12.5px; color: var(--dim); }
@@ -4455,13 +4451,18 @@
     <section class="screen" id="wallets" hidden>
       <div class="topline"><button class="back" data-back aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Wallets</h2>
         <div class="account"><button class="pill pearl wl-add" id="wallet-add-go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add a wallet</button></div></div>
-      <p class="lede">Each wallet has its own address, recovery phrase and activity. Tap one to open it.</p>
       <div class="sync-card" id="sync-wallets" hidden>
         <div class="sync-text">Turn on syncing, so your contacts and wallet icons match on all your devices. It needs this wallet unlocked once.</div>
         <div class="box plain sync-pw" hidden><input type="password" placeholder="Wallet password" autocomplete="current-password"></div>
         <button class="pill pearl sync-go">Turn on syncing</button>
       </div>
-      <div class="wl-total" id="wallet-total" hidden><span class="k">All your wallets</span><span class="v" id="wallet-total-v"></span></div>
+      <div class="wl-overview">
+        <div class="wl-bar"><h3>Total balance</h3><div class="wl-switch" role="group" aria-label="Wallet network">
+          <button type="button" data-wl-network="ORN" aria-pressed="true">Orien</button>
+          <button type="button" data-wl-network="SOL" aria-pressed="false">Solana Devnet</button>
+        </div></div>
+        <div class="wl-totals" id="wallet-total-v"></div>
+      </div>
       <div id="wallet-list"><div class="empty">Loading…</div></div>
       <div class="problem" id="wallets-problem" hidden></div>
     </section>
@@ -4557,6 +4558,7 @@
         <label>Icon</label>
         <div class="emoji-grid" id="wr-emoji"></div>
       </div>
+      <button class="pill" type="button" id="wr-forget" hidden>Remove from this app</button>
       <div class="problem" id="wallet-rename-problem" hidden></div>
     </section>
 
@@ -6036,22 +6038,20 @@
     cover.classList.add("gone");
     setTimeout(() => { cover.hidden = true; }, 260);
   }
-  // The wallet list waits behind the sunrise until its balances are in, so
-  // nothing pops in late. Never longer than a few seconds.
+  let walletPage;
   async function showWallets() {
-    covered(true);
-    const cap = setTimeout(() => covered(false), 8000);
+    const page = walletPage = { network: walletAsset === "ORN" ? "ORN" : "SOL", wallets: [], orn: {}, sol: new Map(), solStarted: false };
     $("wallets-problem").hidden = true;
-    let balances = {};
-    try {
-      await loadWallets();
-      balances = await invoke("wallet_balances");
-    } catch {}
-    renderWallets(balances);
     show("wallets");
+    $("wallet-list").innerHTML = '<div class="empty">Loading…</div>';
+    paintWalletBalances(page);
+    const wallets = await loadWallets();
+    if (page !== walletPage || $("wallets").hidden) return;
+    page.wallets = wallets;
+    renderWallets(page);
     paintSyncCard("sync-wallets");
-    clearTimeout(cap);
-    covered(false);
+    try { page.orn = await invoke("wallet_balances"); } catch {}
+    if (page === walletPage && !$("wallets").hidden) paintWalletBalances(page);
   }
   // Each wallet's icon: an emoji the person picks, kept on this device by
   // address; without one, the wallet's first letter.
@@ -6084,48 +6084,91 @@
   const COG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
   const PENCIL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>';
   const TRASH = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
-  function renderWallets(balances) {
-    // Balances to two decimals here; the whole amount when pointed at.
-    const brief = (text) => {
-      const n = Number(String(text).replace(/,/g, ""));
-      return Number.isFinite(n) ? n.toLocaleString(undefined, { maximumFractionDigits: 2 }) : text;
+  function paintWalletBalances(page) {
+    const assets = page.network === "ORN" ? ["ORN"] : ["SOL", "USDC"];
+    const value = (w, asset) => asset === "ORN" ? page.orn[w.address] : page.sol.get(w.address)?.[asset.toLowerCase()];
+    const cell = (text, asset, digits) => {
+      const n = text == null ? NaN : Number(String(text).replace(/,/g, ""));
+      const display = prefs.hide ? "••••" : !Number.isFinite(n) ? "—" :
+        n > 0 && n < 10 ** -digits ? "<" + (10 ** -digits).toLocaleString(undefined, {maximumFractionDigits: digits}) :
+        n.toLocaleString(undefined, {maximumFractionDigits: digits});
+      return `<span${typeof text === "string" && !prefs.hide ? ' title="' + esc(text) + ' ' + asset + '"' : ""}>${esc(display)}<small class="unit">${asset}</small></span>`;
     };
-    $("wallet-list").innerHTML = walletList.map((w, i) => `<div class="wallet-row${w.current ? " current" : ""}" data-open="${i}">
-      <div class="wc-top"><span class="coin${iconOf(w.address) ? " emoji" : ""}">${esc(iconOf(w.address) || (w.name || "?").slice(0, 1).toUpperCase())}</span>
-        <div class="tools"><button class="tool" data-rename="${i}" aria-label="Wallet settings" title="Wallet settings">${COG}</button>${w.shared ? "" : `<button class="tool" data-forget="${i}" aria-label="Remove from this app" title="Remove from this app">${TRASH}</button>`}</div></div>
-      <div class="who"><div class="name"><span>${walletLabel(w.name)}</span>${w.current ? '<span class="here">Open</span>' : ""}</div><div class="addr">${esc(short(w.address))}</div></div>
-      <div class="bal"${balances[w.address] !== undefined ? ` title="${esc(balances[w.address])} ORN"` : ""}>${balances[w.address] !== undefined ? `${prefs.hide ? "••••" : esc(brief(balances[w.address]))}<span class="unit">ORN</span>` : "&nbsp;"}</div>
-    </div>`).join("");
-    // Several wallets: what they hold together, above them.
-    const amounts = walletList.map((w) => balances[w.address] === undefined ? NaN : Number(String(balances[w.address]).replace(/,/g, "")));
-    $("wallet-total").hidden = walletList.length < 2 || !amounts.every(Number.isFinite);
-    if (!$("wallet-total").hidden) {
-      const sum = amounts.reduce((a, b) => a + b, 0);
-      $("wallet-total-v").innerHTML = `${prefs.hide ? "••••" : esc(sum.toLocaleString(undefined, { maximumFractionDigits: 2 }))}<span class="unit">ORN</span>`;
+    for (const button of document.querySelectorAll("[data-wl-network]")) button.setAttribute("aria-pressed", String(button.dataset.wlNetwork === page.network));
+    $("wallet-total-v").innerHTML = assets.map(asset => {
+      const values = page.wallets.map(w => value(w, asset));
+      const total = values.length && values.every(v => v != null) ? values.reduce((s, v) => s + Number(String(v).replace(/,/g, "")), 0) : null;
+      return cell(total, asset, asset === "SOL" ? 5 : 2);
+    }).join("");
+    for (const spot of $("wallet-list").querySelectorAll("[data-wl-balance]")) {
+      const w = page.wallets[Number(spot.dataset.wlBalance)];
+      spot.innerHTML = assets.map(asset => cell(value(w, asset), asset, asset === "SOL" ? 5 : 2)).join("");
     }
-    for (const row of $("wallet-list").querySelectorAll("[data-open]")) row.onclick = async (e) => {
-      if (e.target.closest("button")) return;
-      const w = walletList[Number(row.dataset.open)];
-      if (w.current) { home(); return; }
-      covered(true);
-      try { await invoke("use_wallet", { path: w.path }); walletOpened(); home(); }
-      catch (err) { covered(false); problem("wallets-problem", err); }
+  }
+  async function loadWalletSolBalances(page) {
+    if (page.solStarted || !page.wallets.length) return;
+    page.solStarted = true;
+    const wallets = page.wallets.filter(w => w.solana_address);
+    async function next() {
+      while (wallets.length && page === walletPage && !$("wallets").hidden) {
+        const w = wallets.shift();
+        try { page.sol.set(w.address, await invoke("solana_devnet_balances", {address: w.solana_address})); } catch {}
+        if (page === walletPage && !$("wallets").hidden && page.network === "SOL") paintWalletBalances(page);
+      }
+    }
+    await Promise.all([next(), next()]);
+  }
+  for (const b of document.querySelectorAll("[data-wl-network]")) b.onclick = () => {
+    if (!walletPage || walletPage.network === b.dataset.wlNetwork) return;
+    walletPage.network = b.dataset.wlNetwork;
+    renderWallets(walletPage);
+  };
+  function renderWallets(page) {
+    const sol = page.network === "SOL";
+    $("wallet-list").innerHTML = page.wallets.map((w, i) => {
+      const address = sol ? w.solana_address : w.address;
+      return `<div class="wallet-row${w.current ? " current" : ""}">
+        <button type="button" class="wl-open" data-open="${i}" aria-label="Open ${esc(w.name)} on ${sol ? "Solana Devnet" : "Orien"}">
+          <span class="coin" aria-hidden="true">${esc(iconOf(w.address) || (w.name || "?").slice(0, 1).toUpperCase())}</span>
+          <span class="who"><span class="name">${walletLabel(w.name, page.network)}${w.current ? '<span class="here">Open</span>' : ""}</span>
+          <span class="addr">${address ? esc(short(address)) : "Open to view address"}</span></span>
+          <span class="bal" data-wl-balance="${i}"></span></button>
+        <button class="tool" data-rename="${i}" aria-label="Wallet settings · ${esc(w.name)}" title="Wallet settings">${COG}</button>
+      </div>`;
+    }).join("") || '<div class="empty">No wallets to show</div>';
+    paintWalletBalances(page);
+    if (sol) void loadWalletSolBalances(page);
+    for (const row of $("wallet-list").querySelectorAll("[data-open]")) row.onclick = async () => {
+      const w = page.wallets[Number(row.dataset.open)];
+      try {
+        if (!w.current) {
+          covered(true);
+          await invoke("use_wallet", {path: w.path});
+          walletOpened();
+        }
+        walletAsset = sol ? (walletAsset === "USDC" ? "USDC" : "SOL") : "ORN";
+        paintWalletAsset();
+        await home();
+        refreshVisibleDevnet();
+      } catch (err) { covered(false); problem("wallets-problem", err); }
     };
     for (const b of $("wallet-list").querySelectorAll("[data-rename]")) b.onclick = () => {
-      renaming = walletList[Number(b.dataset.rename)];
+      renaming = page.wallets[Number(b.dataset.rename)];
+      $("wr-forget").hidden = renaming.shared;
       $("wr-name").value = renaming.name;
       renaming.icon = iconOf(renaming.address);
       paintIcons();
       $("wallet-rename-problem").hidden = true;
       show("wallet-rename");
     };
-    for (const b of $("wallet-list").querySelectorAll("[data-forget]")) b.onclick = () => {
-      renaming = walletList[Number(b.dataset.forget)];
-      $("wf-text").textContent = `${renaming.name} (${short(renaming.address)}) comes off this app's list.`;
-      $("wallet-forget-problem").hidden = true;
-      show("wallet-forget");
-    };
   }
+  $("wr-forget").onclick = async () => {
+    if (!renaming || renaming.shared) return;
+    await saveName();
+    $("wf-text").textContent = `${renaming.name} (${short(renaming.address)}) comes off this app's list.`;
+    $("wallet-forget-problem").hidden = true;
+    show("wallet-forget");
+  };
   $("wallet-chip").onclick = showWallets;
 
   // ---- Mining ----
@@ -14247,7 +14290,7 @@
     finally { $("bs-go").disabled = false; }
   };
 
-  for (const b of document.querySelectorAll("[data-to]")) b.onclick = () => show(b.dataset.to);
+  for (const b of document.querySelectorAll("[data-to]")) b.onclick = () => b.dataset.to === "wallets" ? showWallets() : show(b.dataset.to);
   document.querySelector("#board-signin .back").onclick = () => {
     if (signinReturn === "referrals") { signinReturn = "swaps"; openReferrals(); }
     else show("swaps");
