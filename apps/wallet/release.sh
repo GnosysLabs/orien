@@ -228,6 +228,17 @@ ln -sfn "$WEB_ROOT/wallet" "$WEB_ROOT/current/wallet"
 mv "$WEB_ROOT/wallet/latest.json.new" "$WEB_ROOT/wallet/latest.json"
 REMOTE
 
+# The Discord bot and Orien AI Support answer from the app's User Guide,
+# which only reaches them in the bot's knowledge file: bring it up to date.
+echo "Updating the User Guide the Discord bot and AI Support answer from"
+if (cd "$ROOT" && python3 discord-bot/build-knowledge.py >/dev/null \
+    && scp -q discord-bot/knowledge.md "$HOST:/etc/orien-discord/knowledge.md" \
+    && $SSH "$HOST" 'chown orien-discord:orien-discord /etc/orien-discord/knowledge.md && chmod 600 /etc/orien-discord/knowledge.md && systemctl restart orien-discord'); then
+    echo "The bot knows this version's User Guide."
+else
+    echo "Note: the bot's User Guide could not be updated; run: bash discord-bot/deploy.sh" >&2
+fi
+
 git -C "$ROOT" add apps/wallet/tauri.conf.json apps/wallet/Cargo.toml apps/wallet/Cargo.lock
 git -C "$ROOT" commit -q -m "Wallet app $VERSION" || true
 echo "Published Orien $VERSION: $BASE_URL/latest.json"
