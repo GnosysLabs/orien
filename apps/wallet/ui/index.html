@@ -674,6 +674,7 @@
   #sol-unlock-description { margin: 12px 0 20px; color: var(--dim); line-height: 1.5; }
   #sol-unlock-form { display: grid; gap: 14px; }
   #sol-unlock-form .field, #sol-unlock-form .primary { margin: 0; }
+  #sol-unlock-go { justify-self: center; width: fit-content; max-width: 100%; padding-inline: 28px; }
   #sol-unlock-error { margin: 0; font-size: 14px; }
   #home.asset-devnet :is(#vw-card, #recent, #view-all) { display: none; }
   #go-send:disabled { cursor: default; }
@@ -5693,8 +5694,8 @@
       void loadDevnetAssets();
     }
   }
-  for (const button of assetButtons) button.onclick = () => {
-    walletAsset = button.dataset.walletAsset;
+  function selectWalletAsset(asset) {
+    walletAsset = asset;
     devnetAssets.receive = null;
     setAssetMenu(false);
     paintWalletAsset();
@@ -5702,7 +5703,8 @@
     if (devnetAssets.promptUnlock) void loadDevnetAssets();
     else if (walletAsset === "SOL" && devnetAssets.locked) showSolUnlock();
     else refreshVisibleDevnet();
-  };
+  }
+  for (const button of assetButtons) button.onclick = () => selectWalletAsset(button.dataset.walletAsset);
   for (const button of solanaAssetButtons) button.onclick = () => {
     walletAsset = button.dataset.solanaAsset;
     devnetAssets.receive = null;
@@ -5843,11 +5845,16 @@
     if (event.key === "Escape" && !$("asset-token-menu").hidden) setAssetMenu(false, true);
   });
   $("asset-devnet-unlock").onclick = showSolUnlock;
-  $("sol-unlock-close").onclick = () => {
-    devnetAssets.receive = null;
+  function dismissSolUnlock() {
     solUnlockDialog.close();
+    selectWalletAsset("ORN");
+    document.querySelector('[data-wallet-asset="ORN"]').focus({ preventScroll: true });
+  }
+  $("sol-unlock-close").onclick = dismissSolUnlock;
+  solUnlockDialog.oncancel = (event) => {
+    event.preventDefault();
+    dismissSolUnlock();
   };
-  solUnlockDialog.oncancel = () => { devnetAssets.receive = null; };
   solUnlockDialog.onclose = () => { $("asset-devnet-password").value = ""; };
   $("sol-unlock-form").onsubmit = (event) => {
     event.preventDefault();
