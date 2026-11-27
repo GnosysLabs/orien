@@ -1972,7 +1972,7 @@
       "title": "Wallet verknüpfen",
       "steps": [
         "Melde dich an und öffne die Wallet, die du verknüpfen möchtest.",
-        "Klicke auf Start auf der Karte <b>Verknüpfen</b> unter deinem Guthaben auf <b>Verknüpfen</b>. (Oder klicke oben rechts auf dein Bild, dann auf <b>Profil bearbeiten</b> und anschließend neben der Wallet auf <b>Verknüpfen</b>.)",
+        "Klicke auf Start auf der Karte <b>Verknüpfen</b> unter deinem Guthaben auf <b>Verknüpfen</b>. (Oder klicke oben rechts auf dein Bild, dann auf <b>Profil bearbeiten</b> → <b>Wallets</b> und anschließend neben der Wallet auf <b>Verknüpfen</b>.)",
         "Klicke zum Bestätigen auf <b>Verknüpfen</b>. Dabei werden weniger als 0,001 ORN inklusive Gebühr von dieser Wallet gesendet.",
         "Innerhalb einer Minute erscheint <b>Verknüpft</b>."
       ],
@@ -1982,7 +1982,7 @@
       "title": "Weitere Wallets verknüpfen",
       "steps": [
         "Wechsle zu einer anderen Wallet: Klicke auf Start auf den Namen deiner Wallet und wähle sie aus.",
-        "Klicke auf dein Bild, dann auf <b>Profil bearbeiten</b> und anschließend neben dieser Wallet auf <b>Verknüpfen</b>.",
+        "Klicke auf dein Bild, dann auf <b>Profil bearbeiten</b> → <b>Wallets</b> und anschließend neben dieser Wallet auf <b>Verknüpfen</b>.",
         "Wiederhole dies für jede Wallet, die auf deinem Profil erscheinen soll.",
         "Wähle neben dem Wallet-Namen <b>Verknüpfung lösen</b>, um die Wallet aus deinem Profil zu entfernen."
       ]
@@ -2190,5 +2190,9 @@
   "Couldn’t load Solana activity.": "Die Solana-Aktivitäten konnten nicht geladen werden.",
   "Unlock Solana to view activity.": "Entsperre Solana, um die Aktivitäten zu sehen.",
   "No Solana transactions yet": "Noch keine Solana-Transaktionen",
-  "Unlink": "Verknüpfung lösen"
+  "Unlink": "Verknüpfung lösen",
+  "Privacy": "Privatsphäre",
+  "Profile details": "Profildetails",
+  "Search wallets": "Wallets durchsuchen",
+  "Account": "Konto"
 }

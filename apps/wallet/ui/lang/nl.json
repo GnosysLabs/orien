@@ -1972,7 +1972,7 @@
       "title": "Een wallet koppelen",
       "steps": [
         "Log in en open de wallet die je wilt koppelen.",
-        "Klik op Start op <b>Koppelen</b> op de kaart <b>Koppelen</b> onder je saldo. (Of klik rechtsboven op je foto, dan op <b>Profiel bewerken</b> en daarna op <b>Koppelen</b> naast de wallet.)",
+        "Klik op Start op <b>Koppelen</b> op de kaart <b>Koppelen</b> onder je saldo. (Of klik rechtsboven op je foto, dan op <b>Profiel bewerken</b> → <b>Wallets</b> en daarna op <b>Koppelen</b> naast de wallet.)",
         "Klik op <b>Koppelen</b> om te bevestigen. Er wordt minder dan 0,001 ORN vanuit die wallet verstuurd, inclusief kosten.",
         "Binnen een minuut staat er <b>Gekoppeld</b>."
       ],
@@ -1982,7 +1982,7 @@
       "title": "Meer wallets koppelen",
       "steps": [
         "Wissel naar een andere wallet: klik op Start op de naam van de wallet en kies deze.",
-        "Klik op je foto, dan op <b>Profiel bewerken</b> en daarna op <b>Koppelen</b> naast die wallet.",
+        "Klik op je foto, dan op <b>Profiel bewerken</b> → <b>Wallets</b> en daarna op <b>Koppelen</b> naast die wallet.",
         "Herhaal dit voor elke wallet die je op je profiel wilt.",
         "Kies <b>Ontkoppelen</b> naast de naam om een wallet van je profiel te verwijderen."
       ]
@@ -2190,5 +2190,9 @@
   "Couldn’t load Solana activity.": "De Solana-activiteit kon niet worden geladen.",
   "Unlock Solana to view activity.": "Ontgrendel Solana om de activiteit te bekijken.",
   "No Solana transactions yet": "Nog geen Solana-transacties",
-  "Unlink": "Ontkoppelen"
+  "Unlink": "Ontkoppelen",
+  "Privacy": "Privacy",
+  "Profile details": "Profielgegevens",
+  "Search wallets": "Wallets zoeken",
+  "Account": "Account"
 }

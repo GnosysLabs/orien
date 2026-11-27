@@ -1972,7 +1972,7 @@
       "title": "Bir cüzdan bağla",
       "steps": [
         "Giriş yapın ve bağlamak istediğiniz cüzdanı açın.",
-        "Ana Sayfa'da bakiyenizin altındaki <b>Bağla</b> kartında <b>Bağla</b>'ya tıklayın. (Veya sağ üstteki resminize, ardından <b>Profili Düzenle</b>'ye ve cüzdanın yanındaki <b>Bağla</b>'ya tıklayın.)",
+        "Ana Sayfa'da bakiyenizin altındaki <b>Bağla</b> kartında <b>Bağla</b>'ya tıklayın. (Veya sağ üstteki resminize, ardından <b>Profili Düzenle</b> → <b>Cüzdanlar</b>'ye ve cüzdanın yanındaki <b>Bağla</b>'ya tıklayın.)",
         "Onaylamak için <b>Bağla</b>'ya tıklayın. Bu cüzdandan ücret dahil 0.001 ORN'den az bir tutar gönderilir.",
         "Bir dakika içinde <b>Bağlandı</b> görünür."
       ],
@@ -1982,7 +1982,7 @@
       "title": "Başka cüzdanlar bağla",
       "steps": [
         "Başka bir cüzdana geçin: Ana Sayfa'da cüzdan adına tıklayın ve seçin.",
-        "Resminize, ardından <b>Profili Düzenle</b>'ye ve o cüzdanın yanındaki <b>Bağla</b>'ya tıklayın.",
+        "Resminize, ardından <b>Profili Düzenle</b> → <b>Cüzdanlar</b>'ye ve o cüzdanın yanındaki <b>Bağla</b>'ya tıklayın.",
         "Profilinizde olmasını istediğiniz her cüzdan için tekrarlayın.",
         "Bir cüzdanı profilinizden kaldırmak için adının yanındaki <b>Bağlantıyı kaldır</b> seçeneğini seçin."
       ]
@@ -2190,5 +2190,9 @@
   "Couldn’t load Solana activity.": "Solana etkinliği yüklenemedi.",
   "Unlock Solana to view activity.": "Etkinliği görmek için Solana kilidini aç.",
   "No Solana transactions yet": "Henüz Solana işlemi yok",
-  "Unlink": "Bağlantıyı kaldır"
+  "Unlink": "Bağlantıyı kaldır",
+  "Privacy": "Gizlilik",
+  "Profile details": "Profil bilgileri",
+  "Search wallets": "Cüzdan ara",
+  "Account": "Hesap"
 }

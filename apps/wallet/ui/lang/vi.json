@@ -1972,7 +1972,7 @@
       "title": "Liên kết ví",
       "steps": [
         "Đăng nhập và mở ví bạn muốn liên kết.",
-        "Ở Trang chủ, nhấn <b>Liên kết</b> trên thẻ <b>Liên kết</b> ngay dưới số dư của bạn. (Hoặc nhấn vào ảnh đại diện ở góc trên bên phải, chọn <b>Chỉnh sửa hồ sơ</b>, rồi nhấn <b>Liên kết</b> bên cạnh ví.)",
+        "Ở Trang chủ, nhấn <b>Liên kết</b> trên thẻ <b>Liên kết</b> ngay dưới số dư của bạn. (Hoặc nhấn vào ảnh đại diện ở góc trên bên phải, chọn <b>Chỉnh sửa hồ sơ</b> → <b>Các ví</b>, rồi nhấn <b>Liên kết</b> bên cạnh ví.)",
         "Nhấn <b>Liên kết</b> để xác nhận. Thao tác này gửi ít hơn 0,001 ORN từ ví đó, đã bao gồm phí.",
         "Trong vòng một phút sẽ hiển thị <b>Đã liên kết</b>."
       ],
@@ -1982,7 +1982,7 @@
       "title": "Liên kết thêm ví",
       "steps": [
         "Chuyển sang ví khác: nhấn vào tên ví ở Trang chủ và chọn ví đó.",
-        "Nhấn vào ảnh đại diện của bạn, chọn <b>Chỉnh sửa hồ sơ</b>, rồi nhấn <b>Liên kết</b> bên cạnh ví đó.",
+        "Nhấn vào ảnh đại diện của bạn, chọn <b>Chỉnh sửa hồ sơ</b> → <b>Các ví</b>, rồi nhấn <b>Liên kết</b> bên cạnh ví đó.",
         "Lặp lại với từng ví bạn muốn hiển thị trên hồ sơ.",
         "Để gỡ ví khỏi hồ sơ, chọn <b>Hủy liên kết</b> bên cạnh tên ví."
       ]
@@ -2190,5 +2190,9 @@
   "Couldn’t load Solana activity.": "Không thể tải hoạt động Solana.",
   "Unlock Solana to view activity.": "Mở khóa Solana để xem hoạt động.",
   "No Solana transactions yet": "Chưa có giao dịch Solana",
-  "Unlink": "Hủy liên kết"
+  "Unlink": "Hủy liên kết",
+  "Privacy": "Quyền riêng tư",
+  "Profile details": "Thông tin hồ sơ",
+  "Search wallets": "Tìm ví",
+  "Account": "Tài khoản"
 }

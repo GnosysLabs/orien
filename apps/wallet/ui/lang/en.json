@@ -1207,7 +1207,7 @@
       "title": "Link a wallet",
       "steps": [
         "Sign in, and open the wallet you want to link.",
-        "On Home, click <b>Link</b> on the <b>Link</b> card under your balance. (Or click your picture at the top right, then <b>Edit Profile</b>, then <b>Link</b> beside the wallet.)",
+        "On Home, click <b>Link</b> on the <b>Link</b> card under your balance. (Or click your picture at the top right, then <b>Edit Profile</b> → <b>Wallets</b>, then <b>Link</b> beside the wallet.)",
         "Click <b>Link</b> to confirm. It sends less than 0.001 ORN from that wallet, fee included.",
         "Within a minute it shows <b>Linked</b>."
       ],
@@ -1217,7 +1217,7 @@
       "title": "Link more wallets",
       "steps": [
         "Switch to another wallet: click the wallet's name on Home and pick it.",
-        "Click your picture, then <b>Edit Profile</b>, then <b>Link</b> beside that wallet.",
+        "Click your picture, then <b>Edit Profile</b> → <b>Wallets</b>, then <b>Link</b> beside that wallet.",
         "Repeat for each wallet you want on your profile.",
         "To remove a wallet from your profile, select <b>Unlink</b> beside its name."
       ]
@@ -1439,5 +1439,9 @@
   "Couldn’t load Solana activity.": "Couldn’t load Solana activity.",
   "Unlock Solana to view activity.": "Unlock Solana to view activity.",
   "No Solana transactions yet": "No Solana transactions yet",
-  "Unlink": "Unlink"
+  "Unlink": "Unlink",
+  "Privacy": "Privacy",
+  "Profile details": "Profile details",
+  "Search wallets": "Search wallets",
+  "Account": "Account"
 }

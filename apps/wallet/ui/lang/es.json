@@ -1972,7 +1972,7 @@
       "title": "Vincular una billetera",
       "steps": [
         "Inicia sesión y abre la billetera que quieres vincular.",
-        "En Inicio, haz clic en <b>Vincular</b> en la tarjeta <b>Vincular</b> debajo de tu saldo. (O haz clic en tu foto arriba a la derecha, luego en <b>Editar perfil</b> y después en <b>Vincular</b> junto a la billetera.)",
+        "En Inicio, haz clic en <b>Vincular</b> en la tarjeta <b>Vincular</b> debajo de tu saldo. (O haz clic en tu foto arriba a la derecha, luego en <b>Editar perfil</b> → <b>Billeteras</b> y después en <b>Vincular</b> junto a la billetera.)",
         "Haz clic en <b>Vincular</b> para confirmar. Envía menos de 0.001 ORN desde esa billetera, comisión incluida.",
         "En menos de un minuto muestra <b>Vinculada</b>."
       ],
@@ -1982,7 +1982,7 @@
       "title": "Vincular más billeteras",
       "steps": [
         "Cambia a otra billetera: haz clic en el nombre de la billetera en Inicio y selecciónala.",
-        "Haz clic en tu foto, luego en <b>Editar perfil</b> y después en <b>Vincular</b> junto a esa billetera.",
+        "Haz clic en tu foto, luego en <b>Editar perfil</b> → <b>Billeteras</b> y después en <b>Vincular</b> junto a esa billetera.",
         "Repite esto para cada billetera que quieras en tu perfil.",
         "Para quitar una billetera del perfil, selecciona <b>Desvincular</b> junto a su nombre."
       ]
@@ -2190,5 +2190,9 @@
   "Couldn’t load Solana activity.": "No se pudo cargar la actividad de Solana.",
   "Unlock Solana to view activity.": "Desbloquea Solana para ver la actividad.",
   "No Solana transactions yet": "Aún no hay transacciones de Solana",
-  "Unlink": "Desvincular"
+  "Unlink": "Desvincular",
+  "Privacy": "Privacidad",
+  "Profile details": "Datos del perfil",
+  "Search wallets": "Buscar billeteras",
+  "Account": "Cuenta"
 }

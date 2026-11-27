@@ -3254,18 +3254,56 @@
   .bk-note { margin: 0 2px 14px; line-height: 1.5; }
   #bk-list .tx { align-items: center; }
   #bk-list .tx .pill { flex: none; }
-  .pf-layout { display: grid; grid-template-areas: "main" "side"; }
-  .pf-danger { margin-top: 22px; }
-  .pf-danger { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-  .pf-danger .ct-delete { margin: 0 auto; }
-  .pf-danger .report-box { align-self: stretch; }
-  .pf-main { grid-area: main; min-width: 0; }
-  .pf-side { grid-area: side; min-width: 0; }
-  @media (min-width: 860px) {
-    #profile .pf-banner { aspect-ratio: auto; height: 240px; }
-    .pf-layout { grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "main side"; column-gap: 28px; align-items: start; }
-    .pf-side .verify-card { margin-top: 0; }
-    .pf-main > .field:first-child { margin-top: 0; }
+  #profile .profile-pic { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 0 14px; margin-bottom: 18px; }
+  #profile .pf-banner { grid-column: 1 / -1; height: clamp(76px, 12vh, 118px); aspect-ratio: auto;
+    background: radial-gradient(ellipse at 22% 10%, color-mix(in srgb, var(--accent) 32%, transparent), transparent 72%), linear-gradient(115deg, var(--surface-hover), var(--surface)); }
+  #profile .pf-face-go { margin: -27px 0 0 18px; }
+  #profile .profile-pic .face { width: 66px; height: 66px; font-size: 25px; }
+  #pf-identity { margin-bottom: 4px; font-size: 21px; letter-spacing: -.025em; overflow-wrap: anywhere; }
+  #profile .pf-banner .cam { inset: 8px 8px auto auto; width: 30px; height: 30px; border-radius: 50%; opacity: 1; }
+  #profile .pf-banner .cam svg { width: 15px; }
+  .pf-nav { display: flex; border-bottom: 1px solid var(--line); gap: clamp(4px, 2vw, 20px); margin-bottom: 18px; }
+  .pf-nav button { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 6px 10px; border: 0; font: inherit; font-size: 14px; font-weight: 600; color: var(--dim); background: transparent; cursor: pointer; }
+  .pf-nav button[aria-selected="true"] { color: var(--ink); }
+  .pf-nav button[aria-selected="true"]::after { content: ""; position: absolute; inset: auto 3px -1px; height: 3px; border-radius: 3px; background: var(--accent); }
+  .pf-nav button[aria-selected="true"] svg { color: var(--accent); }
+  .pf-count { padding: 1px 6px; border-radius: 7px; background: var(--surface-hover); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .pf-columns { display: grid; gap: 16px; align-items: start; }
+  .pf-card, #pf-verify { margin: 0; padding: clamp(14px, 2vw, 24px); min-width: 0; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+  .pf-card h3, .pf-directory-head h3 { margin: 0; font-size: 17px; letter-spacing: -.015em; }
+  .pf-card > h3 + .field { margin-top: 16px; }
+  .pf-card > .field:first-child { margin-top: 0; }
+  .pf-card .field:last-child { margin-bottom: 0; }
+  .pf-card .pf-socials-note { margin: 8px 0 16px; }
+  .pf-danger { margin-top: 16px; }
+  .pf-danger .ct-delete { margin: 0; }
+  .pf-directory-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  #pf-wallet-search { width: min(100%, 22ch); padding: 8px 12px; background: var(--field); color: var(--ink); border-radius: 12px; border: 1px solid var(--line); font: inherit; font-size: 14px; }
+  #pf-wallet-search:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .pf-wallet-group { border-top: 1px solid var(--line); }
+  .pf-wallet-group summary { display: flex; align-items: center; gap: 12px; padding: 12px 2px; cursor: pointer; list-style: none; }
+  .pf-wallet-group summary::-webkit-details-marker { display: none; }
+  .pf-wallet-avatar { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 11px; background: var(--surface-hover); color: var(--dim); font-weight: 600; }
+  .pf-wallet-title { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+  .pf-wallet-title small { display: block; margin-top: 3px; color: var(--faint); font: 12px ui-monospace, monospace; }
+  .pf-wallet-group[open] .pf-wallet-title small { display: none; }
+  #pf-verify:has(#pf-wallet-search:not([hidden])) #vf-list { max-height: max(260px, 48dvh); overflow: auto; overscroll-behavior-y: contain; }
+  #vf-list summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
+  .pf-wallet-networks { display: inline-flex; align-items: center; gap: 6px; color: var(--dim); font-size: 12px; }
+  .pf-wallet-networks .wallet-glyph { margin: 0; }
+  .pf-wallet-group summary::after { content: ""; flex: none; width: 7px; height: 7px; margin: 0 4px; border: solid var(--dim); border-width: 0 1.5px 1.5px 0; transform: rotate(-45deg); }
+  .pf-wallet-group[open] summary::after { transform: rotate(45deg); }
+  .pf-wallet-body { margin: 0 0 13px; padding: 5px 14px; background: var(--field); border-radius: 12px; }
+  .pf-wallet-body > .vf-row, .pf-wallet-body > .vf-pair { border: 0; }
+  .pf-wallet-body .vf-name { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; overflow-wrap: anywhere; }
+  .pf-wallet-body .vf-row > div:first-child { min-width: 0; }
+  #vf-confirm { padding: 14px; margin: 0 0 14px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
+  #vf-confirm .vc-text { margin: 0; }
+  @media (min-width: 860px) { .pf-columns { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); } }
+  @media (max-width: 500px) {
+    .pf-nav { gap: 0; }
+    .pf-nav button { flex: 1; padding-inline: 3px; font-size: 13px; }
+    .pf-wallet-body { padding-inline: 8px; }
   }
   .field .box.social { gap: 12px; }
   .field .box.social + .box.social { margin-top: 10px; }
@@ -4085,66 +4123,78 @@
 
     <!-- Edit your Orien Network profile -->
     <section class="screen" id="profile" hidden>
-      <div class="topline"><button class="back" id="pf-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Your profile</h2><span class="pf-saved" id="pf-saved"></span></div>
+      <div class="topline"><button class="back" id="pf-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2>Edit Profile</h2><span class="pf-saved" id="pf-saved" role="status"></span></div>
       <div class="profile-pic">
         <button class="pf-banner editable" id="pf-banner-go" aria-label="Change banner" title="Change banner"><span id="pf-banner"></span><span class="cam" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg></span></button>
         <button class="pf-face-go editable" id="pf-picture" aria-label="Change picture" title="Change picture"><span class="face" id="pf-face"></span><span class="cam" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg></span></button>
+        <strong id="pf-identity" data-no-i18n></strong>
       </div>
-      <div class="pf-layout">
-        <div class="pf-main">
-      <div class="field">
-        <label for="pf-name">Username</label>
-        <div class="box plain"><input id="pf-name" autocomplete="off" maxlength="20" spellcheck="false" autocapitalize="off"></div>
-        <div class="hint" id="pf-name-hint">3 to 20 letters, numbers or _</div>
+      <div class="pf-nav" role="tablist" aria-label="Edit Profile">
+        <button type="button" role="tab" id="pf-tab-details" aria-controls="pf-panel-details" aria-selected="true" tabindex="0"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20v-2a7 7 0 0 1 14 0v2"/></svg><span>Profile</span></button>
+        <button type="button" role="tab" id="pf-tab-wallets" aria-controls="pf-panel-wallets" aria-selected="false" tabindex="-1"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 8H5a2 2 0 0 1 0-4h13v4M4 7v11a2 2 0 0 0 2 2h14V8"/><path d="M20 12h-5v4h5"/></svg><span>Wallets</span><span class="pf-count" id="pf-wallet-count" hidden></span></button>
+        <button type="button" role="tab" id="pf-tab-privacy" aria-controls="pf-panel-privacy" aria-selected="false" tabindex="-1"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v5c0 5 3 8 8 10 5-2 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg><span>Privacy</span></button>
       </div>
-      <div class="field">
-        <label for="pf-bio">About you</label>
-        <textarea id="pf-bio" maxlength="1000" placeholder="A few words for people you swap with"></textarea>
-      </div>
-      <div class="field pf-socials">
-        <label for="pf-telegram">Socials</label>
-        <p class="hint pf-socials-note">Show your accounts on your profile, if you like. Everyone can see them.</p>
-        <div class="box plain social"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg><input id="pf-telegram" placeholder="Telegram" aria-label="Your Telegram username" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
-        <div class="box plain social"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><input id="pf-x" placeholder="X" aria-label="Your X username" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
-        <div class="box plain social"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg><input id="pf-discord" placeholder="Discord" aria-label="Your Discord username" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
-      </div>
-      <!-- Who can start a conversation with you; kept on the account, so it
-           holds in the app, on the website and on every device. -->
-      <div class="field pf-dm">
-        <label>Who can message you</label>
-        <div class="pf-choice" id="pf-dm" role="radiogroup"><button type="button" data-dm="everyone" role="radio">Everyone</button><button type="button" data-dm="talked" role="radio">People you've talked with</button><button type="button" data-dm="nobody" role="radio">No one</button></div>
-      </div>
-      <!-- The people you've blocked, to unblock: they're hidden from you until then. -->
-      <div class="field">
-        <label for="pf-blocks">Blocked accounts</label>
-        <button class="secondary pf-blocks-go" id="pf-blocks">Manage blocks</button>
-      </div>
-      <div class="problem" id="pf-problem" hidden></div>
-        </div>
-        <div class="pf-side">
-      <!-- Verifying wallets, so people paying them see "Name – Wallet". -->
-      <div class="verify-card" id="pf-verify" hidden>
-        <div class="vc-title">Your wallets</div>
-        <p class="vc-text" id="vf-intro">Link a wallet to show it on your profile.</p>
-        <div id="vf-list"></div>
-        <div class="vf-confirm" id="vf-confirm" hidden>
-          <p class="vc-text" id="vf-text"></p>
-          <div class="field" id="vf-pw-field" hidden>
-            <label for="vf-pw">Wallet password</label>
-            <div class="box plain"><input type="password" id="vf-pw" autocomplete="off"></div>
+      <div class="problem" id="pf-problem" role="alert" hidden></div>
+      <div id="pf-panel-details" role="tabpanel" aria-labelledby="pf-tab-details" class="pf-columns">
+        <section class="pf-card"><h3>Profile details</h3>
+          <div class="field">
+            <label for="pf-name">Username</label>
+            <div class="box plain"><input id="pf-name" autocomplete="off" maxlength="20" spellcheck="false" autocapitalize="off"></div>
+            <div class="hint" id="pf-name-hint">3 to 20 letters, numbers or _</div>
           </div>
-          <div class="vf-actions"><button class="pill" id="vf-cancel">Cancel</button><button class="pill pearl" id="vf-go">Send and link</button></div>
+          <div class="field">
+            <label for="pf-bio">About you</label>
+            <textarea id="pf-bio" maxlength="1000"></textarea>
+          </div>
+        </section>
+        <section class="pf-card">
+          <div class="field pf-socials">
+            <h3>Socials</h3>
+            <p class="hint pf-socials-note">Show your accounts on your profile, if you like. Everyone can see them.</p>
+            <div class="box plain social"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg><input id="pf-telegram" placeholder="Telegram" aria-label="Your Telegram username" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+            <div class="box plain social"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><input id="pf-x" placeholder="X" aria-label="Your X username" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+            <div class="box plain social"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg><input id="pf-discord" placeholder="Discord" aria-label="Your Discord username" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+          </div>
+        </section>
+      </div>
+      <div id="pf-panel-wallets" role="tabpanel" aria-labelledby="pf-tab-wallets" hidden>
+        <div class="verify-card" id="pf-verify" hidden>
+          <div class="pf-directory-head"><h3>Your wallets</h3><input id="pf-wallet-search" type="search" placeholder="Search wallets" aria-label="Search wallets" autocomplete="off" spellcheck="false" hidden></div>
+          <p class="vc-text" id="vf-intro">Link a wallet to show it on your profile.</p>
+          <div id="vf-list"></div>
+          <p class="empty" id="pf-wallet-empty" role="status" hidden>No results</p>
+          <div class="vf-confirm" id="vf-confirm" hidden>
+            <p class="vc-text" id="vf-text"></p>
+            <div class="field" id="vf-pw-field" hidden>
+              <label for="vf-pw">Wallet password</label>
+              <div class="box plain"><input type="password" id="vf-pw" autocomplete="off"></div>
+            </div>
+            <div class="vf-actions"><button class="pill" id="vf-cancel">Cancel</button><button class="pill pearl" id="vf-go">Send and link</button></div>
+          </div>
         </div>
       </div>
-        <div class="pf-danger">
-      <button class="pill ct-delete" id="pf-delete">Delete my account</button>
-      <div class="report-box" id="pf-delete-box" hidden>
-        <p class="vc-text" id="pf-delete-text"></p>
-        <div class="box plain pf-delete-name"><input id="pf-delete-name" autocomplete="off" spellcheck="false" autocapitalize="off"></div>
-        <div class="ls-ask-row"><button class="pill" id="pf-delete-cancel">Cancel</button><button class="pill pf-delete-go" id="pf-delete-go">Delete for good</button></div>
-      </div>
-        </div>
-        </div>
+      <div id="pf-panel-privacy" role="tabpanel" aria-labelledby="pf-tab-privacy" class="pf-columns" hidden>
+        <section class="pf-card">
+          <div class="field pf-dm">
+            <label>Who can message you</label>
+            <div class="pf-choice" id="pf-dm" role="radiogroup"><button type="button" data-dm="everyone" role="radio">Everyone</button><button type="button" data-dm="talked" role="radio">People you've talked with</button><button type="button" data-dm="nobody" role="radio">No one</button></div>
+          </div>
+          <!-- The people you've blocked, to unblock: they're hidden from you until then. -->
+          <div class="field">
+            <label for="pf-blocks">Blocked accounts</label>
+            <button class="secondary pf-blocks-go" id="pf-blocks">Manage blocks</button>
+          </div>
+        </section>
+        <section class="pf-card"><h3>Account</h3>
+          <div class="pf-danger">
+            <button class="pill ct-delete" id="pf-delete">Delete my account</button>
+            <div class="report-box" id="pf-delete-box" hidden>
+              <p class="vc-text" id="pf-delete-text"></p>
+              <div class="box plain pf-delete-name"><input id="pf-delete-name" autocomplete="off" spellcheck="false" autocapitalize="off"></div>
+              <div class="ls-ask-row"><button class="pill" id="pf-delete-cancel">Cancel</button><button class="pill pf-delete-go" id="pf-delete-go">Delete for good</button></div>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -7594,13 +7644,13 @@
     ], "Your account is for the Community, the Market and swaps. Your wallets stay in this app.");
     add("Orien Network", "verify", "Link a wallet", [
       "Sign in, and open the wallet you want to link.",
-      `On Home, ${tap} <b>Link</b> on the <b>Link</b> card under your balance. (Or ${tap} your picture at the top right, then <b>Edit Profile</b>, then <b>Link</b> beside the wallet.)`,
+      `On Home, ${tap} <b>Link</b> on the <b>Link</b> card under your balance. (Or ${tap} your picture at the top right, then <b>Edit Profile</b> → <b>Wallets</b>, then <b>Link</b> beside the wallet.)`,
       `${Tap} <b>Link</b> to confirm. It sends less than 0.001 ORN from that wallet, fee included.`,
       "Within a minute it shows <b>Linked</b>.",
     ], "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.");
     add("Orien Network", "verify-more", "Link more wallets", [
       `Switch to another wallet: ${tap} the wallet’s name on Home and pick it.`,
-      `${Tap} your picture, then <b>Edit Profile</b>, then <b>Link</b> beside that wallet.`,
+      `${Tap} your picture, then <b>Edit Profile</b> → <b>Wallets</b>, then <b>Link</b> beside that wallet.`,
       "Repeat for each wallet you want on your profile.",
       `To take a wallet off your profile, ${tap} <b>Unlink</b> beside its name.`,
     ]);
@@ -13547,7 +13597,7 @@
         : "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.";
       $("se-gate").innerHTML = `<b>Link a wallet to sell</b><p>Buyers pay you straight from their wallet, so your profile needs a linked wallet to be paid at. Linking sends a tiny amount, less than 0.001 ORN, from that wallet.</p>
         <button class="pill pearl" id="se-verify" type="button">Link a wallet</button><p class="hint">${noOrn}</p>`;
-      $("se-verify").onclick = () => openProfile();
+      $("se-verify").onclick = () => openProfile("wallets");
     }
     sale.editing = listing || null;
     sale.cat = listing ? listing.category : "";
@@ -13649,10 +13699,53 @@
     const img = me.picture ? picImg(me.picture) : robot(me.name);
     $("pf-face").innerHTML = esc((me.name || "?").slice(0, 1).toUpperCase()) + img;
     $("pf-banner").innerHTML = picImg(me.banner);
+    $("pf-identity").textContent = me.name;
   }
-  function openProfile() {
+  const profileTabs = Array.from(document.querySelectorAll(".pf-nav [role=tab]"));
+  function selectProfileTab(tab, focus = false) {
+    for (const button of profileTabs) {
+      const active = button === tab;
+      $(button.getAttribute("aria-controls")).hidden = !active;
+      button.setAttribute("aria-selected", String(active));
+      button.tabIndex = active ? 0 : -1;
+    }
+    if (focus) tab.focus();
+  }
+  profileTabs.forEach((tab, i) => {
+    tab.onclick = () => selectProfileTab(tab);
+    tab.onkeydown = event => {
+      const count = profileTabs.length;
+      const keys = {ArrowRight: (i + 1) % count, ArrowLeft: (i + count - 1) % count, Home: 0, End: count - 1};
+      if (!(event.key in keys)) return;
+      event.preventDefault();
+      selectProfileTab(profileTabs[keys[event.key]], true);
+    };
+  });
+  function filterProfileWallets() {
+    const term = $("pf-wallet-search").value.trim().toLowerCase();
+    const groups = $("vf-list").querySelectorAll(".pf-wallet-group");
+    let visible = 0;
+    for (const group of groups) {
+      group.hidden = !group.dataset.search.includes(term);
+      if (!group.hidden) visible++;
+    }
+    $("pf-wallet-empty").textContent = term ? "No results" : "No wallets yet.";
+    $("pf-wallet-empty").hidden = visible > 0;
+  }
+  $("pf-wallet-search").oninput = filterProfileWallets;
+  function openProfile(section = "details") {
     const me = board.me;
     if (!me) return;
+    selectProfileTab($("pf-tab-" + section));
+    $("pf-wallet-search").value = "";
+    $("pf-wallet-count").hidden = true;
+    $("pf-wallet-search").hidden = true;
+    $("pf-wallet-empty").textContent = "Loading…";
+    $("pf-wallet-empty").hidden = false;
+    $("pf-verify").append($("vf-confirm"));
+    $("vf-list").replaceChildren();
+    $("vf-confirm").hidden = true;
+    $("vf-pw").value = "";
     paintProfileFace();
     $("pf-name").value = me.name || "";
     pfNameOk();
@@ -13716,7 +13809,14 @@
     if (card.hidden) return;
     const profileId = board.me.id;
     let fresh;
-    try { fresh = (await invoke("board_wallet_states")) || []; } catch { fresh = []; }
+    try { fresh = (await invoke("board_wallet_states")) || []; }
+    catch (error) {
+      if (board.me?.id === profileId) {
+        $("pf-wallet-empty").hidden = true;
+        problem("pf-problem", error);
+      }
+      return;
+    }
     if (board.me?.id !== profileId) return;
     const owner = view?.address;
     let currentSol = devnetAssets.address;
@@ -13725,16 +13825,25 @@
     }
     if (board.me?.id !== profileId || view?.address !== owner) return;
     states = fresh;
-    const state = (a) => states.find((p) => (p.address || "").toLowerCase() === a);
+    const byAddress = new Map(states.map(p => [(p.address || "").toLowerCase(), p]));
     // Every wallet: this app's, and any the profile has from other devices.
     const rows = walletList.map((w) => ({ address: w.address, name: w.name, here: true, current: w.current }));
-    for (const p of states) {
-      const a = (p.address || "").toLowerCase();
-      if (!rows.some((r) => r.address === a)) rows.push({ address: a, name: p.name || "Wallet", here: false, current: false });
+    const local = new Set(rows.map(r => r.address));
+    for (const [address, p] of byAddress) {
+      if (address && !local.has(address)) rows.push({ address, name: p.name || "Wallet", here: false, current: false });
     }
+    rows.sort((a, b) => Number(b.current) - Number(a.current));
+    const list = $("vf-list");
+    const expanded = new Set(Array.from(list.querySelectorAll("details[open]"), group => group.dataset.owner));
+    const initial = !list.childElementCount;
+    card.append($("vf-confirm"));
+    $("pf-wallet-count").textContent = rows.length;
+    $("pf-wallet-count").hidden = false;
+    $("pf-wallet-search").hidden = rows.length < 6;
+    if ($("pf-wallet-search").hidden) $("pf-wallet-search").value = "";
     $("vf-intro").hidden = states.some(p => p.verified);
     $("vf-list").innerHTML = rows.map(r => {
-      const st = state(r.address);
+      const st = byAddress.get(r.address);
       const verified = !!(st && st.verified), waiting = !!(st && !st.verified);
       // While one is being verified (confirming below, or sent and waiting)
       // its Verify button gives way to where it stands.
@@ -13747,8 +13856,18 @@
       const unlink = st ? `<button type="button" class="pill" data-unlink="${esc(r.address)}">Unlink</button>` : "";
       const ornRow = `<div class="vf-row"><div class="vf-who"><div class="vf-name">${walletLabel(r.name)}${verified ? " " + LINKED_WALLET : ""}</div><div class="vc-sub">${short(r.address)}${status}</div></div><div class="vf-acts">${action}${unlink}</div></div>`;
       const solRow = solProfileRow(r, st, profileId, currentSol);
-      return solRow ? `<div class="vf-pair">${ornRow}${solRow}</div>` : ornRow;
+      const networks = verified ? walletGlyph("ORN") + (st.solana_devnet ? walletGlyph("SOL") : "") : "";
+      const summaryState = networks || (waiting ? "Waiting" : "Not linked yet");
+      const open = expanded.has(r.address) || (initial && r.current) || verifying === r.address;
+      const search = [r.name, r.address, st?.solana_devnet || (r.current ? currentSol : "")].join(" ").toLowerCase();
+      const avatar = iconOf(r.address) || Array.from(r.name || "W")[0];
+      return `<details class="pf-wallet-group" data-owner="${esc(r.address)}" data-search="${esc(search)}"${open ? " open" : ""}>
+        <summary><span class="pf-wallet-avatar" aria-hidden="true">${esc(avatar)}</span><span class="pf-wallet-title" data-no-i18n>${esc(r.name)}<small>${esc(short(r.address))}</small></span><span class="pf-wallet-networks">${summaryState}</span></summary>
+        <div class="pf-wallet-body">${solRow ? `<div class="vf-pair">${ornRow}${solRow}</div>` : ornRow}</div></details>`;
     }).join("");
+    filterProfileWallets();
+    const activeGroup = Array.from(list.children).find(group => group.dataset.owner === verifying);
+    if (activeGroup && note) activeGroup.append($("vf-confirm"));
     for (const button of $("vf-list").querySelectorAll("[data-unlink]")) button.onclick = async () => {
       if (button.disabled || board.me?.id !== profileId) return;
       button.disabled = true;
@@ -13771,9 +13890,15 @@
   async function startVerify(address, button) {
     button.disabled = true;
     $("pf-problem").hidden = true;
-    try { proof = await invoke("board_verify", { address }); }
+    const account = board.me?.id;
+    try {
+      const next = await invoke("board_verify", { address });
+      if (!button.isConnected || board.me?.id !== account || view?.address !== address) return;
+      proof = next;
+    }
     catch (e) { button.disabled = false; problem("pf-problem", e); return; }
     verifying = address;
+    button.closest(".pf-wallet-group").append($("vf-confirm"));
     button.outerHTML = '<span class="vf-wait">Confirm below</span>';
     // Plainly, before anything is sent: what verifying means, and the amount.
     $("vf-text").textContent = `Linking makes this wallet public on your profile: everyone will see it's yours, including its balance. It sends ${proof.orn} ORN from this wallet to Orien Network: less than 0.001 ORN, fee included.`;

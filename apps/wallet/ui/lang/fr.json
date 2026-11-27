@@ -1972,7 +1972,7 @@
       "title": "Lier un portefeuille",
       "steps": [
         "Connectez-vous et ouvrez le portefeuille que vous souhaitez lier.",
-        "Sur l'Accueil, cliquez sur <b>Lier</b> sur la carte <b>Lier</b> sous votre solde. (Ou cliquez sur votre photo en haut à droite, puis sur <b>Modifier le profil</b>, puis sur <b>Lier</b> à côté du portefeuille.)",
+        "Sur l'Accueil, cliquez sur <b>Lier</b> sur la carte <b>Lier</b> sous votre solde. (Ou cliquez sur votre photo en haut à droite, puis sur <b>Modifier le profil</b> → <b>Portefeuilles</b>, puis sur <b>Lier</b> à côté du portefeuille.)",
         "Cliquez sur <b>Lier</b> pour confirmer. Cela envoie moins de 0,001 ORN depuis ce portefeuille, frais inclus.",
         "En moins d'une minute, il affiche <b>Lié</b>."
       ],
@@ -1982,7 +1982,7 @@
       "title": "Lier d’autres portefeuilles",
       "steps": [
         "Passez à un autre portefeuille : cliquez sur le nom du portefeuille sur l'Accueil et sélectionnez-le.",
-        "Cliquez sur votre photo, puis sur <b>Modifier le profil</b>, puis sur <b>Lier</b> à côté de ce portefeuille.",
+        "Cliquez sur votre photo, puis sur <b>Modifier le profil</b> → <b>Portefeuilles</b>, puis sur <b>Lier</b> à côté de ce portefeuille.",
         "Répétez l'opération pour chaque portefeuille que vous souhaitez afficher sur votre profil.",
         "Pour retirer un portefeuille de votre profil, sélectionnez <b>Délier</b> à côté de son nom."
       ]
@@ -2190,5 +2190,9 @@
   "Couldn’t load Solana activity.": "Impossible de charger l’activité Solana.",
   "Unlock Solana to view activity.": "Déverrouillez Solana pour afficher l’activité.",
   "No Solana transactions yet": "Aucune transaction Solana pour le moment",
-  "Unlink": "Délier"
+  "Unlink": "Délier",
+  "Privacy": "Confidentialité",
+  "Profile details": "Détails du profil",
+  "Search wallets": "Rechercher un portefeuille",
+  "Account": "Compte"
 }

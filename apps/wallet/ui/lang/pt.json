@@ -1972,7 +1972,7 @@
       "title": "Vincular uma carteira",
       "steps": [
         "Entre na sua conta e abra a carteira que você deseja vincular.",
-        "No Início, clique em <b>Vincular</b> no cartão <b>Vincular</b> abaixo do seu saldo. (Ou clique na sua foto no canto superior direito, depois em <b>Editar perfil</b> e em <b>Vincular</b> ao lado da carteira.)",
+        "No Início, clique em <b>Vincular</b> no cartão <b>Vincular</b> abaixo do seu saldo. (Ou clique na sua foto no canto superior direito, depois em <b>Editar perfil</b> → <b>Carteiras</b> e em <b>Vincular</b> ao lado da carteira.)",
         "Clique em <b>Vincular</b> para confirmar. Isso envia menos de 0,001 ORN dessa carteira, taxa incluída.",
         "Em cerca de um minuto aparece <b>Vinculada</b>."
       ],
@@ -1982,7 +1982,7 @@
       "title": "Vincular mais carteiras",
       "steps": [
         "Troque para outra carteira: clique no nome da carteira no Início e selecione-a.",
-        "Clique na sua foto, depois em <b>Editar perfil</b> e em <b>Vincular</b> ao lado dessa carteira.",
+        "Clique na sua foto, depois em <b>Editar perfil</b> → <b>Carteiras</b> e em <b>Vincular</b> ao lado dessa carteira.",
         "Repita para cada carteira que deseja no seu perfil.",
         "Para remover uma carteira do perfil, selecione <b>Desvincular</b> ao lado do nome dela."
       ]
@@ -2190,5 +2190,9 @@
   "Couldn’t load Solana activity.": "Não foi possível carregar a atividade da Solana.",
   "Unlock Solana to view activity.": "Desbloqueie a Solana para ver a atividade.",
   "No Solana transactions yet": "Ainda não há transações na Solana",
-  "Unlink": "Desvincular"
+  "Unlink": "Desvincular",
+  "Privacy": "Privacidade",
+  "Profile details": "Detalhes do perfil",
+  "Search wallets": "Buscar carteiras",
+  "Account": "Conta"
 }

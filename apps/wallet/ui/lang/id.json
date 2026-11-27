@@ -1972,7 +1972,7 @@
       "title": "Tautkan dompet",
       "steps": [
         "Masuk, lalu buka dompet yang ingin Anda tautkan.",
-        "Di Beranda, klik <b>Tautkan</b> pada kartu <b>Tautkan</b> di bawah saldo Anda. (Atau klik foto Anda di kanan atas, lalu <b>Edit Profil</b>, kemudian <b>Tautkan</b> di samping dompet.)",
+        "Di Beranda, klik <b>Tautkan</b> pada kartu <b>Tautkan</b> di bawah saldo Anda. (Atau klik foto Anda di kanan atas, lalu <b>Edit Profil</b> → <b>Dompet</b>, kemudian <b>Tautkan</b> di samping dompet.)",
         "Klik <b>Tautkan</b> untuk mengonfirmasi. Ini mengirim kurang dari 0,001 ORN dari dompet tersebut, termasuk biaya.",
         "Dalam satu menit akan tampil <b>Tertaut</b>."
       ],
@@ -1982,7 +1982,7 @@
       "title": "Tautkan dompet lain",
       "steps": [
         "Beralih ke dompet lain: klik nama dompet di Beranda lalu pilih dompet tersebut.",
-        "Klik foto Anda, lalu <b>Edit Profil</b>, kemudian <b>Tautkan</b> di samping dompet itu.",
+        "Klik foto Anda, lalu <b>Edit Profil</b> → <b>Dompet</b>, kemudian <b>Tautkan</b> di samping dompet itu.",
         "Ulangi untuk setiap dompet yang ingin Anda tampilkan di profil.",
         "Untuk menghapus dompet dari profil, pilih <b>Lepas tautan</b> di samping namanya."
       ]
@@ -2190,5 +2190,9 @@
   "Couldn’t load Solana activity.": "Aktivitas Solana tidak dapat dimuat.",
   "Unlock Solana to view activity.": "Buka kunci Solana untuk melihat aktivitas.",
   "No Solana transactions yet": "Belum ada transaksi Solana",
-  "Unlink": "Lepas tautan"
+  "Unlink": "Lepas tautan",
+  "Privacy": "Privasi",
+  "Profile details": "Detail profil",
+  "Search wallets": "Cari dompet",
+  "Account": "Akun"
 }
