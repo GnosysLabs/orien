@@ -264,7 +264,7 @@
   "No payments yet": "아직 거래 내역이 없습니다",
   "No swaps yet": "아직 스왑이 없습니다",
   "No trades yet": "아직 거래가 없습니다",
-  "No verified wallets yet": "아직 인증된 지갑이 없습니다",
+  "No linked wallets yet": "아직 연결된 지갑이 없습니다",
   "No wallets yet.": "아직 지갑이 없습니다.",
   "Normal": "일반",
   "Not answering": "응답 없음",
@@ -396,8 +396,8 @@
   "Sell ORN": "ORN 매도",
   "Sell from": "최고 매수가",
   "Sell into this offer": "이 주문에 판매하기",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "판매 주문은 인증된 지갑에서만 올릴 수 있어 구매자가 누구와 스왑하는지 확인할 수 있습니다. 인증 시 이 지갑이 Orien Network 이름에 연결되며 1회 0.001 ORN 미만이 전송됩니다.",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "매도 주문은 구매자가 거래 상대를 알 수 있도록 인증된 지갑에서만 등록할 수 있습니다 (1회 0.001 ORN 미만 전송).",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "판매 주문은 연결된 지갑에서만 올릴 수 있어 구매자가 누구와 스왑하는지 확인할 수 있습니다. 연결 시 이 지갑이 Orien Network 이름에 연결되며 1회 0.001 ORN 미만이 전송됩니다.",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "매도 주문은 구매자가 거래 상대를 알 수 있도록 연결된 지갑에서만 등록할 수 있습니다 (1회 0.001 ORN 미만 전송).",
   "Sell something": "물품 판매",
   "Seller": "판매자",
   "Selling ORN": "ORN 매도 중",
@@ -407,7 +407,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "브라우저에서 바로 클릭 한 번으로 ORN을 보내고, 잔액을 확인하고, orien.network에 로그인하세요. 개인 키는 절대 Orien Wallet 밖으로 나가지 않습니다.",
   "Send SOL": "SOL 보내기",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Solana 주문에 SOL을 한 번만 보내 두세요. Orien Wallet을 닫아도 호가창에 계속 유지되며, 체결 시 약 1분 안에 정산되고 클릭 한 번으로 취소할 수 있습니다.",
-  "Send and verify": "전송 및 인증",
+  "Send and link": "전송 및 연결",
   "Send me a code": "코드 받기",
   "Send report": "신고 보내기",
   "Send to this contact": "이 연락처로 보내기",
@@ -518,11 +518,11 @@
   "Username": "사용자 이름",
   "Validator fees": "검증인 수수료",
   "Validators": "검증인",
-  "Verify": "인증",
-  "Verify a wallet and people who pay it see your name with it.": "지갑을 인증하면 송금하는 사람에게 회원님의 이름이 함께 표시됩니다.",
-  "Verify this wallet": "이 지갑 인증",
-  "Verify this wallet to offer swaps": "스왑을 등록하려면 지갑을 인증하세요",
-  "Verify this wallet to place sell orders": "매도 주문을 등록하려면 지갑을 인증하세요",
+  "Link": "연결",
+  "Link a wallet and people who pay it see your name with it.": "지갑을 연결하면 송금하는 사람에게 회원님의 이름이 함께 표시됩니다.",
+  "Link this wallet": "이 지갑 연결",
+  "Link this wallet to offer swaps": "스왑을 등록하려면 지갑을 연결하세요",
+  "Link this wallet to place sell orders": "매도 주문을 등록하려면 지갑을 연결하세요",
   "Version": "버전",
   "Videos about Orien": "Orien 관련 동영상",
   "View": "보기",
@@ -644,13 +644,13 @@
   "AI answers can be wrong": "AI 답변은 틀릴 수 있습니다",
   "Activity and notifications": "활동 및 알림",
   "Add another wallet": "다른 지갑 추가",
-  "Among members with a verified wallet, by ORN mined.": "지갑을 인증한 회원 기준, 채굴한 ORN 순입니다.",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "이 지갑의 이전 결제가 먼저 끝나야 해서 인증 전송이 아직 이루어지지 않았습니다. 다시 탭해 보내세요.",
+  "Among members with a linked wallet, by ORN mined.": "지갑을 연결한 회원 기준, 채굴한 ORN 순입니다.",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "이 지갑의 이전 결제가 먼저 끝나야 해서 연결 전송이 아직 이루어지지 않았습니다. 다시 탭해 보내세요.",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "이 지갑의 이전 결제가 먼저 끝나야 해서 아직 전송되지 않았습니다. 결제를 다시 탭하세요.",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "이 지갑의 이전 결제가 먼저 끝나야 해서 팁이 아직 전송되지 않았습니다. 팁을 다시 탭하세요.",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "답변은 AI가 생성하므로 틀릴 수 있습니다. 복구 단어, 비밀번호, 개인 키는 절대 필요하지 않으니 누구에게도 공유하지 마세요.",
   "Any colour you like": "원하는 색상",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "누구나 읽을 수 있습니다. 글을 쓰거나 답글을 달고 반응하려면 로그인하고 지갑을 인증하세요.",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "누구나 읽을 수 있습니다. 글을 쓰거나 답글을 달고 반응하려면 로그인하고 지갑을 연결하세요.",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "이제 누구나 이 주문에 판매할 수 있습니다. 판매자가 수락하면 상대 지갑이 ORN을 잠그고 이 앱에서 결제 화면이 열립니다.",
   "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "이 단어를 가진 사람은 누구나 이 지갑의 ORN을 사용할 수 있습니다. Orien은 절대 이를 요구하지 않습니다.",
   "Anything left over, or a refund, comes back here": "남은 금액이나 환불금이 이곳으로 돌아옵니다",
@@ -678,7 +678,7 @@
   "Build your own theme": "나만의 테마 만들기",
   "Buy ORN with SOL or Bitcoin": "SOL 또는 Bitcoin으로 ORN 매수",
   "Buy amount (ORN)": "매수 수량 (ORN)",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "마켓 구매자는 '결제 수령 지갑'으로 표시된 지갑으로 송금합니다. 지갑을 더 인증하면 그중에서 선택할 수 있습니다.",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "마켓 구매자는 '결제 수령 지갑'으로 표시된 지갑으로 송금합니다. 지갑을 더 연결하면 그중에서 선택할 수 있습니다.",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "메신저나 이메일로 보내세요. 구매자의 Orien Wallet에 어떤 ORN을 잠갔는지 알려주는 코드이며 비밀 정보는 들어 있지 않습니다.",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "메신저나 이메일로 보내세요. 판매자의 Orien Wallet에 Bitcoin을 어디로 결제하는지 알려주는 코드이며 비밀 정보는 들어 있지 않습니다.",
   "Canadian dollar": "캐나다 달러",
@@ -769,8 +769,8 @@
   "Mine for an hour from the Mine screen, or buy a little on Swap.": "채굴 화면에서 한 시간 정도 채굴하거나 스왑에서 소량 구매해 보세요.",
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "컴퓨터용 Orien Wallet에서 한 시간 정도 채굴하거나 orien.network에서 소량 구매해 보세요.",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "컴퓨터에서 채굴하세요. 컴퓨터에 Orien Wallet을 설치하고 이 지갑을 연결한 뒤 다음을 누르세요:",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "인증된 지갑으로 채굴하면 다음 체크포인트 이후 이곳에 기록이 표시됩니다.",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Orien Network 계정에서 지갑을 인증한 채굴자들의 채굴량 순위입니다. 순위에 오르려면 계정에서 지갑을 인증하세요.",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "연결된 지갑으로 채굴하면 다음 체크포인트 이후 이곳에 기록이 표시됩니다.",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "Orien Network 계정에서 지갑을 연결한 채굴자들의 채굴량 순위입니다. 순위에 오르려면 계정에서 지갑을 연결하세요.",
   "Minimum order is 0.01 SOL": "최소 주문 수량은 0.01 SOL입니다",
   "Moderator": "운영자",
   "Mute the group chat": "그룹 채팅 알림 끄기",
@@ -788,13 +788,13 @@
   "No results": "결과 없음",
   "No rewards yet": "아직 보상이 없습니다",
   "No swaps completed yet. The next swap sets the price.": "아직 완료된 스왑이 없습니다. 다음 스왑이 기준 가격이 됩니다.",
-  "No verified wallet yet": "아직 인증된 지갑이 없습니다",
+  "No linked wallet yet": "아직 연결된 지갑이 없습니다",
   "Nobody by that name.": "해당 이름의 사용자가 없습니다.",
   "Nobody is banned.": "차단된 사용자가 없습니다.",
-  "Nobody with a verified wallet has been paid for mining yet.": "아직 인증된 지갑으로 채굴 보상을 받은 사람이 없습니다.",
+  "Nobody with a linked wallet has been paid for mining yet.": "아직 연결된 지갑으로 채굴 보상을 받은 사람이 없습니다.",
   "None": "없음",
   "Not an Orien address": "유효한 Orien 주소가 아닙니다",
-  "Not verified yet": "아직 인증되지 않음",
+  "Not linked yet": "아직 연결되지 않음",
   "Nothing from the network about them yet.": "이 사용자에 대한 네트워크 소식이 아직 없습니다.",
   "Nothing here yet. Be the first to sell something.": "아직 등록된 상품이 없습니다. 첫 번째로 물품을 등록해 보세요.",
   "Nothing in the community yet.": "아직 커뮤니티에 게시물이 없습니다.",
@@ -807,7 +807,7 @@
   "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "iPhone에서는 새 기기의 QR 코드를 스캔하세요. 컴퓨터에서는 코드를 입력하고 다음을 클릭하세요:",
   "On one of your own themes, click the share button (the box with an arrow), then": "직접 만든 테마에서 공유 버튼(화살표가 있는 상자)을 클릭한 뒤 다음을 선택하세요:",
   "Only letters, numbers and _": "영문, 숫자 및 _만 사용 가능",
-  "Open it to verify": "열어서 인증하기",
+  "Open it to link": "열어서 연결하기",
   "Open offers": "진행 중인 주문",
   "Orien AI Support": "Orien AI 지원",
   "Orien Group Chat": "Orien 그룹 채팅",
@@ -870,7 +870,7 @@
   "Send the seller this reply code": "판매자에게 이 응답 코드를 보내세요",
   "Sending": "전송 중",
   "Sending…": "전송 중…",
-  "Sent. Verifying, usually within a minute.": "전송되었습니다. 인증 중이며 보통 1분 이내에 완료됩니다.",
+  "Sent. Linking, usually within a minute.": "전송되었습니다. 연결 중이며 보통 1분 이내에 완료됩니다.",
   "Set the": "설정하세요:",
   "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "대형 페이지 채굴을 위해 약 2.4 GB의 메모리를 확보하며 보통 10~30% 더 빨라집니다. Linux에서 비밀번호를 한 번 요청합니다.",
   "Share a theme in the Theme Store": "테마 스토어에 테마 공유",
@@ -879,9 +879,9 @@
   "Sharing": "공유 중",
   "Show balance": "잔액 표시",
   "Show less": "간략히 보기",
-  "Sign in and verify this wallet first.": "먼저 로그인하고 이 지갑을 인증하세요.",
+  "Sign in and link this wallet first.": "먼저 로그인하고 이 지갑을 연결하세요.",
   "Sign in to Orien Network first.": "먼저 Orien Network에 로그인하세요.",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "질문하려면 Orien Network에 로그인하세요. 지갑 인증은 필요하지 않습니다.",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "질문하려면 Orien Network에 로그인하세요. 지갑 연결은 필요하지 않습니다.",
   "Sign in to Orien Network to chat, reply or react.": "채팅하거나 답글, 반응을 남기려면 Orien Network에 로그인하세요.",
   "Sign in to Orien Network to chat.": "채팅하려면 Orien Network에 로그인하세요.",
   "Sign in to Orien Network to post and react.": "게시하거나 반응하려면 Orien Network에 로그인하세요.",
@@ -893,9 +893,9 @@
   "Sign in to Orien Network to see the themes you shared.": "공유한 테마를 보려면 Orien Network에 로그인하세요.",
   "Sign in to Orien Network to see your own messages and to chat.": "내 메시지를 확인하고 채팅하려면 Orien Network에 로그인하세요.",
   "Sign in to Orien Network to tip.": "팁을 보내려면 Orien Network에 로그인하세요.",
-  "Sign in to Orien Network with a verified wallet to share themes.": "테마를 공유하려면 인증된 지갑이 있는 Orien Network 계정으로 로그인하세요.",
+  "Sign in to Orien Network with a linked wallet to share themes.": "테마를 공유하려면 연결된 지갑이 있는 Orien Network 계정으로 로그인하세요.",
   "Sign in to trade": "로그인하여 거래하기",
-  "Sign in, and open the wallet you want to verify.": "로그인한 뒤 인증할 지갑을 여세요.",
+  "Sign in, and open the wallet you want to link.": "로그인한 뒤 연결할 지갑을 여세요.",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Windows에서 로그아웃했다가 다시 로그인한 뒤 Orien Wallet을 여세요. 그 후부터 채굴 속도가 빨라집니다.",
   "Sign out to finish": "완료하려면 로그아웃 후 다시 로그인하세요",
   "Signing in": "로그인 중",
@@ -996,18 +996,19 @@
   "Use Orien Wallet in your browser": "브라우저에서 Orien Wallet 사용",
   "Use your wallets on another device": "다른 기기에서 지갑 사용",
   "Verified": "인증됨",
-  "Verified wallet": "인증된 지갑",
-  "Verify a wallet": "지갑 인증",
-  "Verify a wallet to post and see your mining here.": "게시물을 작성하고 이곳에서 채굴 기록을 보려면 지갑을 인증하세요.",
-  "Verify more wallets, and choose where you're paid": "지갑을 더 인증하고 대금을 받을 지갑을 선택하세요",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "게시, 답글, 반응을 하려면 Orien Network 프로필에서 지갑을 하나 인증하세요.",
-  "Verify one of your wallets to chat, reply or react.": "채팅하거나 답글, 반응을 남기려면 지갑을 하나 인증하세요.",
-  "Verify one of your wallets to chat. Anyone can read along.": "채팅하려면 지갑을 하나 인증하세요. 읽기는 누구나 가능합니다.",
-  "Verify one of your wallets to react.": "반응하려면 지갑을 하나 인증하세요.",
-  "Verify one of your wallets to reply.": "답글을 달려면 지갑을 하나 인증하세요.",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "인증하면 지갑과 잔액이 본인 소유임이 모두에게 공개됩니다. 게시물 작성, 판매, 스왑, 팁 수령이 가능해집니다.",
-  "Verifying…": "인증 중…",
-  "Verifying… usually within a minute": "인증 중… 보통 1분 이내 완료",
+  "Linked": "연결됨",
+  "Linked wallet": "연결된 지갑",
+  "Link a wallet": "지갑 연결",
+  "Link a wallet to post and see your mining here.": "게시물을 작성하고 이곳에서 채굴 기록을 보려면 지갑을 연결하세요.",
+  "Link more wallets, and choose where you're paid": "지갑을 더 연결하고 대금을 받을 지갑을 선택하세요",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "게시, 답글, 반응을 하려면 Orien Network 프로필에서 지갑을 하나 연결하세요.",
+  "Link one of your wallets to chat, reply or react.": "채팅하거나 답글, 반응을 남기려면 지갑을 하나 연결하세요.",
+  "Link one of your wallets to chat. Anyone can read along.": "채팅하려면 지갑을 하나 연결하세요. 읽기는 누구나 가능합니다.",
+  "Link one of your wallets to react.": "반응하려면 지갑을 하나 연결하세요.",
+  "Link one of your wallets to reply.": "답글을 달려면 지갑을 하나 연결하세요.",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "연결하면 지갑과 잔액이 본인 소유임이 모두에게 공개됩니다. 게시물 작성, 판매, 스왑, 팁 수령이 가능해집니다.",
+  "Linking…": "연결 중…",
+  "Linking… usually within a minute": "연결 중… 보통 1분 이내 완료",
   "View profile": "프로필 보기",
   "Waiting": "대기 중",
   "Waiting for mining to get going.": "채굴이 시작되기를 기다리는 중입니다.",
@@ -1027,8 +1028,8 @@
   "You can't send in the group chat right now. You can still read along.": "지금은 그룹 채팅에 메시지를 보낼 수 없습니다. 대화 내용은 계속 읽을 수 있습니다.",
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "테마가 최대 개수인 24개에 도달했습니다. 먼저 화면 설정에서 하나를 삭제하세요.",
   "You haven't blocked anyone.": "차단한 사용자가 없습니다.",
-  "You need to be signed in to Orien Network with a verified wallet.": "인증된 지갑이 있는 Orien Network 계정으로 로그인해야 합니다.",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Orien Network에 로그인해야 합니다. 지갑 인증은 필요하지 않습니다.",
+  "You need to be signed in to Orien Network with a linked wallet.": "연결된 지갑이 있는 Orien Network 계정으로 로그인해야 합니다.",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "Orien Network에 로그인해야 합니다. 지갑 연결은 필요하지 않습니다.",
   "You send the buyer the offer code, and paste in the reply code they send back": "구매자에게 주문 코드를 보내고 구매자가 돌려보낸 응답 코드를 붙여넣으세요",
   "You · pay within a few hours": "나 · 몇 시간 이내 결제",
   "You · pay within the next few hours": "나 · 몇 시간 이내 결제",
@@ -1440,8 +1441,8 @@
       "{0} 스테이킹"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "인증된 지갑 {0}개"
+      "^(\\d+) linked wallets?$",
+      "연결된 지갑 {0}개"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "{0}(으)로 게시"
     ],
     [
-      "^Verify with (.+)$",
-      "{0}(으)로 인증"
+      "^Link with (.+)$",
+      "{0}(으)로 연결"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "{0}(으)로 확인"
     ],
     [
-      "^Verify (.+)$",
-      "{0} 인증"
+      "^Link (.+)$",
+      "{0} 연결"
     ],
     [
-      "^Verifying (.+)$",
-      "{0} 인증 중"
+      "^Linking (.+)$",
+      "{0} 연결 중"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "{0} ORN 보내고 인증"
+      "^Send ([0-9.,]+) ORN and link$",
+      "{0} ORN 보내고 연결"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "계정은 커뮤니티, 마켓, 스왑에 사용됩니다. 지갑은 이 앱 안에 안전하게 보관됩니다."
     },
     "verify": {
-      "title": "지갑 인증",
+      "title": "지갑 연결",
       "steps": [
-        "로그인한 뒤 인증할 지갑을 여세요.",
-        "홈 화면 잔액 아래의 <b>인증</b> 카드에서 <b>인증</b>을 클릭하세요. (또는 오른쪽 상단의 내 사진을 클릭한 뒤 <b>프로필 편집</b>에서 해당 지갑 옆의 <b>인증</b>을 클릭하세요.)",
-        "확인하려면 <b>인증</b>을 클릭하세요. 수수료를 포함해 해당 지갑에서 0.001 ORN 미만이 전송됩니다.",
-        "1분 이내에 <b>인증됨</b>으로 표시됩니다."
+        "로그인한 뒤 연결할 지갑을 여세요.",
+        "홈 화면 잔액 아래의 <b>연결</b> 카드에서 <b>연결</b>을 클릭하세요. (또는 오른쪽 상단의 내 사진을 클릭한 뒤 <b>프로필 편집</b>에서 해당 지갑 옆의 <b>연결</b>을 클릭하세요.)",
+        "확인하려면 <b>연결</b>을 클릭하세요. 수수료를 포함해 해당 지갑에서 0.001 ORN 미만이 전송됩니다.",
+        "1분 이내에 <b>연결됨</b>으로 표시됩니다."
       ],
-      "note": "인증하면 지갑과 잔액이 본인 소유임이 모두에게 공개됩니다. 게시물 작성, 판매, 스왑, 팁 수령이 가능해집니다."
+      "note": "연결하면 지갑과 잔액이 본인 소유임이 모두에게 공개됩니다. 게시물 작성, 판매, 스왑, 팁 수령이 가능해집니다."
     },
     "verify-more": {
-      "title": "지갑을 더 인증하고 대금을 받을 지갑을 선택하세요",
+      "title": "지갑을 더 연결하고 대금을 받을 지갑을 선택하세요",
       "steps": [
         "다른 지갑으로 전환하세요. 홈 화면에서 지갑 이름을 클릭해 원하는 지갑을 선택하면 됩니다.",
-        "내 사진을 클릭한 뒤 <b>프로필 편집</b>에서 해당 지갑 옆의 <b>인증</b>을 클릭하세요.",
+        "내 사진을 클릭한 뒤 <b>프로필 편집</b>에서 해당 지갑 옆의 <b>연결</b>을 클릭하세요.",
         "프로필에 표시하고 싶은 각 지갑에 대해 반복하세요.",
-        "구매자와 팁을 보내는 사람이 송금하는 지갑에는 <b>결제 수령 지갑</b>이 표시됩니다. 변경하려면 다른 인증된 지갑에서 <b>결제 수령 지갑으로 설정</b>을 클릭하세요.",
+        "구매자와 팁을 보내는 사람이 송금하는 지갑에는 <b>결제 수령 지갑</b>이 표시됩니다. 변경하려면 다른 연결된 지갑에서 <b>결제 수령 지갑으로 설정</b>을 클릭하세요.",
         "프로필에서 지갑을 빼려면 지갑 옆의 <b>⋯</b>을 클릭한 뒤 <b>프로필에서 제거</b>를 클릭하세요."
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "모두와 채팅",
       "steps": [
         "홈 화면에서 말풍선 모양이 있는 동그란 버튼인 <b>메시지</b>를 클릭하세요. <b>Orien 그룹 채팅</b>이 맨 위에 고정되어 있습니다.",
-        "누구나 읽을 수 있습니다. 글을 쓰거나 답글을 달고 반응하려면 로그인하고 지갑을 인증하세요.",
+        "누구나 읽을 수 있습니다. 글을 쓰거나 답글을 달고 반응하려면 로그인하고 지갑을 연결하세요.",
         "메시지에 마우스를 올리면 답글을 달거나 반응하거나 신고할 수 있습니다.",
         "새 메시지가 오면 메시지에 점이 표시됩니다. 이를 끄려면 채팅 상단의 종 아이콘을 클릭하세요."
       ],
@@ -2011,7 +2012,7 @@
       "title": "Orien AI 지원에 문의하기",
       "steps": [
         "홈 화면에서 말풍선 모양이 있는 동그란 버튼인 <b>메시지</b>를 클릭하세요. 그룹 채팅 아래에 <b>Orien AI 지원</b>이 고정되어 있습니다. 넓은 창에서는 종 아이콘 옆의 구명튜브 아이콘으로도 열 수 있습니다.",
-        "Orien Network에 로그인해야 합니다. 지갑 인증은 필요하지 않습니다.",
+        "Orien Network에 로그인해야 합니다. 지갑 연결은 필요하지 않습니다.",
         "지갑, 채굴, 스왑, 네트워크에 대해 궁금한 점을 편하게 물어보세요.",
         "대화를 지우려면 채팅 상단의 <b>처음부터 다시</b>를 클릭하세요."
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "ORN 매도",
       "steps": [
-        "먼저 로그인하고 이 지갑을 인증하세요.",
+        "먼저 로그인하고 이 지갑을 연결하세요.",
         "홈 화면에서 화살표 두 개가 있는 동그란 버튼인 <b>스왑</b>을 클릭한 뒤 <b>주문 올리기</b>를 클릭하세요.",
         "SOL 또는 Bitcoin을 선택한 뒤 판매할 ORN 수량, 원하는 금액, 대금을 받을 주소를 입력하세요.",
         "<b>주문 올리기</b>를 클릭하고 주문이 체결될 때까지 Orien Wallet을 계속 실행해 두세요. 설정의 <b>이 컴퓨터</b>에서 <b>컴퓨터 절전 방지</b>를 켜두면 자리를 비워도 앱이 계속 유지됩니다."
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "테마 스토어에 테마 공유",
       "steps": [
-        "인증된 지갑이 있는 Orien Network 계정으로 로그인해야 합니다.",
+        "연결된 지갑이 있는 Orien Network 계정으로 로그인해야 합니다.",
         "홈 화면에서 톱니바퀴 모양의 동그란 버튼인 <b>설정</b>을 열고 <b>화면</b>으로 이동하세요.",
         "직접 만든 테마에서 공유 버튼(화살표가 있는 상자)을 클릭한 뒤 <b>테마 공유</b>를 클릭하세요.",
         "검토를 거친 뒤 회원님의 이름과 함께 스토어에 등록되어 누구나 미리 보고 사용하며 팁을 보낼 수 있습니다.",
@@ -2125,8 +2126,8 @@
   "Invite users": "친구 초대",
   "Enter code": "코드 입력",
   "Invite a friend to mine - you'll both get 7 free ORN": "친구를 채굴에 초대하고 둘 다 7 ORN씩 무료로 받으세요",
-  "Verify a wallet to get your invite code.": "지갑을 인증하면 초대 코드를 받을 수 있어요.",
-  "Verify wallet": "지갑 인증",
+  "Link a wallet to get your invite code.": "지갑을 연결하면 초대 코드를 받을 수 있어요.",
+  "Link wallet": "지갑 연결",
   "Your invite code": "내 초대 코드",
   "Copy invite code": "초대 코드 복사",
   "Copy invite link": "초대 링크 복사",
@@ -2135,7 +2136,7 @@
   "ORN paid": "지급된 ORN",
   "Share your invite link or code with a friend.": "친구에게 초대 링크나 코드를 공유하세요.",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "친구가 Orien을 다운로드하고 계정을 만든 후 12시간 이내에 내 코드를 사용해야 해요.",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "친구가 지갑을 인증하고 서로 다른 10개의 시간대에 해당 지갑으로 채굴 보상을 받으면 돼요.",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "친구가 지갑을 연결하고 서로 다른 10개의 시간대에 해당 지갑으로 채굴 보상을 받으면 돼요.",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "각자 7 ORN을 받아요. 친구는 최대 5명까지 초대할 수 있어요(추후 초대 한도가 초기화될 수 있어요).",
   "Your referral window has closed": "추천 코드 입력 기간이 지났어요",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "친구의 코드는 Orien Network 계정을 만든 후 처음 12시간 동안만 입력할 수 있어요. 이 계정은 입력 기간이 지났어요.",
@@ -2146,7 +2147,7 @@
   "Open Mining": "채굴 열기",
   "Sign in to your Orien Network account.": "Orien Network 계정에 로그인하세요.",
   "Enter your friend’s code within 12 hours of creating your account.": "계정을 만든 후 12시간 이내에 친구의 코드를 입력하세요.",
-  "Verify the wallet you’ll use for mining.": "채굴에 사용할 지갑을 인증하세요.",
+  "Link the wallet you’ll use for mining.": "채굴에 사용할 지갑을 연결하세요.",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "해당 지갑으로 시간별 체크포인트 10회에 걸쳐 채굴 보상을 받으세요.",
   "You and the friend who invited you each earn 7 ORN.": "나와 나를 초대한 친구가 각각 7 ORN을 받아요.",
   "Your referral progress": "추천 진행 상황",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "7 ORN 보상이 지급되었어요.",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "조건을 충족했어요. 7 ORN 보상이 지급 대기 중이에요.",
   "This referral closed before a reward was reserved.": "보상이 배정되기 전에 이 추천이 종료되었어요.",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "코드가 승인되었어요. 지갑을 인증하면 채굴 시간이 집계돼요.",
+  "Code accepted. Link a wallet to start counting your mining hours.": "코드가 승인되었어요. 지갑을 연결하면 채굴 시간이 집계돼요.",
   "Mining requirement met. Reward reservation is pending.": "채굴 조건을 충족했어요. 보상 배정을 기다리고 있어요.",
-  "Code accepted. Mine with your verified wallet to make progress.": "코드가 승인되었어요. 인증된 지갑으로 채굴을 진행하세요.",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "코드가 승인되었어요. 컴퓨터의 Orien Wallet에서 인증된 지갑으로 채굴하세요.",
+  "Code accepted. Mine with your linked wallet to make progress.": "코드가 승인되었어요. 연결된 지갑으로 채굴을 진행하세요.",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "코드가 승인되었어요. 컴퓨터의 Orien Wallet에서 연결된 지갑으로 채굴하세요.",
   "Code copied": "코드 복사됨",
   "Link copied": "링크 복사됨",
   "Couldn’t copy. Try again.": "복사하지 못했어요. 다시 시도하세요.",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "일부 활동을 새로 고치지 못했습니다.",
   "Couldn’t load Solana activity.": "Solana 활동을 불러오지 못했습니다.",
   "Unlock Solana to view activity.": "활동을 보려면 Solana 잠금을 해제하세요.",
-  "No Solana transactions yet": "아직 Solana 거래가 없습니다"
+  "No Solana transactions yet": "아직 Solana 거래가 없습니다",
+  "Unlink": "연결 해제"
 }

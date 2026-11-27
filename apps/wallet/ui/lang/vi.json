@@ -51,18 +51,18 @@
   "Agreed by": "Được đồng thuận bởi",
   "All": "Tất cả",
   "All your wallets": "Tất cả các ví của bạn",
-  "Among members with a verified wallet, by ORN mined.": "Trong số các thành viên có ví đã xác minh, xếp theo lượng ORN đã đào.",
+  "Among members with a linked wallet, by ORN mined.": "Trong số các thành viên có ví đã liên kết, xếp theo lượng ORN đã đào.",
   "Amount": "Số lượng",
   "Amount (ORN)": "Số lượng (ORN)",
   "An address, a name or a checkpoint number": "Địa chỉ, tên hoặc số điểm kiểm tra",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Một khoản thanh toán trước đó từ ví này cần hoàn tất trước, nên chưa có gì được gửi để xác minh. Nhấn lại để gửi.",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "Một khoản thanh toán trước đó từ ví này cần hoàn tất trước, nên chưa có gì được gửi để liên kết. Nhấn lại để gửi.",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Một khoản thanh toán trước đó từ ví này cần hoàn tất trước, nên khoản này chưa được gửi. Nhấn Thanh toán lại.",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Một khoản thanh toán trước đó từ ví này cần hoàn tất trước, nên khoản tip này chưa được gửi. Nhấn Tặng tip lại.",
   "Another amount": "Số lượng khác",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Câu trả lời do AI tạo ra và có thể sai. AI không bao giờ cần cụm từ khôi phục, mật khẩu hay khóa của bạn: tuyệt đối không chia sẻ với bất kỳ ai.",
   "Any colour you like": "Bất kỳ màu nào bạn thích",
   "Any moment": "Ngay lúc này",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Ai cũng có thể đọc. Để viết, trả lời hoặc thả cảm xúc, hãy đăng nhập và xác minh một ví.",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "Ai cũng có thể đọc. Để viết, trả lời hoặc thả cảm xúc, hãy đăng nhập và liên kết một ví.",
   "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Mọi người đều có thể xem, sử dụng và tặng tip cho bạn. Tên Orien Network của bạn sẽ hiển thị kèm theo. Bạn có thể gỡ xuống bất cứ lúc nào.",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Giờ đây bất kỳ ai cũng có thể bán vào lệnh này. Khi họ làm vậy, ví của họ sẽ khóa ORN và ứng dụng này sẽ mở màn hình thanh toán.",
   "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Giờ đây bất kỳ ai cũng có thể nhận đề nghị này. Khi họ nhận, ví của bạn sẽ tự động thực hiện hoán đổi.",
@@ -133,7 +133,7 @@
   "Buyer": "Người mua",
   "Buyer pays": "Người mua trả",
   "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "Đã giữ trước SOL của người mua. Đang khóa ORN của bạn. Hãy giữ trang này mở thêm vài giây.",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Người mua trên Chợ sẽ thanh toán vào ví có nhãn Nhận tiền tại đây. Hãy xác minh thêm ví để lựa chọn.",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "Người mua trên Chợ sẽ thanh toán vào ví có nhãn Nhận tiền tại đây. Hãy liên kết thêm ví để lựa chọn.",
   "Buying ORN": "Đang mua ORN",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Qua bất kỳ ứng dụng nhắn tin hoặc email nào. Mã này cho Orien Wallet của người mua biết bạn đã khóa gì cho họ và không chứa thông tin bí mật nào.",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Qua bất kỳ ứng dụng nhắn tin hoặc email nào. Mã này cho Orien Wallet của người bán biết bạn sẽ thanh toán Bitcoin ở đâu và không chứa thông tin bí mật nào.",
@@ -370,10 +370,10 @@
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Đào một giờ trong Orien Wallet trên máy tính, hoặc mua một ít tại orien.network.",
   "Mine it on a computer.": "Đào trên máy tính.",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Đào trên máy tính: cài Orien Wallet ở đó, liên kết ví này rồi nhấn",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Đào bằng ví đã xác minh để số liệu của bạn hiển thị tại đây sau điểm kiểm tra tiếp theo.",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "Đào bằng ví đã liên kết để số liệu của bạn hiển thị tại đây sau điểm kiểm tra tiếp theo.",
   "Miners last hour": "Thợ đào giờ qua",
   "Miners paid": "Thợ đào được trả thưởng",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Các thợ đào đã xác minh ví trên tài khoản Orien Network, xếp theo lượng ORN đã đào. Hãy xác minh ví trên tài khoản của bạn để có mặt trong danh sách.",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "Các thợ đào đã liên kết ví trên tài khoản Orien Network, xếp theo lượng ORN đã đào. Hãy liên kết ví trên tài khoản của bạn để có mặt trong danh sách.",
   "Minimize": "Thu gọn",
   "Minimum order is 0.01 SOL": "Lệnh tối thiểu là 0,01 SOL",
   "Mining": "Khai thác",
@@ -422,12 +422,12 @@
   "No swaps completed yet. The next swap sets the price.": "Chưa có giao dịch hoán đổi nào hoàn tất. Giao dịch hoán đổi tiếp theo sẽ xác lập giá.",
   "No swaps yet": "Chưa có hoán đổi nào",
   "No trades yet": "Chưa có giao dịch nào",
-  "No verified wallet yet": "Chưa có ví nào được xác minh",
-  "No verified wallets yet": "Chưa có ví nào được xác minh",
+  "No linked wallet yet": "Chưa có ví nào được liên kết",
+  "No linked wallets yet": "Chưa có ví nào được liên kết",
   "No wallets yet.": "Chưa có ví nào.",
   "Nobody by that name.": "Không có ai tên như vậy.",
   "Nobody is banned.": "Không có ai bị cấm.",
-  "Nobody with a verified wallet has been paid for mining yet.": "Chưa có ai sở hữu ví đã xác minh được trả thưởng đào.",
+  "Nobody with a linked wallet has been paid for mining yet.": "Chưa có ai sở hữu ví đã liên kết được trả thưởng đào.",
   "None": "Không có",
   "Normal": "Bình thường",
   "Not an Orien address": "Không phải địa chỉ Orien",
@@ -436,7 +436,7 @@
   "Not in the network's history": "Không có trong lịch sử mạng lưới",
   "Not now": "Không phải lúc này",
   "Not recorded": "Chưa được ghi nhận",
-  "Not verified yet": "Chưa xác minh",
+  "Not linked yet": "Chưa liên kết",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Không tìm thấy gì. Hãy tìm theo địa chỉ (64 chữ cái và chữ số, 0-9 và a-f), số điểm kiểm tra hoặc tên một người trên Chợ.",
   "Nothing from the network about them yet.": "Chưa có thông tin nào từ mạng lưới về họ.",
   "Nothing has happened at this address yet.": "Chưa có hoạt động nào tại địa chỉ này.",
@@ -477,7 +477,7 @@
   "Open Mine": "Mở mục Đào",
   "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Mở Orien Wallet trên thiết bị bạn đã đăng hoặc nhận đề nghị này để hoàn tất hoán đổi",
   "Open at login": "Mở khi đăng nhập",
-  "Open it to verify": "Mở ví để xác minh",
+  "Open it to link": "Mở ví để liên kết",
   "Open offers": "Đề nghị đang mở",
   "Open the explorer": "Mở trình khám phá",
   "Opens Firefox's add-on store: click Add to Firefox": "Mở cửa hàng tiện ích Firefox: nhấn Thêm vào Firefox",
@@ -630,8 +630,8 @@
   "Sell amount (ORN)": "Số lượng bán (ORN)",
   "Sell from": "Bán từ",
   "Sell into this offer": "Bán vào đề nghị này",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Đề nghị bán đến từ các ví đã xác minh để người mua biết họ đang hoán đổi với ai. Việc xác minh gắn ví này với tên Orien Network của bạn và gửi ít hơn 0,001 ORN từ ví đó một lần duy nhất.",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Lệnh bán đến từ các ví đã xác minh để người mua biết họ đang giao dịch với ai (gửi < 0,001 ORN một lần).",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "Đề nghị bán đến từ các ví đã liên kết để người mua biết họ đang hoán đổi với ai. Việc liên kết gắn ví này với tên Orien Network của bạn và gửi ít hơn 0,001 ORN từ ví đó một lần duy nhất.",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Lệnh bán đến từ các ví đã liên kết để người mua biết họ đang giao dịch với ai (gửi < 0,001 ORN một lần).",
   "Sell something": "Đăng bán",
   "Seller": "Người bán",
   "Seller accepts": "Người bán chấp nhận",
@@ -643,7 +643,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Gửi ORN, xem số dư và đăng nhập vào orien.network chỉ với một cú nhấp ngay từ trình duyệt. Khóa của bạn không bao giờ rời khỏi Orien Wallet.",
   "Send SOL": "Gửi SOL",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Gửi SOL một lần vào lệnh trên Solana. Lệnh vẫn mở trên sổ lệnh ngay cả khi đóng Orien Wallet, tất toán trong khoảng một phút khi có người khớp và có thể hủy chỉ với một cú nhấp.",
-  "Send and verify": "Gửi và xác minh",
+  "Send and link": "Gửi và liên kết",
   "Send me a code": "Gửi mã cho tôi",
   "Send report": "Gửi báo cáo",
   "Send the buyer this offer code": "Gửi cho người mua mã đề nghị này",
@@ -656,7 +656,7 @@
   "Sent a GIF": "Đã gửi một ảnh GIF",
   "Sent a picture": "Đã gửi một hình ảnh",
   "Sent from another app": "Gửi từ ứng dụng khác",
-  "Sent. Verifying, usually within a minute.": "Đã gửi. Đang xác minh, thường trong vòng một phút.",
+  "Sent. Linking, usually within a minute.": "Đã gửi. Đang liên kết, thường trong vòng một phút.",
   "Set password": "Đặt mật khẩu",
   "Set the": "Điều chỉnh thanh trượt",
   "Set up": "Thiết lập",
@@ -681,10 +681,10 @@
   "Show your accounts on your profile, if you like. Everyone can see them.": "Hiển thị các tài khoản của bạn trên hồ sơ nếu muốn. Mọi người đều có thể nhìn thấy chúng.",
   "Sign Out": "Đăng xuất",
   "Sign in": "Đăng nhập",
-  "Sign in and verify this wallet first.": "Hãy đăng nhập và xác minh ví này trước.",
+  "Sign in and link this wallet first.": "Hãy đăng nhập và liên kết ví này trước.",
   "Sign in to Orien Network": "Đăng nhập vào Orien Network",
   "Sign in to Orien Network first.": "Hãy đăng nhập vào Orien Network trước.",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Đăng nhập vào Orien Network để đặt câu hỏi. Không cần xác minh ví.",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "Đăng nhập vào Orien Network để đặt câu hỏi. Không cần liên kết ví.",
   "Sign in to Orien Network to chat, reply or react.": "Đăng nhập vào Orien Network để trò chuyện, trả lời hoặc thả cảm xúc.",
   "Sign in to Orien Network to chat.": "Đăng nhập vào Orien Network để trò chuyện.",
   "Sign in to Orien Network to post and react.": "Đăng nhập vào Orien Network để đăng bài và thả cảm xúc.",
@@ -696,10 +696,10 @@
   "Sign in to Orien Network to see the themes you shared.": "Đăng nhập vào Orien Network để xem các chủ đề bạn đã chia sẻ.",
   "Sign in to Orien Network to see your own messages and to chat.": "Đăng nhập vào Orien Network để xem tin nhắn của bạn và trò chuyện.",
   "Sign in to Orien Network to tip.": "Đăng nhập vào Orien Network để tặng tip.",
-  "Sign in to Orien Network with a verified wallet to share themes.": "Đăng nhập vào Orien Network bằng ví đã xác minh để chia sẻ chủ đề.",
+  "Sign in to Orien Network with a linked wallet to share themes.": "Đăng nhập vào Orien Network bằng ví đã liên kết để chia sẻ chủ đề.",
   "Sign in to message the seller": "Đăng nhập để nhắn cho người bán",
   "Sign in to trade": "Đăng nhập để giao dịch",
-  "Sign in, and open the wallet you want to verify.": "Đăng nhập và mở ví bạn muốn xác minh.",
+  "Sign in, and open the wallet you want to link.": "Đăng nhập và mở ví bạn muốn liên kết.",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Đăng xuất khỏi Windows rồi đăng nhập lại, sau đó mở Orien Wallet. Việc đào sẽ chạy nhanh hơn từ đó.",
   "Sign out to finish": "Đăng xuất để hoàn tất",
   "Signing in": "Đang đăng nhập",
@@ -885,23 +885,24 @@
   "Validator fees": "Phí trình xác thực",
   "Validators": "Trình xác thực",
   "Verified": "Đã xác minh",
-  "Verified wallet": "Ví đã xác minh",
-  "Verify": "Xác minh",
-  "Verify a wallet": "Xác minh ví",
-  "Verify a wallet and people who pay it see your name with it.": "Xác minh ví để người thanh toán nhìn thấy tên của bạn kèm theo ví.",
-  "Verify a wallet to post and see your mining here.": "Xác minh một ví để đăng bài và xem hoạt động đào của bạn tại đây.",
-  "Verify more wallets, and choose where you're paid": "Xác minh thêm ví và chọn nơi nhận thanh toán",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Xác minh một trong các ví trên hồ sơ Orien Network của bạn để đăng bài, trả lời và thả cảm xúc.",
-  "Verify one of your wallets to chat, reply or react.": "Xác minh một trong các ví của bạn để trò chuyện, trả lời hoặc thả cảm xúc.",
-  "Verify one of your wallets to chat. Anyone can read along.": "Xác minh một trong các ví của bạn để trò chuyện. Ai cũng có thể đọc.",
-  "Verify one of your wallets to react.": "Xác minh một trong các ví của bạn để thả cảm xúc.",
-  "Verify one of your wallets to reply.": "Xác minh một trong các ví của bạn để trả lời.",
-  "Verify this wallet": "Xác minh ví này",
-  "Verify this wallet to offer swaps": "Xác minh ví này để tạo đề nghị hoán đổi",
-  "Verify this wallet to place sell orders": "Xác minh ví này để đặt lệnh bán",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Việc xác minh cho mọi người thấy ví này là của bạn, bao gồm cả số dư. Nó cho phép bạn đăng bài, bán hàng, hoán đổi và nhận tiền tip.",
-  "Verifying…": "Đang xác minh…",
-  "Verifying… usually within a minute": "Đang xác minh… thường trong vòng một phút",
+  "Linked": "Đã liên kết",
+  "Linked wallet": "Ví đã liên kết",
+  "Link": "Liên kết",
+  "Link a wallet": "Liên kết ví",
+  "Link a wallet and people who pay it see your name with it.": "Liên kết ví để người thanh toán nhìn thấy tên của bạn kèm theo ví.",
+  "Link a wallet to post and see your mining here.": "Liên kết một ví để đăng bài và xem hoạt động đào của bạn tại đây.",
+  "Link more wallets, and choose where you're paid": "Liên kết thêm ví và chọn nơi nhận thanh toán",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "Liên kết một trong các ví trên hồ sơ Orien Network của bạn để đăng bài, trả lời và thả cảm xúc.",
+  "Link one of your wallets to chat, reply or react.": "Liên kết một trong các ví của bạn để trò chuyện, trả lời hoặc thả cảm xúc.",
+  "Link one of your wallets to chat. Anyone can read along.": "Liên kết một trong các ví của bạn để trò chuyện. Ai cũng có thể đọc.",
+  "Link one of your wallets to react.": "Liên kết một trong các ví của bạn để thả cảm xúc.",
+  "Link one of your wallets to reply.": "Liên kết một trong các ví của bạn để trả lời.",
+  "Link this wallet": "Liên kết ví này",
+  "Link this wallet to offer swaps": "Liên kết ví này để tạo đề nghị hoán đổi",
+  "Link this wallet to place sell orders": "Liên kết ví này để đặt lệnh bán",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Việc liên kết cho mọi người thấy ví này là của bạn, bao gồm cả số dư. Nó cho phép bạn đăng bài, bán hàng, hoán đổi và nhận tiền tip.",
+  "Linking…": "Đang liên kết…",
+  "Linking… usually within a minute": "Đang liên kết… thường trong vòng một phút",
   "Version": "Phiên bản",
   "Videos about Orien": "Video về Orien",
   "View": "Xem",
@@ -966,8 +967,8 @@
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "Bạn đã có 24 chủ đề, đạt mức tối đa. Hãy xóa bớt một chủ đề trong mục Giao diện trước.",
   "You haven't blocked anyone.": "Bạn chưa chặn ai.",
   "You need": "Bạn cần",
-  "You need to be signed in to Orien Network with a verified wallet.": "Bạn cần đăng nhập vào Orien Network bằng một ví đã xác minh.",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Bạn cần đăng nhập vào Orien Network. Không cần xác minh ví.",
+  "You need to be signed in to Orien Network with a linked wallet.": "Bạn cần đăng nhập vào Orien Network bằng một ví đã liên kết.",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "Bạn cần đăng nhập vào Orien Network. Không cần liên kết ví.",
   "You pay": "Bạn trả",
   "You sell": "Bạn bán",
   "You send the buyer the offer code, and paste in the reply code they send back": "Bạn gửi mã đề nghị cho người mua và dán mã phản hồi họ gửi lại",
@@ -1440,8 +1441,8 @@
       "Được stake bởi {0}"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "{0} ví đã xác minh"
+      "^(\\d+) linked wallets?$",
+      "{0} ví đã liên kết"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "Đăng bằng {0}"
     ],
     [
-      "^Verify with (.+)$",
-      "Xác minh bằng {0}"
+      "^Link with (.+)$",
+      "Liên kết bằng {0}"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "Xác nhận bằng {0}"
     ],
     [
-      "^Verify (.+)$",
-      "Xác minh {0}"
+      "^Link (.+)$",
+      "Liên kết {0}"
     ],
     [
-      "^Verifying (.+)$",
-      "Đang xác minh {0}"
+      "^Linking (.+)$",
+      "Đang liên kết {0}"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "Gửi {0} ORN và xác minh"
+      "^Send ([0-9.,]+) ORN and link$",
+      "Gửi {0} ORN và liên kết"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "Tài khoản của bạn dùng cho Cộng đồng, Chợ và hoán đổi. Các ví của bạn vẫn nằm trong ứng dụng này."
     },
     "verify": {
-      "title": "Xác minh ví",
+      "title": "Liên kết ví",
       "steps": [
-        "Đăng nhập và mở ví bạn muốn xác minh.",
-        "Ở Trang chủ, nhấn <b>Xác minh</b> trên thẻ <b>Xác minh</b> ngay dưới số dư của bạn. (Hoặc nhấn vào ảnh đại diện ở góc trên bên phải, chọn <b>Chỉnh sửa hồ sơ</b>, rồi nhấn <b>Xác minh</b> bên cạnh ví.)",
-        "Nhấn <b>Xác minh</b> để xác nhận. Thao tác này gửi ít hơn 0,001 ORN từ ví đó, đã bao gồm phí.",
-        "Trong vòng một phút sẽ hiển thị <b>Đã xác minh</b>."
+        "Đăng nhập và mở ví bạn muốn liên kết.",
+        "Ở Trang chủ, nhấn <b>Liên kết</b> trên thẻ <b>Liên kết</b> ngay dưới số dư của bạn. (Hoặc nhấn vào ảnh đại diện ở góc trên bên phải, chọn <b>Chỉnh sửa hồ sơ</b>, rồi nhấn <b>Liên kết</b> bên cạnh ví.)",
+        "Nhấn <b>Liên kết</b> để xác nhận. Thao tác này gửi ít hơn 0,001 ORN từ ví đó, đã bao gồm phí.",
+        "Trong vòng một phút sẽ hiển thị <b>Đã liên kết</b>."
       ],
-      "note": "Việc xác minh cho mọi người thấy ví này là của bạn, bao gồm cả số dư. Nó cho phép bạn đăng bài, bán hàng, hoán đổi và nhận tiền tip."
+      "note": "Việc liên kết cho mọi người thấy ví này là của bạn, bao gồm cả số dư. Nó cho phép bạn đăng bài, bán hàng, hoán đổi và nhận tiền tip."
     },
     "verify-more": {
-      "title": "Xác minh thêm ví và chọn nơi nhận thanh toán",
+      "title": "Liên kết thêm ví và chọn nơi nhận thanh toán",
       "steps": [
         "Chuyển sang ví khác: nhấn vào tên ví ở Trang chủ và chọn ví đó.",
-        "Nhấn vào ảnh đại diện của bạn, chọn <b>Chỉnh sửa hồ sơ</b>, rồi nhấn <b>Xác minh</b> bên cạnh ví đó.",
+        "Nhấn vào ảnh đại diện của bạn, chọn <b>Chỉnh sửa hồ sơ</b>, rồi nhấn <b>Liên kết</b> bên cạnh ví đó.",
         "Lặp lại với từng ví bạn muốn hiển thị trên hồ sơ.",
-        "Ví mà người mua và người tặng tip thanh toán sẽ hiển thị <b>Nhận tiền tại đây</b>. Để đổi, nhấn <b>Nhận tiền ở đây</b> trên một ví đã xác minh khác.",
+        "Ví mà người mua và người tặng tip thanh toán sẽ hiển thị <b>Nhận tiền tại đây</b>. Để đổi, nhấn <b>Nhận tiền ở đây</b> trên một ví đã liên kết khác.",
         "Để gỡ một ví khỏi hồ sơ, nhấn <b>⋯</b> bên cạnh ví đó, rồi chọn <b>Gỡ khỏi hồ sơ của bạn</b>."
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "Trò chuyện với mọi người",
       "steps": [
         "Ở Trang chủ, nhấn <b>Tin nhắn</b>, nút tròn có hình khung thoại. <b>Nhóm trò chuyện Orien</b> được ghim ở trên cùng.",
-        "Ai cũng có thể đọc. Để viết, trả lời hoặc thả cảm xúc, hãy đăng nhập và xác minh một ví.",
+        "Ai cũng có thể đọc. Để viết, trả lời hoặc thả cảm xúc, hãy đăng nhập và liên kết một ví.",
         "Di chuột vào một tin nhắn để trả lời, thả cảm xúc hoặc báo cáo.",
         "Tin nhắn mới sẽ hiện dấu chấm trên mục Tin nhắn. Để tắt đi, nhấn vào biểu tượng chiếc chuông ở phía trên khung trò chuyện."
       ],
@@ -2011,7 +2012,7 @@
       "title": "Hỏi Hỗ trợ AI của Orien",
       "steps": [
         "Ở Trang chủ, nhấn <b>Tin nhắn</b>, nút tròn có hình khung thoại. <b>Hỗ trợ AI Orien</b> được ghim ngay dưới nhóm trò chuyện. Trong cửa sổ lớn, biểu tượng phao cứu sinh bên cạnh chiếc chuông cũng mở mục này.",
-        "Bạn cần đăng nhập vào Orien Network. Không cần xác minh ví.",
+        "Bạn cần đăng nhập vào Orien Network. Không cần liên kết ví.",
         "Hỏi bất cứ điều gì về ví, việc đào, hoán đổi hoặc mạng lưới theo cách diễn đạt của riêng bạn.",
         "Nhấn <b>Bắt đầu lại</b> ở phía trên khung trò chuyện để xóa nội dung."
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "Bán ORN",
       "steps": [
-        "Hãy đăng nhập và xác minh ví này trước.",
+        "Hãy đăng nhập và liên kết ví này trước.",
         "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên, sau đó nhấn <b>Đăng đề nghị</b>.",
         "Chọn SOL hoặc Bitcoin, sau đó nhập số lượng ORN muốn bán, số tiền bạn muốn nhận và địa chỉ nhận thanh toán.",
         "Nhấn <b>Đăng đề nghị</b> và giữ Orien Wallet luôn chạy cho đến khi có người nhận. Tùy chọn <b>Giữ máy tính này luôn thức</b> trong Cài đặt, mục <b>Máy tính này</b> sẽ giúp ứng dụng luôn mở khi bạn rời máy."
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "Chia sẻ chủ đề trên Cửa hàng chủ đề",
       "steps": [
-        "Bạn cần đăng nhập vào Orien Network bằng một ví đã xác minh.",
+        "Bạn cần đăng nhập vào Orien Network bằng một ví đã liên kết.",
         "Mở <b>Cài đặt</b>, nút tròn hình bánh răng ở Trang chủ, sau đó chọn <b>Giao diện</b>.",
         "Trên một chủ đề của riêng bạn, nhấn nút chia sẻ (hình ô vuông có mũi tên), sau đó chọn <b>Chia sẻ chủ đề</b>.",
         "Chủ đề sẽ được kiểm duyệt, sau đó hiển thị trên cửa hàng kèm tên của bạn để mọi người dùng thử, sử dụng và tặng tip cho bạn.",
@@ -2125,8 +2126,8 @@
   "Invite users": "Mời người dùng",
   "Enter code": "Nhập mã",
   "Invite a friend to mine - you'll both get 7 free ORN": "Mời bạn bè đào coin để cả hai cùng nhận 7 ORN miễn phí mỗi người",
-  "Verify a wallet to get your invite code.": "Xác minh ví để nhận mã mời của bạn.",
-  "Verify wallet": "Xác minh ví",
+  "Link a wallet to get your invite code.": "Liên kết ví để nhận mã mời của bạn.",
+  "Link wallet": "Liên kết ví",
   "Your invite code": "Mã mời của bạn",
   "Copy invite code": "Sao chép mã mời",
   "Copy invite link": "Sao chép liên kết mời",
@@ -2135,7 +2136,7 @@
   "ORN paid": "ORN đã trả",
   "Share your invite link or code with a friend.": "Chia sẻ liên kết hoặc mã mời với một người bạn.",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Nhờ bạn của bạn tải Orien và nhập mã mời trong vòng 12 giờ kể từ khi tạo tài khoản.",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Bạn của bạn chỉ cần xác minh ví rồi dùng ví đó nhận phần thưởng đào trong 10 giờ riêng biệt.",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "Bạn của bạn chỉ cần liên kết ví rồi dùng ví đó nhận phần thưởng đào trong 10 giờ riêng biệt.",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "Mỗi người nhận được 7 ORN. Bạn có thể mời tối đa 5 người bạn (lượt mời có thể được cấp lại trong tương lai).",
   "Your referral window has closed": "Đã hết hạn nhập mã mời",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Bạn chỉ có thể nhập mã của bạn bè trong 12 giờ đầu sau khi tạo tài khoản Orien Network. Tài khoản này đã quá hạn.",
@@ -2146,7 +2147,7 @@
   "Open Mining": "Mở mục đào coin",
   "Sign in to your Orien Network account.": "Đăng nhập vào tài khoản Orien Network của bạn.",
   "Enter your friend’s code within 12 hours of creating your account.": "Nhập mã của bạn bè trong vòng 12 giờ kể từ khi tạo tài khoản.",
-  "Verify the wallet you’ll use for mining.": "Xác minh ví bạn sẽ dùng để đào.",
+  "Link the wallet you’ll use for mining.": "Liên kết ví bạn sẽ dùng để đào.",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Dùng ví đó nhận phần thưởng đào trong 10 khung giờ khác nhau.",
   "You and the friend who invited you each earn 7 ORN.": "Bạn và người đã mời bạn mỗi người nhận được 7 ORN.",
   "Your referral progress": "Tiến độ giới thiệu của bạn",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "Phần thưởng 7 ORN của bạn đã được thanh toán.",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Bạn đã đủ điều kiện. Phần thưởng 7 ORN của bạn đang chờ thanh toán.",
   "This referral closed before a reward was reserved.": "Lượt giới thiệu này đã kết thúc trước khi phần thưởng được phân bổ.",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "Mã đã được chấp nhận. Hãy xác minh ví để bắt đầu tính giờ đào.",
+  "Code accepted. Link a wallet to start counting your mining hours.": "Mã đã được chấp nhận. Hãy liên kết ví để bắt đầu tính giờ đào.",
   "Mining requirement met. Reward reservation is pending.": "Đã đáp ứng yêu cầu đào. Phần thưởng đang chờ phân bổ.",
-  "Code accepted. Mine with your verified wallet to make progress.": "Mã đã được chấp nhận. Hãy đào bằng ví đã xác minh để tích lũy giờ đào.",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Mã đã được chấp nhận. Hãy đào bằng ví đã xác minh trong Orien Wallet trên máy tính.",
+  "Code accepted. Mine with your linked wallet to make progress.": "Mã đã được chấp nhận. Hãy đào bằng ví đã liên kết để tích lũy giờ đào.",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "Mã đã được chấp nhận. Hãy đào bằng ví đã liên kết trong Orien Wallet trên máy tính.",
   "Code copied": "Đã sao chép mã",
   "Link copied": "Đã sao chép liên kết",
   "Couldn’t copy. Try again.": "Không sao chép được. Hãy thử lại.",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "Không thể làm mới một số hoạt động.",
   "Couldn’t load Solana activity.": "Không thể tải hoạt động Solana.",
   "Unlock Solana to view activity.": "Mở khóa Solana để xem hoạt động.",
-  "No Solana transactions yet": "Chưa có giao dịch Solana"
+  "No Solana transactions yet": "Chưa có giao dịch Solana",
+  "Unlink": "Hủy liên kết"
 }

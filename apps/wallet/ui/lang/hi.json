@@ -51,18 +51,18 @@
   "Agreed by": "इनके द्वारा सहमत",
   "All": "सभी",
   "All your wallets": "आपके सभी वॉलेट्स",
-  "Among members with a verified wallet, by ORN mined.": "सत्यापित वॉलेट वाले सदस्यों के बीच, माइन किए गए ORN के अनुसार।",
+  "Among members with a linked wallet, by ORN mined.": "लिंक वॉलेट वाले सदस्यों के बीच, माइन किए गए ORN के अनुसार।",
   "Amount": "राशि",
   "Amount (ORN)": "राशि (ORN)",
   "An address, a name or a checkpoint number": "कोई पता, नाम या चेकपॉइंट संख्या",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "इस वॉलेट से पहले का एक भुगतान पहले पूरा होना था, इसलिए सत्यापन के लिए अभी कुछ नहीं भेजा गया। भेजने के लिए फिर से टैप करें।",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "इस वॉलेट से पहले का एक भुगतान पहले पूरा होना था, इसलिए लिंक करने के लिए अभी कुछ नहीं भेजा गया। भेजने के लिए फिर से टैप करें।",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "इस वॉलेट से पहले का एक भुगतान पहले पूरा होना था, इसलिए यह अभी नहीं भेजा गया। फिर से भुगतान करें पर टैप करें।",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "इस वॉलेट से पहले का एक भुगतान पहले पूरा होना था, इसलिए यह टिप अभी नहीं भेजी गई। फिर से टिप पर टैप करें।",
   "Another amount": "अन्य राशि",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "उत्तर एक AI से आते हैं और गलत हो सकते हैं। इसे कभी भी आपके रिकवरी शब्दों, पासवर्ड या कुंजियों की आवश्यकता नहीं होती: इन्हें कभी किसी के साथ साझा न करें।",
   "Any colour you like": "कोई भी रंग जो आपको पसंद हो",
   "Any moment": "किसी भी पल",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "कोई भी पढ़ सकता है। लिखने, उत्तर देने या प्रतिक्रिया देने के लिए, साइन इन करें और एक वॉलेट सत्यापित करें।",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "कोई भी पढ़ सकता है। लिखने, उत्तर देने या प्रतिक्रिया देने के लिए, साइन इन करें और एक वॉलेट लिंक करें।",
   "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "कोई भी इसे देख सकता है, उपयोग कर सकता है और इसके लिए आपको टिप दे सकता है। इसके साथ आपका Orien Network नाम दिखाया जाता है। आप इसे कभी भी हटा सकते हैं।",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "अब कोई भी इस पर बेच सकता है। जब वे ऐसा करते हैं, तो उनका वॉलेट ORN लॉक कर देता है और यह ऐप भुगतान स्क्रीन खोल देता है।",
   "Anyone can take it now. When they do, your wallet runs the swap by itself.": "अब कोई भी इसे स्वीकार कर सकता है। जब वे ऐसा करते हैं, तो आपका वॉलेट अपने आप स्वैप पूरा कर देता है।",
@@ -133,7 +133,7 @@
   "Buyer": "खरीदार",
   "Buyer pays": "खरीदार भुगतान करता है",
   "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "खरीदार का SOL आरक्षित हो गया है। अब आपके ORN लॉक किए जा रहे हैं। कुछ और सेकंड के लिए इस पृष्ठ को खुला रखें।",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "मार्केट पर खरीदार उस वॉलेट में भुगतान करते हैं जिस पर 'यहाँ भुगतान मिलता है' लिखा है। उनके बीच चुनने के लिए और वॉलेट सत्यापित करें।",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "मार्केट पर खरीदार उस वॉलेट में भुगतान करते हैं जिस पर 'यहाँ भुगतान मिलता है' लिखा है। उनके बीच चुनने के लिए और वॉलेट लिंक करें।",
   "Buying ORN": "ORN खरीदना",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "किसी भी मैसेज ऐप या ईमेल से। यह खरीदार के Orien Wallet को बताता है कि आपने उनके लिए क्या लॉक किया है, और इसमें कुछ भी गुप्त नहीं होता।",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "किसी भी मैसेज ऐप या ईमेल से। यह विक्रेता के Orien Wallet को बताता है कि आप Bitcoin कहाँ भुगतान कर रहे हैं, और इसमें कुछ भी गुप्त नहीं होता।",
@@ -370,10 +370,10 @@
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "कंप्यूटर पर Orien Wallet में एक घंटे तक माइन करें, या orien.network पर थोड़ा खरीदें।",
   "Mine it on a computer.": "इसे कंप्यूटर पर माइन करें।",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "कंप्यूटर पर माइन करें: वहाँ Orien Wallet इंस्टॉल करें, इस वॉलेट को लिंक करें, और दबाएं",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "सत्यापित वॉलेट से माइन करें और अगले चेकपॉइंट के बाद आपके आँकड़े यहाँ दिखेंगे।",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "लिंक वॉलेट से माइन करें और अगले चेकपॉइंट के बाद आपके आँकड़े यहाँ दिखेंगे।",
   "Miners last hour": "पिछले घंटे के माइनर",
   "Miners paid": "भुगतान किए गए माइनर",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "वे माइनर जिन्होंने अपने Orien Network खाते पर वॉलेट सत्यापित किया है, माइन किए गए ORN के अनुसार। सूची में आने के लिए अपने खाते पर अपना वॉलेट सत्यापित करें।",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "वे माइनर जिन्होंने अपने Orien Network खाते पर वॉलेट लिंक किया है, माइन किए गए ORN के अनुसार। सूची में आने के लिए अपने खाते पर अपना वॉलेट लिंक करें।",
   "Minimize": "छोटा करें",
   "Minimum order is 0.01 SOL": "न्यूनतम ऑर्डर 0.01 SOL है",
   "Mining": "माइनिंग",
@@ -422,12 +422,12 @@
   "No swaps completed yet. The next swap sets the price.": "अभी तक कोई स्वैप पूरा नहीं हुआ है। अगला स्वैप कीमत तय करेगा।",
   "No swaps yet": "अभी कोई स्वैप नहीं",
   "No trades yet": "अभी कोई ट्रेड नहीं",
-  "No verified wallet yet": "अभी कोई सत्यापित वॉलेट नहीं",
-  "No verified wallets yet": "अभी कोई सत्यापित वॉलेट नहीं",
+  "No linked wallet yet": "अभी कोई लिंक वॉलेट नहीं",
+  "No linked wallets yet": "अभी कोई लिंक वॉलेट नहीं",
   "No wallets yet.": "अभी कोई वॉलेट नहीं है।",
   "Nobody by that name.": "इस नाम का कोई नहीं है।",
   "Nobody is banned.": "कोई प्रतिबंधित नहीं है।",
-  "Nobody with a verified wallet has been paid for mining yet.": "सत्यापित वॉलेट वाले किसी भी व्यक्ति को अभी तक माइनिंग के लिए भुगतान नहीं मिला है।",
+  "Nobody with a linked wallet has been paid for mining yet.": "लिंक वॉलेट वाले किसी भी व्यक्ति को अभी तक माइनिंग के लिए भुगतान नहीं मिला है।",
   "None": "कोई नहीं",
   "Normal": "सामान्य",
   "Not an Orien address": "यह Orien पता नहीं है",
@@ -436,7 +436,7 @@
   "Not in the network's history": "नेटवर्क के इतिहास में नहीं है",
   "Not now": "अभी नहीं",
   "Not recorded": "दर्ज नहीं",
-  "Not verified yet": "अभी सत्यापित नहीं",
+  "Not linked yet": "अभी लिंक नहीं",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "कुछ नहीं मिला। कोई पता (64 अक्षर और अंक, 0-9 और a-f), चेकपॉइंट संख्या, या मार्केट पर किसी का नाम खोजें।",
   "Nothing from the network about them yet.": "नेटवर्क से उनके बारे में अभी तक कुछ नहीं है।",
   "Nothing has happened at this address yet.": "इस पते पर अभी तक कुछ नहीं हुआ है।",
@@ -477,7 +477,7 @@
   "Open Mine": "माइन खोलें",
   "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "स्वैप पूरा करने के लिए उस डिवाइस पर Orien Wallet खोलें जिससे आपने यह ऑफ़र पोस्ट या स्वीकार किया था",
   "Open at login": "लॉगिन पर खोलें",
-  "Open it to verify": "सत्यापित करने के लिए इसे खोलें",
+  "Open it to link": "लिंक करने के लिए इसे खोलें",
   "Open offers": "खुले ऑफ़र",
   "Open the explorer": "एक्सप्लोरर खोलें",
   "Opens Firefox's add-on store: click Add to Firefox": "Firefox का ऐड-ऑन स्टोर खोलता है: Add to Firefox पर क्लिक करें",
@@ -630,8 +630,8 @@
   "Sell amount (ORN)": "बिक्री राशि (ORN)",
   "Sell from": "इससे बेचें",
   "Sell into this offer": "इस ऑफ़र में बेचें",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "बिक्री ऑफ़र सत्यापित वॉलेट्स से आते हैं, ताकि खरीदार देख सकें कि वे किसके साथ स्वैप कर रहे हैं। सत्यापन इस वॉलेट को आपके Orien Network नाम से जोड़ता है और इससे एक बार 0.001 ORN से कम भेजता है।",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "बिक्री ऑर्डर सत्यापित वॉलेट्स से आते हैं ताकि खरीदारों को पता हो कि वे किसके साथ ट्रेड कर रहे हैं (एक बार < 0.001 ORN भेजता है)।",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "बिक्री ऑफ़र लिंक वॉलेट्स से आते हैं, ताकि खरीदार देख सकें कि वे किसके साथ स्वैप कर रहे हैं। लिंक करने इस वॉलेट को आपके Orien Network नाम से जोड़ता है और इससे एक बार 0.001 ORN से कम भेजता है।",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "बिक्री ऑर्डर लिंक वॉलेट्स से आते हैं ताकि खरीदारों को पता हो कि वे किसके साथ ट्रेड कर रहे हैं (एक बार < 0.001 ORN भेजता है)।",
   "Sell something": "कुछ बेचें",
   "Seller": "विक्रेता",
   "Seller accepts": "विक्रेता स्वीकार करता है",
@@ -643,7 +643,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "सीधे अपने ब्राउज़र से एक क्लिक में ORN भेजें, अपना बैलेंस देखें, और orien.network में साइन इन करें। आपकी कुंजियाँ कभी Orien Wallet से बाहर नहीं जातीं।",
   "Send SOL": "SOL भेजें",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Solana ऑर्डर में एक बार SOL भेजें। यह Orien Wallet बंद होने पर भी ऑर्डर बुक पर लाइव रहता है, स्वीकार होने पर लगभग एक मिनट में निपटान होता है, और एक क्लिक में रद्द हो जाता है।",
-  "Send and verify": "भेजें और सत्यापित करें",
+  "Send and link": "भेजें और लिंक करें",
   "Send me a code": "मुझे कोड भेजें",
   "Send report": "रिपोर्ट भेजें",
   "Send the buyer this offer code": "खरीदार को यह ऑफ़र कोड भेजें",
@@ -656,7 +656,7 @@
   "Sent a GIF": "एक GIF भेजा",
   "Sent a picture": "एक तस्वीर भेजी",
   "Sent from another app": "किसी अन्य ऐप से भेजा गया",
-  "Sent. Verifying, usually within a minute.": "भेज दिया गया। सत्यापन हो रहा है, आमतौर पर एक मिनट के भीतर।",
+  "Sent. Linking, usually within a minute.": "भेज दिया गया। लिंक करने हो रहा है, आमतौर पर एक मिनट के भीतर।",
   "Set password": "पासवर्ड सेट करें",
   "Set the": "सेट करें",
   "Set up": "सेट अप करें",
@@ -681,10 +681,10 @@
   "Show your accounts on your profile, if you like. Everyone can see them.": "यदि आप चाहें तो अपनी प्रोफ़ाइल पर अपने खाते दिखाएं। हर कोई इन्हें देख सकता है।",
   "Sign Out": "साइन आउट करें",
   "Sign in": "साइन इन करें",
-  "Sign in and verify this wallet first.": "पहले साइन इन करें और इस वॉलेट को सत्यापित करें।",
+  "Sign in and link this wallet first.": "पहले साइन इन करें और इस वॉलेट को लिंक करें।",
   "Sign in to Orien Network": "Orien Network में साइन इन करें",
   "Sign in to Orien Network first.": "पहले Orien Network में साइन इन करें।",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "प्रश्न पूछने के लिए Orien Network में साइन इन करें। वॉलेट सत्यापित करने की आवश्यकता नहीं है।",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "प्रश्न पूछने के लिए Orien Network में साइन इन करें। वॉलेट लिंक करने की आवश्यकता नहीं है।",
   "Sign in to Orien Network to chat, reply or react.": "चैट करने, उत्तर देने या प्रतिक्रिया देने के लिए Orien Network में साइन इन करें।",
   "Sign in to Orien Network to chat.": "चैट करने के लिए Orien Network में साइन इन करें।",
   "Sign in to Orien Network to post and react.": "पोस्ट करने और प्रतिक्रिया देने के लिए Orien Network में साइन इन करें।",
@@ -696,10 +696,10 @@
   "Sign in to Orien Network to see the themes you shared.": "आपने जो थीम साझा की हैं उन्हें देखने के लिए Orien Network में साइन इन करें।",
   "Sign in to Orien Network to see your own messages and to chat.": "अपने संदेश देखने और चैट करने के लिए Orien Network में साइन इन करें।",
   "Sign in to Orien Network to tip.": "टिप देने के लिए Orien Network में साइन इन करें।",
-  "Sign in to Orien Network with a verified wallet to share themes.": "थीम साझा करने के लिए सत्यापित वॉलेट के साथ Orien Network में साइन इन करें।",
+  "Sign in to Orien Network with a linked wallet to share themes.": "थीम साझा करने के लिए लिंक वॉलेट के साथ Orien Network में साइन इन करें।",
   "Sign in to message the seller": "विक्रेता को संदेश भेजने के लिए साइन इन करें",
   "Sign in to trade": "ट्रेड करने के लिए साइन इन करें",
-  "Sign in, and open the wallet you want to verify.": "साइन इन करें, और वह वॉलेट खोलें जिसे आप सत्यापित करना चाहते हैं।",
+  "Sign in, and open the wallet you want to link.": "साइन इन करें, और वह वॉलेट खोलें जिसे आप लिंक करना चाहते हैं।",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Windows से साइन आउट करें और वापस साइन इन करें, फिर Orien Wallet खोलें। उसके बाद से माइनिंग तेज़ चलेगी।",
   "Sign out to finish": "पूरा करने के लिए साइन आउट करें",
   "Signing in": "साइन इन हो रहा है",
@@ -885,23 +885,24 @@
   "Validator fees": "वैलिडेटर शुल्क",
   "Validators": "वैलिडेटर्स",
   "Verified": "सत्यापित",
-  "Verified wallet": "सत्यापित वॉलेट",
-  "Verify": "सत्यापित करें",
-  "Verify a wallet": "वॉलेट सत्यापित करें",
-  "Verify a wallet and people who pay it see your name with it.": "वॉलेट सत्यापित करें और जो लोग इसमें भुगतान करेंगे उन्हें इसके साथ आपका नाम दिखेगा।",
-  "Verify a wallet to post and see your mining here.": "पोस्ट करने और यहाँ अपनी माइनिंग देखने के लिए एक वॉलेट सत्यापित करें।",
-  "Verify more wallets, and choose where you're paid": "और वॉलेट्स सत्यापित करें, और चुनें कि आपको भुगतान कहाँ मिले",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "पोस्ट करने, उत्तर देने और प्रतिक्रिया देने के लिए अपनी Orien Network प्रोफ़ाइल पर अपना एक वॉलेट सत्यापित करें।",
-  "Verify one of your wallets to chat, reply or react.": "चैट करने, उत्तर देने या प्रतिक्रिया देने के लिए अपना एक वॉलेट सत्यापित करें।",
-  "Verify one of your wallets to chat. Anyone can read along.": "चैट करने के लिए अपना एक वॉलेट सत्यापित करें। कोई भी पढ़ सकता है।",
-  "Verify one of your wallets to react.": "प्रतिक्रिया देने के लिए अपना एक वॉलेट सत्यापित करें।",
-  "Verify one of your wallets to reply.": "उत्तर देने के लिए अपना एक वॉलेट सत्यापित करें।",
-  "Verify this wallet": "इस वॉलेट को सत्यापित करें",
-  "Verify this wallet to offer swaps": "स्वैप ऑफ़र करने के लिए इस वॉलेट को सत्यापित करें",
-  "Verify this wallet to place sell orders": "बिक्री ऑर्डर देने के लिए इस वॉलेट को सत्यापित करें",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "सत्यापन से सभी को दिखता है कि वॉलेट आपका है, जिसमें उसका बैलेंस भी शामिल है। इससे आप पोस्ट कर सकते हैं, बेच सकते हैं, स्वैप कर सकते हैं और टिप्स प्राप्त कर सकते हैं।",
-  "Verifying…": "सत्यापित हो रहा है…",
-  "Verifying… usually within a minute": "सत्यापित हो रहा है… आमतौर पर एक मिनट के भीतर",
+  "Linked": "लिंक किया गया",
+  "Linked wallet": "लिंक वॉलेट",
+  "Link": "लिंक करें",
+  "Link a wallet": "वॉलेट लिंक करें",
+  "Link a wallet and people who pay it see your name with it.": "वॉलेट लिंक करें और जो लोग इसमें भुगतान करेंगे उन्हें इसके साथ आपका नाम दिखेगा।",
+  "Link a wallet to post and see your mining here.": "पोस्ट करने और यहाँ अपनी माइनिंग देखने के लिए एक वॉलेट लिंक करें।",
+  "Link more wallets, and choose where you're paid": "और वॉलेट्स लिंक करें, और चुनें कि आपको भुगतान कहाँ मिले",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "पोस्ट करने, उत्तर देने और प्रतिक्रिया देने के लिए अपनी Orien Network प्रोफ़ाइल पर अपना एक वॉलेट लिंक करें।",
+  "Link one of your wallets to chat, reply or react.": "चैट करने, उत्तर देने या प्रतिक्रिया देने के लिए अपना एक वॉलेट लिंक करें।",
+  "Link one of your wallets to chat. Anyone can read along.": "चैट करने के लिए अपना एक वॉलेट लिंक करें। कोई भी पढ़ सकता है।",
+  "Link one of your wallets to react.": "प्रतिक्रिया देने के लिए अपना एक वॉलेट लिंक करें।",
+  "Link one of your wallets to reply.": "उत्तर देने के लिए अपना एक वॉलेट लिंक करें।",
+  "Link this wallet": "इस वॉलेट को लिंक करें",
+  "Link this wallet to offer swaps": "स्वैप ऑफ़र करने के लिए इस वॉलेट को लिंक करें",
+  "Link this wallet to place sell orders": "बिक्री ऑर्डर देने के लिए इस वॉलेट को लिंक करें",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "लिंक करने से सभी को दिखता है कि वॉलेट आपका है, जिसमें उसका बैलेंस भी शामिल है। इससे आप पोस्ट कर सकते हैं, बेच सकते हैं, स्वैप कर सकते हैं और टिप्स प्राप्त कर सकते हैं।",
+  "Linking…": "लिंक हो रहा है…",
+  "Linking… usually within a minute": "लिंक हो रहा है… आमतौर पर एक मिनट के भीतर",
   "Version": "संस्करण",
   "Videos about Orien": "Orien के बारे में वीडियो",
   "View": "देखें",
@@ -966,8 +967,8 @@
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "आपके पास 24 थीम हैं, जितनी जगह उपलब्ध है। पहले दिखावट में जाकर एक थीम हटाएं।",
   "You haven't blocked anyone.": "आपने किसी को ब्लॉक नहीं किया है।",
   "You need": "आपको चाहिए",
-  "You need to be signed in to Orien Network with a verified wallet.": "आपको सत्यापित वॉलेट के साथ Orien Network में साइन इन होना होगा।",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "आपको Orien Network में साइन इन होना होगा। वॉलेट सत्यापित करने की आवश्यकता नहीं है।",
+  "You need to be signed in to Orien Network with a linked wallet.": "आपको लिंक वॉलेट के साथ Orien Network में साइन इन होना होगा।",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "आपको Orien Network में साइन इन होना होगा। वॉलेट लिंक करने की आवश्यकता नहीं है।",
   "You pay": "आप भुगतान करते हैं",
   "You sell": "आप बेचते हैं",
   "You send the buyer the offer code, and paste in the reply code they send back": "आप खरीदार को ऑफ़र कोड भेजते हैं, और वे जो उत्तर कोड वापस भेजते हैं उसे पेस्ट करते हैं",
@@ -1440,8 +1441,8 @@
       "{0} द्वारा स्टेक किया गया"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "{0} सत्यापित वॉलेट्स"
+      "^(\\d+) linked wallets?$",
+      "{0} लिंक वॉलेट्स"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "{0} से पोस्ट करें"
     ],
     [
-      "^Verify with (.+)$",
-      "{0} से सत्यापित करें"
+      "^Link with (.+)$",
+      "{0} से लिंक करें"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "{0} से पुष्टि करें"
     ],
     [
-      "^Verify (.+)$",
-      "{0} सत्यापित करें"
+      "^Link (.+)$",
+      "{0} लिंक करें"
     ],
     [
-      "^Verifying (.+)$",
-      "{0} सत्यापित हो रहा है"
+      "^Linking (.+)$",
+      "{0} लिंक हो रहा है"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "{0} ORN भेजें और सत्यापित करें"
+      "^Send ([0-9.,]+) ORN and link$",
+      "{0} ORN भेजें और लिंक करें"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "आपका खाता समुदाय, मार्केट और स्वैप के लिए है। आपके वॉलेट्स इसी ऐप में रहते हैं।"
     },
     "verify": {
-      "title": "वॉलेट सत्यापित करें",
+      "title": "वॉलेट लिंक करें",
       "steps": [
-        "साइन इन करें, और वह वॉलेट खोलें जिसे आप सत्यापित करना चाहते हैं।",
-        "होम पर, अपने बैलेंस के नीचे <b>सत्यापित करें</b> कार्ड पर <b>सत्यापित करें</b> क्लिक करें। (या ऊपर दाईं ओर अपनी तस्वीर पर क्लिक करें, फिर <b>प्रोफ़ाइल संपादित करें</b>, फिर वॉलेट के बगल में <b>सत्यापित करें</b> पर क्लिक करें।)",
-        "पुष्टि करने के लिए <b>सत्यापित करें</b> पर क्लिक करें। यह शुल्क सहित उस वॉलेट से 0.001 ORN से कम भेजता है।",
-        "एक मिनट के भीतर यह <b>सत्यापित</b> दिखाता है।"
+        "साइन इन करें, और वह वॉलेट खोलें जिसे आप लिंक करना चाहते हैं।",
+        "होम पर, अपने बैलेंस के नीचे <b>लिंक करें</b> कार्ड पर <b>लिंक करें</b> क्लिक करें। (या ऊपर दाईं ओर अपनी तस्वीर पर क्लिक करें, फिर <b>प्रोफ़ाइल संपादित करें</b>, फिर वॉलेट के बगल में <b>लिंक करें</b> पर क्लिक करें।)",
+        "पुष्टि करने के लिए <b>लिंक करें</b> पर क्लिक करें। यह शुल्क सहित उस वॉलेट से 0.001 ORN से कम भेजता है।",
+        "एक मिनट के भीतर यह <b>लिंक</b> दिखाता है।"
       ],
-      "note": "सत्यापन से सभी को दिखता है कि वॉलेट आपका है, जिसमें उसका बैलेंस भी शामिल है। इससे आप पोस्ट कर सकते हैं, बेच सकते हैं, स्वैप कर सकते हैं और टिप्स प्राप्त कर सकते हैं।"
+      "note": "लिंक करने से सभी को दिखता है कि वॉलेट आपका है, जिसमें उसका बैलेंस भी शामिल है। इससे आप पोस्ट कर सकते हैं, बेच सकते हैं, स्वैप कर सकते हैं और टिप्स प्राप्त कर सकते हैं।"
     },
     "verify-more": {
-      "title": "और वॉलेट्स सत्यापित करें, और चुनें कि आपको भुगतान कहाँ मिले",
+      "title": "और वॉलेट्स लिंक करें, और चुनें कि आपको भुगतान कहाँ मिले",
       "steps": [
         "दूसरे वॉलेट पर स्विच करें: होम पर वॉलेट के नाम पर क्लिक करें और उसे चुनें।",
-        "अपनी तस्वीर पर क्लिक करें, फिर <b>प्रोफ़ाइल संपादित करें</b>, फिर उस वॉलेट के बगल में <b>सत्यापित करें</b> पर क्लिक करें।",
+        "अपनी तस्वीर पर क्लिक करें, फिर <b>प्रोफ़ाइल संपादित करें</b>, फिर उस वॉलेट के बगल में <b>लिंक करें</b> पर क्लिक करें।",
         "अपनी प्रोफ़ाइल पर जो भी वॉलेट आप चाहते हैं, उसके लिए इसे दोहराएं।",
-        "जिस वॉलेट में खरीदार और टिप देने वाले भुगतान करते हैं उस पर <b>यहाँ भुगतान मिलता है</b> लिखा होता है। इसे बदलने के लिए, किसी अन्य सत्यापित वॉलेट पर <b>यहाँ भुगतान प्राप्त करें</b> पर क्लिक करें।",
+        "जिस वॉलेट में खरीदार और टिप देने वाले भुगतान करते हैं उस पर <b>यहाँ भुगतान मिलता है</b> लिखा होता है। इसे बदलने के लिए, किसी अन्य लिंक वॉलेट पर <b>यहाँ भुगतान प्राप्त करें</b> पर क्लिक करें।",
         "अपनी प्रोफ़ाइल से कोई वॉलेट हटाने के लिए, उसके बगल में <b>⋯</b> पर क्लिक करें, फिर <b>अपनी प्रोफ़ाइल से हटाएं</b> पर क्लिक करें।"
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "सभी के साथ चैट करें",
       "steps": [
         "होम पर, <b>संदेश</b> पर क्लिक करें, जो स्पीच बबल वाला गोल बटन है। <b>Orien ग्रुप चैट</b> शीर्ष पर पिन किया गया है।",
-        "कोई भी पढ़ सकता है। लिखने, उत्तर देने या प्रतिक्रिया देने के लिए, साइन इन करें और एक वॉलेट सत्यापित करें।",
+        "कोई भी पढ़ सकता है। लिखने, उत्तर देने या प्रतिक्रिया देने के लिए, साइन इन करें और एक वॉलेट लिंक करें।",
         "उत्तर देने, प्रतिक्रिया देने या रिपोर्ट करने के लिए किसी संदेश पर कर्सर ले जाएं।",
         "नए संदेश होने पर संदेश बटन पर एक बिंदु दिखता है। इसे बंद करने के लिए, चैट के शीर्ष पर घंटी आइकन पर क्लिक करें।"
       ],
@@ -2011,7 +2012,7 @@
       "title": "Orien AI सहायता से पूछें",
       "steps": [
         "होम पर, <b>संदेश</b> पर क्लिक करें, जो स्पीच बबल वाला गोल बटन है। <b>Orien AI सहायता</b> ग्रुप चैट के नीचे पिन किया गया है। बड़ी विंडो में, घंटी के बगल वाला लाइफ बॉय आइकन भी इसे खोलता है।",
-        "आपको Orien Network में साइन इन होना होगा। वॉलेट सत्यापित करने की आवश्यकता नहीं है।",
+        "आपको Orien Network में साइन इन होना होगा। वॉलेट लिंक करने की आवश्यकता नहीं है।",
         "वॉलेट, माइनिंग, स्वैप या नेटवर्क के बारे में अपने शब्दों में कुछ भी पूछें।",
         "चैट को साफ़ करने के लिए शीर्ष पर <b>फिर से शुरू करें</b> पर क्लिक करें।"
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "ORN बेचें",
       "steps": [
-        "पहले साइन इन करें और इस वॉलेट को सत्यापित करें।",
+        "पहले साइन इन करें और इस वॉलेट को लिंक करें।",
         "होम पर, <b>स्वैप</b> (दो तीरों वाला गोल बटन) पर क्लिक करें, फिर <b>ऑफ़र पोस्ट करें</b> पर क्लिक करें।",
         "SOL या Bitcoin चुनें, फिर टाइप करें कि कितने ORN बेचने हैं, उनके बदले आपको कितना चाहिए, और वह पता जहाँ आपको भुगतान मिलेगा।",
         "<b>ऑफ़र पोस्ट करें</b> पर क्लिक करें, और जब तक यह स्वीकार न हो जाए, Orien Wallet को चालू रखें। सेटिंग्स के <b>यह कंप्यूटर</b> में <b>इस कंप्यूटर को जागता रखें</b> आपके दूर रहने पर इसे खुला रखता है।"
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "थीम स्टोर में थीम साझा करें",
       "steps": [
-        "आपको सत्यापित वॉलेट के साथ Orien Network में साइन इन होना होगा।",
+        "आपको लिंक वॉलेट के साथ Orien Network में साइन इन होना होगा।",
         "होम पर गियर वाले गोल बटन <b>सेटिंग्स</b> को खोलें, फिर <b>दिखावट</b> खोलें।",
         "अपनी किसी थीम पर, शेयर बटन (तीर वाला बॉक्स) पर क्लिक करें, फिर <b>थीम साझा करें</b> पर क्लिक करें।",
         "इसकी जाँच होती है, फिर यह आपके नाम के साथ स्टोर में दिखती है, जहाँ कोई भी इसे आज़मा सकता है, उपयोग कर सकता है और आपको टिप दे सकता है।",
@@ -2125,8 +2126,8 @@
   "Invite users": "उपयोगकर्ताओं को आमंत्रित करें",
   "Enter code": "कोड दर्ज करें",
   "Invite a friend to mine - you'll both get 7 free ORN": "किसी दोस्त को माइनिंग के लिए बुलाएँ और आप दोनों को 7-7 ORN मुफ़्त मिलेंगे",
-  "Verify a wallet to get your invite code.": "अपना आमंत्रण कोड पाने के लिए वॉलेट सत्यापित करें।",
-  "Verify wallet": "वॉलेट सत्यापित करें",
+  "Link a wallet to get your invite code.": "अपना आमंत्रण कोड पाने के लिए वॉलेट लिंक करें।",
+  "Link wallet": "वॉलेट लिंक करें",
   "Your invite code": "आपका आमंत्रण कोड",
   "Copy invite code": "आमंत्रण कोड कॉपी करें",
   "Copy invite link": "आमंत्रण लिंक कॉपी करें",
@@ -2135,7 +2136,7 @@
   "ORN paid": "भुगतान किए गए ORN",
   "Share your invite link or code with a friend.": "अपने दोस्त को आमंत्रण लिंक या कोड भेजें।",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "अपने दोस्त से कहें कि वह Orien डाउनलोड करे और खाता बनाने के 12 घंटे के भीतर आपका कोड दर्ज करे।",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "आपके दोस्त को बस अपना वॉलेट सत्यापित करके उससे 10 अलग-अलग घंटों में माइनिंग पुरस्कार अर्जित करने हैं।",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "आपके दोस्त को बस अपना वॉलेट लिंक करके उससे 10 अलग-अलग घंटों में माइनिंग पुरस्कार अर्जित करने हैं।",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "आप दोनों को 7-7 ORN मिलेंगे। आप अधिकतम 5 दोस्तों को आमंत्रित कर सकते हैं (भविष्य में आपको फिर से आमंत्रण मिल सकते हैं)।",
   "Your referral window has closed": "कोड दर्ज करने का समय समाप्त हो गया है",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "आप अपना Orien Network खाता बनाने के बाद पहले 12 घंटों के भीतर ही किसी दोस्त का कोड दर्ज कर सकते हैं। इस खाते के लिए वह समय बीत चुका है।",
@@ -2146,7 +2147,7 @@
   "Open Mining": "माइनिंग खोलें",
   "Sign in to your Orien Network account.": "अपने Orien Network खाते में साइन इन करें।",
   "Enter your friend’s code within 12 hours of creating your account.": "खाता बनाने के 12 घंटे के भीतर अपने दोस्त का कोड दर्ज करें।",
-  "Verify the wallet you’ll use for mining.": "उस वॉलेट को सत्यापित करें जिससे आप माइनिंग करेंगे।",
+  "Link the wallet you’ll use for mining.": "उस वॉलेट को लिंक करें जिससे आप माइनिंग करेंगे।",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "उस वॉलेट से 10 अलग-अलग एक घंटे की अवधियों में माइनिंग पुरस्कार अर्जित करें।",
   "You and the friend who invited you each earn 7 ORN.": "आपको और आपको आमंत्रित करने वाले दोस्त को 7-7 ORN मिलेंगे।",
   "Your referral progress": "आपके रेफ़रल की प्रगति",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "आपके 7 ORN के पुरस्कार का भुगतान हो गया है।",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "आप पात्र हो गए हैं। आपके 7 ORN के पुरस्कार का भुगतान होना बाकी है।",
   "This referral closed before a reward was reserved.": "पुरस्कार आरक्षित होने से पहले यह रेफ़रल बंद हो गया।",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "कोड स्वीकार हो गया। माइनिंग के घंटे गिने जाने के लिए वॉलेट सत्यापित करें।",
+  "Code accepted. Link a wallet to start counting your mining hours.": "कोड स्वीकार हो गया। माइनिंग के घंटे गिने जाने के लिए वॉलेट लिंक करें।",
   "Mining requirement met. Reward reservation is pending.": "माइनिंग की शर्त पूरी हो गई है। पुरस्कार आरक्षित होना बाकी है।",
-  "Code accepted. Mine with your verified wallet to make progress.": "कोड स्वीकार हो गया। आगे बढ़ने के लिए अपने सत्यापित वॉलेट से माइनिंग करें।",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "कोड स्वीकार हो गया। कंप्यूटर पर Orien Wallet में अपने सत्यापित वॉलेट से माइनिंग करें।",
+  "Code accepted. Mine with your linked wallet to make progress.": "कोड स्वीकार हो गया। आगे बढ़ने के लिए अपने लिंक वॉलेट से माइनिंग करें।",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "कोड स्वीकार हो गया। कंप्यूटर पर Orien Wallet में अपने लिंक वॉलेट से माइनिंग करें।",
   "Code copied": "कोड कॉपी हो गया",
   "Link copied": "लिंक कॉपी हो गया",
   "Couldn’t copy. Try again.": "कॉपी नहीं हुआ। फिर कोशिश करें।",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "कुछ गतिविधियाँ रीफ़्रेश नहीं हो सकीं।",
   "Couldn’t load Solana activity.": "Solana गतिविधि लोड नहीं हो सकी।",
   "Unlock Solana to view activity.": "गतिविधि देखने के लिए Solana अनलॉक करें।",
-  "No Solana transactions yet": "अभी कोई Solana लेनदेन नहीं है"
+  "No Solana transactions yet": "अभी कोई Solana लेनदेन नहीं है",
+  "Unlink": "लिंक हटाएँ"
 }

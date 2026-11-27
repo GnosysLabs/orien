@@ -264,7 +264,7 @@
   "No payments yet": "まだ送金履歴がありません",
   "No swaps yet": "スワップはまだありません",
   "No trades yet": "取引はまだありません",
-  "No verified wallets yet": "認証済みウォレットはまだありません",
+  "No linked wallets yet": "連携済みウォレットはまだありません",
   "No wallets yet.": "ウォレットはまだありません。",
   "Normal": "通常",
   "Not answering": "応答なし",
@@ -396,8 +396,8 @@
   "Sell ORN": "ORN を売る",
   "Sell from": "最高買い",
   "Sell into this offer": "この買い注文に売却",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "売り注文は認証済みウォレットから出品されるため、買い手は取引相手を確認できます。認証するとこのウォレットがあなたの Orien Network 名に紐づき、初回のみ 0.001 ORN 未満が送金されます。",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "売り注文は認証済みウォレットからのみ出品できるため、買い手は取引相手を確認できます（初回のみ 0.001 ORN 未満を送金）。",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "売り注文は連携済みウォレットから出品されるため、買い手は取引相手を確認できます。連携するとこのウォレットがあなたの Orien Network 名に紐づき、初回のみ 0.001 ORN 未満が送金されます。",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "売り注文は連携済みウォレットからのみ出品できるため、買い手は取引相手を確認できます（初回のみ 0.001 ORN 未満を送金）。",
   "Sell something": "出品する",
   "Seller": "売り手",
   "Selling ORN": "ORN を売却中",
@@ -407,7 +407,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "ブラウザからワンクリックで ORN の送金、残高確認、orien.network へのサインインができます。秘密鍵が Orien Wallet の外に出ることはありません。",
   "Send SOL": "SOL を送金",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "SOL を一度 Solana 注文へ送金するだけです。Orien Wallet を閉じていてもオーダーブックに掲載され続け、約定時は約1分で決済され、ワンクリックでキャンセルできます。",
-  "Send and verify": "送信して認証",
+  "Send and link": "送信して連携",
   "Send me a code": "コードを送信",
   "Send report": "報告を送信",
   "Send to this contact": "この連絡先に送金",
@@ -518,11 +518,11 @@
   "Username": "ユーザー名",
   "Validator fees": "バリデータ手数料",
   "Validators": "バリデータ",
-  "Verify": "認証",
-  "Verify a wallet and people who pay it see your name with it.": "ウォレットを認証すると、送金する相手にあなたの名前が一緒に表示されます。",
-  "Verify this wallet": "このウォレットを認証",
-  "Verify this wallet to offer swaps": "スワップを出品するにはウォレット認証が必要です",
-  "Verify this wallet to place sell orders": "売り注文を出すにはウォレット認証が必要です",
+  "Link": "連携",
+  "Link a wallet and people who pay it see your name with it.": "ウォレットを連携すると、送金する相手にあなたの名前が一緒に表示されます。",
+  "Link this wallet": "このウォレットを連携",
+  "Link this wallet to offer swaps": "スワップを出品するにはウォレット連携が必要です",
+  "Link this wallet to place sell orders": "売り注文を出すにはウォレット連携が必要です",
   "Version": "バージョン",
   "Videos about Orien": "Orien の紹介動画",
   "View": "表示",
@@ -644,13 +644,13 @@
   "AI answers can be wrong": "AI の回答は誤っている場合があります",
   "Activity and notifications": "アクティビティと通知",
   "Add another wallet": "別のウォレットを追加",
-  "Among members with a verified wallet, by ORN mined.": "認証済みウォレットを持つメンバーの ORN マイニング量順。",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "このウォレットの前の送金が先に完了する必要があったため、認証用の送金はまだ行われていません。もう一度タップして送信してください。",
+  "Among members with a linked wallet, by ORN mined.": "連携済みウォレットを持つメンバーの ORN マイニング量順。",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "このウォレットの前の送金が先に完了する必要があったため、連携用の送金はまだ行われていません。もう一度タップして送信してください。",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "このウォレットの前の送金が先に完了する必要があったため、この送金はまだ送信されていません。もう一度「支払う」をタップしてください。",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "このウォレットの前の送金が先に完了する必要があったため、このチップはまだ送信されていません。もう一度「チップ」をタップしてください。",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "回答は AI によるもので、誤っている場合があります。リカバリーワード、パスワード、秘密鍵が必要になることは決してありません。誰にも共有しないでください。",
   "Any colour you like": "お好みの色",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "誰でも閲覧できます。投稿、返信、リアクションをするには、サインインしてウォレットを認証してください。",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "誰でも閲覧できます。投稿、返信、リアクションをするには、サインインしてウォレットを連携してください。",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "誰でもこの注文に売却できる状態です。誰かが売却すると、相手のウォレットが ORN をロックし、このアプリで支払い画面が開きます。",
   "Anyone with these words can spend this wallet's ORN. Orien never asks for them.": "これらの単語を知っている人は誰でもこのウォレットの ORN を送金できます。Orien がこれらを尋ねることはありません。",
   "Anything left over, or a refund, comes back here": "余剰分や返金はここに戻ります",
@@ -678,7 +678,7 @@
   "Build your own theme": "オリジナルテーマを作成",
   "Buy ORN with SOL or Bitcoin": "SOL または Bitcoin で ORN を買う",
   "Buy amount (ORN)": "購入数量 (ORN)",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "マーケットの購入者は「受取先」に設定されたウォレットへ支払います。複数認証すると切り替えられます。",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "マーケットの購入者は「受取先」に設定されたウォレットへ支払います。複数連携すると切り替えられます。",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "任意のメッセージアプリやメールで送ってください。買い手の Orien Wallet にロックした内容を伝えるもので、秘密情報は含まれません。",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "任意のメッセージアプリやメールで送ってください。売り手の Orien Wallet に Bitcoin の支払い元を伝えるもので、秘密情報は含まれません。",
   "Canadian dollar": "カナダドル",
@@ -769,8 +769,8 @@
   "Mine for an hour from the Mine screen, or buy a little on Swap.": "マイニング画面で1時間マイニングするか、スワップで少量購入してください。",
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "パソコン版 Orien Wallet で1時間マイニングするか、orien.network で少量購入してください。",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "パソコンでマイニング：Orien Wallet をインストールしてこのウォレットを連携し、次を押してください：",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "認証済みウォレットでマイニングすると、次のチェックポイント以降に実績がここに表示されます。",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Orien Network アカウントでウォレットを認証したマイナーの ORN マイニング量ランキングです。掲載されるにはアカウントでウォレットを認証してください。",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "連携済みウォレットでマイニングすると、次のチェックポイント以降に実績がここに表示されます。",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "Orien Network アカウントでウォレットを連携したマイナーの ORN マイニング量ランキングです。掲載されるにはアカウントでウォレットを連携してください。",
   "Minimum order is 0.01 SOL": "最小注文額は 0.01 SOL です",
   "Moderator": "モデレーター",
   "Mute the group chat": "グループチャットをミュート",
@@ -788,13 +788,13 @@
   "No results": "結果がありません",
   "No rewards yet": "報酬はまだありません",
   "No swaps completed yet. The next swap sets the price.": "完了したスワップはまだありません。次のスワップが価格の基準になります。",
-  "No verified wallet yet": "認証済みウォレットはまだありません",
+  "No linked wallet yet": "連携済みウォレットはまだありません",
   "Nobody by that name.": "その名前のユーザーは見つかりません。",
   "Nobody is banned.": "利用停止中のユーザーはいません。",
-  "Nobody with a verified wallet has been paid for mining yet.": "認証済みウォレットでマイニング報酬を受け取った人はまだいません。",
+  "Nobody with a linked wallet has been paid for mining yet.": "連携済みウォレットでマイニング報酬を受け取った人はまだいません。",
   "None": "なし",
   "Not an Orien address": "Orien アドレスではありません",
-  "Not verified yet": "未認証",
+  "Not linked yet": "未連携",
   "Nothing from the network about them yet.": "このユーザーに関するネットワークからの記録はまだありません。",
   "Nothing here yet. Be the first to sell something.": "まだ出品がありません。最初の出品をしてみましょう。",
   "Nothing in the community yet.": "コミュニティの投稿はまだありません。",
@@ -807,7 +807,7 @@
   "On an iPhone, scan the new device's QR code. On a computer, type its code and click": "iPhone では新しいデバイスの QR コードをスキャンしてください。パソコンではコードを入力して次をクリックしてください：",
   "On one of your own themes, click the share button (the box with an arrow), then": "自作テーマの共有ボタン（矢印付きのボックス）をクリックしてから、次を選んでください：",
   "Only letters, numbers and _": "英数字と _ のみ使用できます",
-  "Open it to verify": "開いて認証する",
+  "Open it to link": "開いて連携する",
   "Open offers": "公開中の注文",
   "Orien AI Support": "Orien AI サポート",
   "Orien Group Chat": "Orien グループチャット",
@@ -870,7 +870,7 @@
   "Send the seller this reply code": "この返信コードを売り手に送ってください",
   "Sending": "送信中",
   "Sending…": "送信中…",
-  "Sent. Verifying, usually within a minute.": "送信しました。認証中です（通常1分以内）。",
+  "Sent. Linking, usually within a minute.": "送信しました。連携中です（通常1分以内）。",
   "Set the": "次を設定：",
   "Sets aside about 2.4 GB of memory for mining in large pages, usually 10 to 30% faster. Linux asks for your password once.": "ラージページでのマイニング用に約 2.4 GB のメモリを確保し、通常10〜30%高速化します。Linux で一度だけパスワードが求められます。",
   "Share a theme in the Theme Store": "テーマストアでテーマを共有",
@@ -879,9 +879,9 @@
   "Sharing": "共有中",
   "Show balance": "残高を表示",
   "Show less": "折りたたむ",
-  "Sign in and verify this wallet first.": "先にサインインしてこのウォレットを認証してください。",
+  "Sign in and link this wallet first.": "先にサインインしてこのウォレットを連携してください。",
   "Sign in to Orien Network first.": "先に Orien Network にサインインしてください。",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "質問するには Orien Network にサインインしてください。ウォレット認証は不要です。",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "質問するには Orien Network にサインインしてください。ウォレット連携は不要です。",
   "Sign in to Orien Network to chat, reply or react.": "チャット、返信、リアクションをするには Orien Network にサインインしてください。",
   "Sign in to Orien Network to chat.": "チャットするには Orien Network にサインインしてください。",
   "Sign in to Orien Network to post and react.": "投稿やリアクションをするには Orien Network にサインインしてください。",
@@ -893,9 +893,9 @@
   "Sign in to Orien Network to see the themes you shared.": "共有したテーマを見るには Orien Network にサインインしてください。",
   "Sign in to Orien Network to see your own messages and to chat.": "自分のメッセージの表示やチャットには Orien Network にサインインしてください。",
   "Sign in to Orien Network to tip.": "チップを送るには Orien Network にサインインしてください。",
-  "Sign in to Orien Network with a verified wallet to share themes.": "テーマを共有するには、認証済みウォレットで Orien Network にサインインしてください。",
+  "Sign in to Orien Network with a linked wallet to share themes.": "テーマを共有するには、連携済みウォレットで Orien Network にサインインしてください。",
   "Sign in to trade": "サインインして取引",
-  "Sign in, and open the wallet you want to verify.": "サインインし、認証したいウォレットを開いてください。",
+  "Sign in, and open the wallet you want to link.": "サインインし、連携したいウォレットを開いてください。",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Windows からサインアウトして再サインインし、Orien Wallet を開いてください。それ以降マイニングが高速になります。",
   "Sign out to finish": "サインアウトして完了",
   "Signing in": "サインイン中",
@@ -996,18 +996,19 @@
   "Use Orien Wallet in your browser": "ブラウザで Orien Wallet を使う",
   "Use your wallets on another device": "別のデバイスでウォレットを使う",
   "Verified": "認証済み",
-  "Verified wallet": "認証済みウォレット",
-  "Verify a wallet": "ウォレットを認証",
-  "Verify a wallet to post and see your mining here.": "ウォレットを認証すると投稿でき、マイニング実績もここに表示されます。",
-  "Verify more wallets, and choose where you're paid": "複数のウォレットを認証して受取先を選べます",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "投稿、返信、リアクションをするには、Orien Network プロフィールでいずれかのウォレットを認証してください。",
-  "Verify one of your wallets to chat, reply or react.": "チャット、返信、リアクションをするには、いずれかのウォレットを認証してください。",
-  "Verify one of your wallets to chat. Anyone can read along.": "チャットするにはいずれかのウォレットを認証してください。閲覧は誰でもできます。",
-  "Verify one of your wallets to react.": "リアクションするにはいずれかのウォレットを認証してください。",
-  "Verify one of your wallets to reply.": "返信するにはいずれかのウォレットを認証してください。",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "認証すると、残高を含めそのウォレットがあなたの所有物であることが全員に公開されます。これにより投稿、出品、スワップ、チップの受取が可能になります。",
-  "Verifying…": "認証中…",
-  "Verifying… usually within a minute": "認証中…通常1分以内",
+  "Linked": "連携済み",
+  "Linked wallet": "連携済みウォレット",
+  "Link a wallet": "ウォレットを連携",
+  "Link a wallet to post and see your mining here.": "ウォレットを連携すると投稿でき、マイニング実績もここに表示されます。",
+  "Link more wallets, and choose where you're paid": "複数のウォレットを連携して受取先を選べます",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "投稿、返信、リアクションをするには、Orien Network プロフィールでいずれかのウォレットを連携してください。",
+  "Link one of your wallets to chat, reply or react.": "チャット、返信、リアクションをするには、いずれかのウォレットを連携してください。",
+  "Link one of your wallets to chat. Anyone can read along.": "チャットするにはいずれかのウォレットを連携してください。閲覧は誰でもできます。",
+  "Link one of your wallets to react.": "リアクションするにはいずれかのウォレットを連携してください。",
+  "Link one of your wallets to reply.": "返信するにはいずれかのウォレットを連携してください。",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "連携すると、残高を含めそのウォレットがあなたの所有物であることが全員に公開されます。これにより投稿、出品、スワップ、チップの受取が可能になります。",
+  "Linking…": "連携中…",
+  "Linking… usually within a minute": "連携中…通常1分以内",
   "View profile": "プロフィールを見る",
   "Waiting": "待機中",
   "Waiting for mining to get going.": "マイニングの開始を待っています。",
@@ -1027,8 +1028,8 @@
   "You can't send in the group chat right now. You can still read along.": "現在グループチャットに送信できません。閲覧は引き続き可能です。",
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "テーマは上限の24件に達しています。先に「外観」から1つ削除してください。",
   "You haven't blocked anyone.": "ブロックしているユーザーはいません。",
-  "You need to be signed in to Orien Network with a verified wallet.": "認証済みウォレットで Orien Network にサインインする必要があります。",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Orien Network にサインインする必要があります。ウォレット認証は不要です。",
+  "You need to be signed in to Orien Network with a linked wallet.": "連携済みウォレットで Orien Network にサインインする必要があります。",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "Orien Network にサインインする必要があります。ウォレット連携は不要です。",
   "You send the buyer the offer code, and paste in the reply code they send back": "買い手に注文コードを送り、返ってきた返信コードを貼り付けます",
   "You · pay within a few hours": "あなた · 数時間以内にお支払いください",
   "You · pay within the next few hours": "あなた · 数時間以内にお支払いください",
@@ -1440,8 +1441,8 @@
       "{0} がステーク"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "認証済みウォレット {0} 件"
+      "^(\\d+) linked wallets?$",
+      "連携済みウォレット {0} 件"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "{0} で投稿"
     ],
     [
-      "^Verify with (.+)$",
-      "{0} で認証"
+      "^Link with (.+)$",
+      "{0} で連携"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "{0} で確認"
     ],
     [
-      "^Verify (.+)$",
-      "{0} を認証"
+      "^Link (.+)$",
+      "{0} を連携"
     ],
     [
-      "^Verifying (.+)$",
-      "{0} を認証中"
+      "^Linking (.+)$",
+      "{0} を連携中"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "{0} ORN を送金して認証"
+      "^Send ([0-9.,]+) ORN and link$",
+      "{0} ORN を送金して連携"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "アカウントはコミュニティ、マーケット、スワップ用です。ウォレットはこのアプリ内に保管されます。"
     },
     "verify": {
-      "title": "ウォレットを認証する",
+      "title": "ウォレットを連携する",
       "steps": [
-        "サインインし、認証したいウォレットを開きます。",
-        "ホーム画面の残高の下にある<b>認証</b>カードで<b>認証</b>をクリックします（または右上のアイコンから<b>プロフィールを編集</b>を開き、対象ウォレットの横の<b>認証</b>をクリックしても構いません）。",
-        "<b>認証</b>をクリックして確定します。手数料を含めて 0.001 ORN 未満がそのウォレットから送金されます。",
-        "1分以内に<b>認証済み</b>と表示されます。"
+        "サインインし、連携したいウォレットを開きます。",
+        "ホーム画面の残高の下にある<b>連携</b>カードで<b>連携</b>をクリックします（または右上のアイコンから<b>プロフィールを編集</b>を開き、対象ウォレットの横の<b>連携</b>をクリックしても構いません）。",
+        "<b>連携</b>をクリックして確定します。手数料を含めて 0.001 ORN 未満がそのウォレットから送金されます。",
+        "1分以内に<b>連携済み</b>と表示されます。"
       ],
-      "note": "認証すると、残高を含めてそのウォレットがあなたのものであることが公開され、投稿、出品、スワップ、チップの受取ができるようになります。"
+      "note": "連携すると、残高を含めてそのウォレットがあなたのものであることが公開され、投稿、出品、スワップ、チップの受取ができるようになります。"
     },
     "verify-more": {
-      "title": "追加のウォレットを認証し、受取先を選ぶ",
+      "title": "追加のウォレットを連携し、受取先を選ぶ",
       "steps": [
         "別のウォレットに切り替えます。ホーム画面でウォレット名をクリックして選んでください。",
-        "自分のアイコンをクリックし、<b>プロフィールを編集</b>を開いて、そのウォレットの横にある<b>認証</b>をクリックします。",
+        "自分のアイコンをクリックし、<b>プロフィールを編集</b>を開いて、そのウォレットの横にある<b>連携</b>をクリックします。",
         "プロフィールに載せたいウォレットごとに繰り返します。",
-        "購入者やチップの送り先になるウォレットには<b>受取先</b>と表示されます。変更するには、別の認証済みウォレットで<b>ここで受け取る</b>をクリックします。",
+        "購入者やチップの送り先になるウォレットには<b>受取先</b>と表示されます。変更するには、別の連携済みウォレットで<b>ここで受け取る</b>をクリックします。",
         "プロフィールからウォレットを外すには、横の<b>⋯</b>をクリックして<b>プロフィールから削除</b>をクリックします。"
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "みんなとチャットする",
       "steps": [
         "ホーム画面で、吹き出しアイコンの丸いボタン<b>メッセージ</b>をクリックします。<b>Orien グループチャット</b>が上部にピン留めされています。",
-        "閲覧は誰でもできます。投稿、返信、リアクションをするには、サインインしてウォレットを認証してください。",
+        "閲覧は誰でもできます。投稿、返信、リアクションをするには、サインインしてウォレットを連携してください。",
         "メッセージにカーソルを合わせると、返信、リアクション、報告ができます。",
         "新着メッセージがあるとメッセージアイコンに点が表示されます。オフにするにはチャット上部のベルアイコンをクリックします。"
       ],
@@ -2011,7 +2012,7 @@
       "title": "Orien AI サポートに質問する",
       "steps": [
         "ホーム画面で、吹き出しアイコンの丸いボタン<b>メッセージ</b>をクリックします。<b>Orien AI サポート</b>はグループチャットの下にピン留めされています。ウィンドウが広い場合は、ベルアイコンの横の浮き輪アイコンからも開けます。",
-        "Orien Network へのサインインが必要です。ウォレットの認証は不要です。",
+        "Orien Network へのサインインが必要です。ウォレットの連携は不要です。",
         "ウォレット、マイニング、スワップ、ネットワークについて、普段の言葉で何でも質問できます。",
         "会話をリセットするには、チャット上部の<b>やり直す</b>をクリックします。"
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "ORN を売る",
       "steps": [
-        "先にサインインし、このウォレットを認証してください。",
+        "先にサインインし、このウォレットを連携してください。",
         "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックし、<b>注文を掲載</b>をクリックします。",
         "SOL または Bitcoin を選び、売却する ORN の数量、希望する受取額、支払いを受け取るアドレスを入力します。",
         "<b>注文を掲載</b>をクリックし、注文が受けられるまで Orien Wallet を起動したままにします。設定の<b>このコンピューター</b>にある<b>スリープを防ぐ</b>をオンにすると、席を離れている間も稼働を維持できます。"
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "テーマストアでテーマを共有する",
       "steps": [
-        "Orien Network にサインインし、認証済みウォレットを持っている必要があります。",
+        "Orien Network にサインインし、連携済みウォレットを持っている必要があります。",
         "ホーム画面で歯車の丸いボタン<b>設定</b>を開き、<b>外観</b>をクリックします。",
         "自作テーマの共有ボタン（矢印付きの四角アイコン）をクリックし、<b>テーマを共有</b>をクリックします。",
         "確認後、あなたの名前付きでストアに公開され、誰でも試用・適用したりチップを送ったりできるようになります。",
@@ -2125,8 +2126,8 @@
   "Invite users": "友達を招待",
   "Enter code": "コードを入力",
   "Invite a friend to mine - you'll both get 7 free ORN": "友達をマイニングに招待して、二人で7 ORNずつもらおう",
-  "Verify a wallet to get your invite code.": "ウォレットを認証すると招待コードを取得できます。",
-  "Verify wallet": "ウォレットを認証",
+  "Link a wallet to get your invite code.": "ウォレットを連携すると招待コードを取得できます。",
+  "Link wallet": "ウォレットを連携",
   "Your invite code": "あなたの招待コード",
   "Copy invite code": "招待コードをコピー",
   "Copy invite link": "招待リンクをコピー",
@@ -2135,7 +2136,7 @@
   "ORN paid": "支払済みのORN",
   "Share your invite link or code with a friend.": "招待リンクまたはコードを友達に共有してください。",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "友達にOrienをダウンロードしてもらい、アカウント作成から12時間以内にコードを適用してもらってください。",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "友達はウォレットを認証し、そのウォレットで異なる10の時間帯にマイニング報酬を獲得するだけです。",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "友達はウォレットを連携し、そのウォレットで異なる10の時間帯にマイニング報酬を獲得するだけです。",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "二人に7 ORNずつ付与されます。招待できるのは5人までです（今後、招待枠がリセットされる場合があります）。",
   "Your referral window has closed": "紹介コードの入力期限が過ぎました",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "友達のコードを入力できるのは、Orien Networkのアカウント作成から12時間以内です。このアカウントの入力期限は過ぎています。",
@@ -2146,7 +2147,7 @@
   "Open Mining": "マイニングを開く",
   "Sign in to your Orien Network account.": "Orien Networkのアカウントにサインインしてください。",
   "Enter your friend’s code within 12 hours of creating your account.": "アカウント作成から12時間以内に友達のコードを入力してください。",
-  "Verify the wallet you’ll use for mining.": "マイニングに使うウォレットを認証してください。",
+  "Link the wallet you’ll use for mining.": "マイニングに使うウォレットを連携してください。",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "そのウォレットで、1時間ごとのチェックポイント10回分のマイニング報酬を獲得してください。",
   "You and the friend who invited you each earn 7 ORN.": "あなたと招待した友達に7 ORNずつ付与されます。",
   "Your referral progress": "紹介の進捗",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "7 ORNの報酬が支払われました。",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "条件を達成しました。7 ORNの報酬は支払い待ちです。",
   "This referral closed before a reward was reserved.": "報酬が確保される前にこの紹介は終了しました。",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "コードを受け付けました。ウォレットを認証するとマイニング時間の集計が始まります。",
+  "Code accepted. Link a wallet to start counting your mining hours.": "コードを受け付けました。ウォレットを連携するとマイニング時間の集計が始まります。",
   "Mining requirement met. Reward reservation is pending.": "マイニング条件を達成しました。報酬枠の確保を待っています。",
-  "Code accepted. Mine with your verified wallet to make progress.": "コードを受け付けました。認証済みのウォレットでマイニングを進めてください。",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "コードを受け付けました。パソコンのOrien Walletで認証済みのウォレットを使ってマイニングしてください。",
+  "Code accepted. Mine with your linked wallet to make progress.": "コードを受け付けました。連携済みのウォレットでマイニングを進めてください。",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "コードを受け付けました。パソコンのOrien Walletで連携済みのウォレットを使ってマイニングしてください。",
   "Code copied": "コードをコピーしました",
   "Link copied": "リンクをコピーしました",
   "Couldn’t copy. Try again.": "コピーできませんでした。もう一度お試しください。",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "一部の履歴を更新できませんでした。",
   "Couldn’t load Solana activity.": "Solana の履歴を読み込めませんでした。",
   "Unlock Solana to view activity.": "Solana のロックを解除して履歴を表示してください。",
-  "No Solana transactions yet": "Solana の取引はまだありません"
+  "No Solana transactions yet": "Solana の取引はまだありません",
+  "Unlink": "連携を解除"
 }

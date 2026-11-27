@@ -51,18 +51,18 @@
   "Agreed by": "Onaylayan",
   "All": "Tümü",
   "All your wallets": "Tüm cüzdanlarınız",
-  "Among members with a verified wallet, by ORN mined.": "Doğrulanmış cüzdanı olan üyeler arasında, kazılan ORN miktarına göre.",
+  "Among members with a linked wallet, by ORN mined.": "Bağlanmış cüzdanı olan üyeler arasında, kazılan ORN miktarına göre.",
   "Amount": "Tutar",
   "Amount (ORN)": "Tutar (ORN)",
   "An address, a name or a checkpoint number": "Bir adres, ad veya kontrol noktası numarası",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Bu cüzdandan önceki bir ödemenin önce tamamlanması gerekti, bu yüzden doğrulama için henüz bir şey gönderilmedi. Göndermek için tekrar dokunun.",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "Bu cüzdandan önceki bir ödemenin önce tamamlanması gerekti, bu yüzden bağlama için henüz bir şey gönderilmedi. Göndermek için tekrar dokunun.",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Bu cüzdandan önceki bir ödemenin önce tamamlanması gerekti, bu yüzden bu ödeme henüz gönderilmedi. Tekrar Öde'ye dokunun.",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Bu cüzdandan önceki bir ödemenin önce tamamlanması gerekti, bu yüzden bu bahşiş henüz gönderilmedi. Tekrar Bahşiş'e dokunun.",
   "Another amount": "Başka bir tutar",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Yanıtlar bir yapay zeka tarafından üretilir ve hatalı olabilir. Kurtarma kelimelerinize, parolalarınıza veya anahtarlarınıza asla ihtiyaç duymaz: bunları kimseyle paylaşmayın.",
   "Any colour you like": "İstediğiniz herhangi bir renk",
   "Any moment": "Her an",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Herkes okuyabilir. Yazmak, yanıtlamak veya tepki vermek için giriş yapın ve bir cüzdan doğrulayın.",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "Herkes okuyabilir. Yazmak, yanıtlamak veya tepki vermek için giriş yapın ve bir cüzdan bağlayın.",
   "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Herkes görebilir, kullanabilir ve bunun için size bahşiş gönderebilir. Orien Network adınız yanında gösterilir. İstediğiniz zaman kaldırabilirsiniz.",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Artık herkes bu emre satış yapabilir. Biri satış yaptığında cüzdanı ORN'leri kilitler ve bu uygulama ödeme ekranını açar.",
   "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Artık herkes bunu kabul edebilir. Biri kabul ettiğinde cüzdanınız takası kendiliğinden gerçekleştirir.",
@@ -133,7 +133,7 @@
   "Buyer": "Alıcı",
   "Buyer pays": "Alıcı öder",
   "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "Alıcının SOL'u ayrıldı. ORN'leriniz şimdi kilitleniyor. Bu sayfayı birkaç saniye daha açık tutun.",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Pazardaki alıcılar burada Ödeme buraya olarak işaretlenen cüzdana ödeme yapar. Aralarından seçim yapmak için daha fazla cüzdan doğrulayın.",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "Pazardaki alıcılar burada Ödeme buraya olarak işaretlenen cüzdana ödeme yapar. Aralarından seçim yapmak için daha fazla cüzdan bağlayın.",
   "Buying ORN": "ORN satın alınıyor",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Herhangi bir mesajlaşma uygulaması veya e-posta ile. Alıcının Orien Wallet uygulamasına onun için ne kilitlediğinizi bildirir ve gizli bir bilgi içermez.",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Herhangi bir mesajlaşma uygulaması veya e-posta ile. Satıcının Orien Wallet uygulamasına Bitcoin'i nereye ödediğinizi bildirir ve gizli bir bilgi içermez.",
@@ -370,10 +370,10 @@
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Bir bilgisayarda Orien Wallet ile bir saat madencilik yapın veya orien.network adresinden biraz satın alın.",
   "Mine it on a computer.": "Bir bilgisayarda kazın.",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Bir bilgisayarda kazın: Orien Wallet'ı oraya yükleyin, bu cüzdanı bağlayın ve basın:",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Doğrulanmış bir cüzdanla madencilik yapın; verileriniz bir sonraki kontrol noktasından sonra burada görünür.",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "Bağlanmış bir cüzdanla madencilik yapın; verileriniz bir sonraki kontrol noktasından sonra burada görünür.",
   "Miners last hour": "Son saatteki madenciler",
   "Miners paid": "Ödeme alan madenciler",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Orien Network hesabında cüzdan doğrulamış madenciler, kazılan ORN miktarına göre. Listede yer almak için hesabınızda cüzdanınızı doğrulayın.",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "Orien Network hesabında cüzdan bağlamış madenciler, kazılan ORN miktarına göre. Listede yer almak için hesabınızda cüzdanınızı bağlayın.",
   "Minimize": "Simge durumuna küçült",
   "Minimum order is 0.01 SOL": "En düşük emir 0.01 SOL'dur",
   "Mining": "Madencilik",
@@ -422,12 +422,12 @@
   "No swaps completed yet. The next swap sets the price.": "Henüz tamamlanan takas yok. Bir sonraki takas fiyatı belirler.",
   "No swaps yet": "Henüz takas yok",
   "No trades yet": "Henüz işlem yok",
-  "No verified wallet yet": "Henüz doğrulanmış cüzdan yok",
-  "No verified wallets yet": "Henüz doğrulanmış cüzdan yok",
+  "No linked wallet yet": "Henüz bağlanmış cüzdan yok",
+  "No linked wallets yet": "Henüz bağlanmış cüzdan yok",
   "No wallets yet.": "Henüz cüzdan yok.",
   "Nobody by that name.": "Bu adda kimse yok.",
   "Nobody is banned.": "Yasaklanan kimse yok.",
-  "Nobody with a verified wallet has been paid for mining yet.": "Doğrulanmış cüzdanı olan kimseye henüz madencilik ödemesi yapılmadı.",
+  "Nobody with a linked wallet has been paid for mining yet.": "Bağlanmış cüzdanı olan kimseye henüz madencilik ödemesi yapılmadı.",
   "None": "Yok",
   "Normal": "Normal",
   "Not an Orien address": "Orien adresi değil",
@@ -436,7 +436,7 @@
   "Not in the network's history": "Ağ geçmişinde yok",
   "Not now": "Şimdi değil",
   "Not recorded": "Kayıtlı değil",
-  "Not verified yet": "Henüz doğrulanmadı",
+  "Not linked yet": "Henüz bağlanmadı",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Hiçbir şey bulunamadı. Bir adres (64 harf ve rakam, 0-9 ve a-f), bir kontrol noktası numarası veya Pazardaki birinin adını arayın.",
   "Nothing from the network about them yet.": "Ağdan onlar hakkında henüz bir şey yok.",
   "Nothing has happened at this address yet.": "Bu adreste henüz hiçbir işlem yapılmadı.",
@@ -477,7 +477,7 @@
   "Open Mine": "Kaz'ı Aç",
   "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Takası tamamlamak için bu teklifi yayınladığınız veya kabul ettiğiniz cihazda Orien Wallet'ı açın",
   "Open at login": "Oturum açıldığında başlat",
-  "Open it to verify": "Doğrulamak için açın",
+  "Open it to link": "Bağlamak için açın",
   "Open offers": "Açık teklifler",
   "Open the explorer": "Gezgini aç",
   "Opens Firefox's add-on store: click Add to Firefox": "Firefox eklenti mağazasını açar: Firefox'a Ekle'ye tıklayın",
@@ -630,8 +630,8 @@
   "Sell amount (ORN)": "Satış tutarı (ORN)",
   "Sell from": "Satış yapılacak cüzdan",
   "Sell into this offer": "Bu teklife sat",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Satış teklifleri doğrulanmış cüzdanlardan gelir, böylece alıcılar kiminle takas yaptıklarını görebilir. Doğrulama bu cüzdanı Orien Network adınıza bağlar ve bir kez 0.001 ORN'den az bir tutar gönderir.",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Satış emirleri doğrulanmış cüzdanlardan gelir, böylece alıcılar kiminle işlem yaptıklarını bilir (bir kez < 0.001 ORN gönderir).",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "Satış teklifleri bağlanmış cüzdanlardan gelir, böylece alıcılar kiminle takas yaptıklarını görebilir. Bağlama bu cüzdanı Orien Network adınıza bağlar ve bir kez 0.001 ORN'den az bir tutar gönderir.",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Satış emirleri bağlanmış cüzdanlardan gelir, böylece alıcılar kiminle işlem yaptıklarını bilir (bir kez < 0.001 ORN gönderir).",
   "Sell something": "Bir şey sat",
   "Seller": "Satıcı",
   "Seller accepts": "Satıcı kabul eder",
@@ -643,7 +643,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Doğrudan tarayıcınızdan ORN gönderin, bakiyenizi görün ve tek tıkla orien.network'e giriş yapın. Anahtarlarınız Orien Wallet'tan asla çıkmaz.",
   "Send SOL": "SOL Gönder",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Bir Solana emrine bir kez SOL gönderin. Orien Wallet kapalıyken bile emir defterinde yayında kalır, karşılandığında yaklaşık bir dakikada sonuçlanır ve tek tıkla iptal edilir.",
-  "Send and verify": "Gönder ve doğrula",
+  "Send and link": "Gönder ve bağla",
   "Send me a code": "Bana kod gönder",
   "Send report": "Raporu gönder",
   "Send the buyer this offer code": "Alıcıya bu teklif kodunu gönderin",
@@ -656,7 +656,7 @@
   "Sent a GIF": "Bir GIF gönderdi",
   "Sent a picture": "Bir resim gönderdi",
   "Sent from another app": "Başka bir uygulamadan gönderildi",
-  "Sent. Verifying, usually within a minute.": "Gönderildi. Doğrulanıyor, genellikle bir dakika içinde.",
+  "Sent. Linking, usually within a minute.": "Gönderildi. Bağlanıyor, genellikle bir dakika içinde.",
   "Set password": "Parola belirle",
   "Set the": "Şunu ayarlayın:",
   "Set up": "Kur",
@@ -681,10 +681,10 @@
   "Show your accounts on your profile, if you like. Everyone can see them.": "İsterseniz hesaplarınızı profilinizde gösterin. Herkes görebilir.",
   "Sign Out": "Çıkış yap",
   "Sign in": "Giriş yap",
-  "Sign in and verify this wallet first.": "Önce giriş yapın ve bu cüzdanı doğrulayın.",
+  "Sign in and link this wallet first.": "Önce giriş yapın ve bu cüzdanı bağlayın.",
   "Sign in to Orien Network": "Orien Network'e giriş yap",
   "Sign in to Orien Network first.": "Önce Orien Network'e giriş yapın.",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Soru sormak için Orien Network'e giriş yapın. Cüzdan doğrulamanız gerekmez.",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "Soru sormak için Orien Network'e giriş yapın. Cüzdan bağlamanız gerekmez.",
   "Sign in to Orien Network to chat, reply or react.": "Sohbet etmek, yanıtlamak veya tepki vermek için Orien Network'e giriş yapın.",
   "Sign in to Orien Network to chat.": "Sohbet etmek için Orien Network'e giriş yapın.",
   "Sign in to Orien Network to post and react.": "Paylaşım yapmak ve tepki vermek için Orien Network'e giriş yapın.",
@@ -696,10 +696,10 @@
   "Sign in to Orien Network to see the themes you shared.": "Paylaştığınız temaları görmek için Orien Network'e giriş yapın.",
   "Sign in to Orien Network to see your own messages and to chat.": "Kendi mesajlarınızı görmek ve sohbet etmek için Orien Network'e giriş yapın.",
   "Sign in to Orien Network to tip.": "Bahşiş göndermek için Orien Network'e giriş yapın.",
-  "Sign in to Orien Network with a verified wallet to share themes.": "Tema paylaşmak için doğrulanmış bir cüzdanla Orien Network'e giriş yapın.",
+  "Sign in to Orien Network with a linked wallet to share themes.": "Tema paylaşmak için bağlanmış bir cüzdanla Orien Network'e giriş yapın.",
   "Sign in to message the seller": "Satıcıya mesaj göndermek için giriş yapın",
   "Sign in to trade": "İşlem yapmak için giriş yapın",
-  "Sign in, and open the wallet you want to verify.": "Giriş yapın ve doğrulamak istediğiniz cüzdanı açın.",
+  "Sign in, and open the wallet you want to link.": "Giriş yapın ve bağlamak istediğiniz cüzdanı açın.",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Windows oturumunu kapatıp tekrar açın, ardından Orien Wallet'ı başlatın. Madencilik bundan sonra daha hızlı çalışır.",
   "Sign out to finish": "Tamamlamak için oturumu kapatın",
   "Signing in": "Giriş yapılıyor",
@@ -885,23 +885,24 @@
   "Validator fees": "Doğrulayıcı ücretleri",
   "Validators": "Doğrulayıcılar",
   "Verified": "Doğrulandı",
-  "Verified wallet": "Doğrulanmış cüzdan",
-  "Verify": "Doğrula",
-  "Verify a wallet": "Bir cüzdan doğrula",
-  "Verify a wallet and people who pay it see your name with it.": "Bir cüzdan doğrulayın; ona ödeme yapan kişiler yanında adınızı görsün.",
-  "Verify a wallet to post and see your mining here.": "Paylaşım yapmak ve madenciliğinizi burada görmek için bir cüzdan doğrulayın.",
-  "Verify more wallets, and choose where you're paid": "Daha fazla cüzdan doğrulayın ve ödemelerin nereye yapılacağını seçin",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Paylaşım yapmak, yanıtlamak ve tepki vermek için Orien Network profilinizde cüzdanlarınızdan birini doğrulayın.",
-  "Verify one of your wallets to chat, reply or react.": "Sohbet etmek, yanıtlamak veya tepki vermek için cüzdanlarınızdan birini doğrulayın.",
-  "Verify one of your wallets to chat. Anyone can read along.": "Sohbet etmek için cüzdanlarınızdan birini doğrulayın. Herkes okuyabilir.",
-  "Verify one of your wallets to react.": "Tepki vermek için cüzdanlarınızdan birini doğrulayın.",
-  "Verify one of your wallets to reply.": "Yanıtlamak için cüzdanlarınızdan birini doğrulayın.",
-  "Verify this wallet": "Bu cüzdanı doğrula",
-  "Verify this wallet to offer swaps": "Takas teklifi vermek için bu cüzdanı doğrulayın",
-  "Verify this wallet to place sell orders": "Satış emri vermek için bu cüzdanı doğrulayın",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Doğrulama, bakiyesi dahil bu cüzdanın size ait olduğunu herkese gösterir. Paylaşım yapmanıza, satış yapmanıza, takas etmenize ve bahşiş almanıza olanak tanır.",
-  "Verifying…": "Doğrulanıyor…",
-  "Verifying… usually within a minute": "Doğrulanıyor… genellikle bir dakika içinde",
+  "Linked": "Bağlandı",
+  "Linked wallet": "Bağlanmış cüzdan",
+  "Link": "Bağla",
+  "Link a wallet": "Bir cüzdan bağla",
+  "Link a wallet and people who pay it see your name with it.": "Bir cüzdan bağlayın; ona ödeme yapan kişiler yanında adınızı görsün.",
+  "Link a wallet to post and see your mining here.": "Paylaşım yapmak ve madenciliğinizi burada görmek için bir cüzdan bağlayın.",
+  "Link more wallets, and choose where you're paid": "Daha fazla cüzdan bağlayın ve ödemelerin nereye yapılacağını seçin",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "Paylaşım yapmak, yanıtlamak ve tepki vermek için Orien Network profilinizde cüzdanlarınızdan birini bağlayın.",
+  "Link one of your wallets to chat, reply or react.": "Sohbet etmek, yanıtlamak veya tepki vermek için cüzdanlarınızdan birini bağlayın.",
+  "Link one of your wallets to chat. Anyone can read along.": "Sohbet etmek için cüzdanlarınızdan birini bağlayın. Herkes okuyabilir.",
+  "Link one of your wallets to react.": "Tepki vermek için cüzdanlarınızdan birini bağlayın.",
+  "Link one of your wallets to reply.": "Yanıtlamak için cüzdanlarınızdan birini bağlayın.",
+  "Link this wallet": "Bu cüzdanı bağla",
+  "Link this wallet to offer swaps": "Takas teklifi vermek için bu cüzdanı bağlayın",
+  "Link this wallet to place sell orders": "Satış emri vermek için bu cüzdanı bağlayın",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Bağlama, bakiyesi dahil bu cüzdanın size ait olduğunu herkese gösterir. Paylaşım yapmanıza, satış yapmanıza, takas etmenize ve bahşiş almanıza olanak tanır.",
+  "Linking…": "Bağlanıyor…",
+  "Linking… usually within a minute": "Bağlanıyor… genellikle bir dakika içinde",
   "Version": "Sürüm",
   "Videos about Orien": "Orien hakkında videolar",
   "View": "Görüntüle",
@@ -966,8 +967,8 @@
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "24 temanız var, yer bu kadar. Önce Görünüm bölümünden birini silin.",
   "You haven't blocked anyone.": "Henüz kimseyi engellemediniz.",
   "You need": "Gerekli olan:",
-  "You need to be signed in to Orien Network with a verified wallet.": "Doğrulanmış bir cüzdanla Orien Network'e giriş yapmış olmanız gerekir.",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Orien Network'e giriş yapmış olmanız gerekir. Cüzdan doğrulamanız gerekmez.",
+  "You need to be signed in to Orien Network with a linked wallet.": "Bağlanmış bir cüzdanla Orien Network'e giriş yapmış olmanız gerekir.",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "Orien Network'e giriş yapmış olmanız gerekir. Cüzdan bağlamanız gerekmez.",
   "You pay": "Ödeyeceğiniz",
   "You sell": "Satacağınız",
   "You send the buyer the offer code, and paste in the reply code they send back": "Alıcıya teklif kodunu gönderir, onun geri gönderdiği yanıt kodunu yapıştırırsınız",
@@ -1440,8 +1441,8 @@
       "Stake eden: {0}"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "{0} doğrulanmış cüzdan"
+      "^(\\d+) linked wallets?$",
+      "{0} bağlanmış cüzdan"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "{0} ile paylaş"
     ],
     [
-      "^Verify with (.+)$",
-      "{0} ile doğrula"
+      "^Link with (.+)$",
+      "{0} ile bağla"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "{0} ile onayla"
     ],
     [
-      "^Verify (.+)$",
-      "{0} doğrula"
+      "^Link (.+)$",
+      "{0} bağla"
     ],
     [
-      "^Verifying (.+)$",
-      "{0} doğrulanıyor"
+      "^Linking (.+)$",
+      "{0} bağlanıyor"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "{0} ORN gönder ve doğrula"
+      "^Send ([0-9.,]+) ORN and link$",
+      "{0} ORN gönder ve bağla"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "Hesabınız Topluluk, Pazar ve takaslar içindir. Cüzdanlarınız bu uygulamada kalır."
     },
     "verify": {
-      "title": "Bir cüzdan doğrula",
+      "title": "Bir cüzdan bağla",
       "steps": [
-        "Giriş yapın ve doğrulamak istediğiniz cüzdanı açın.",
-        "Ana Sayfa'da bakiyenizin altındaki <b>Doğrula</b> kartında <b>Doğrula</b>'ya tıklayın. (Veya sağ üstteki resminize, ardından <b>Profili Düzenle</b>'ye ve cüzdanın yanındaki <b>Doğrula</b>'ya tıklayın.)",
-        "Onaylamak için <b>Doğrula</b>'ya tıklayın. Bu cüzdandan ücret dahil 0.001 ORN'den az bir tutar gönderilir.",
-        "Bir dakika içinde <b>Doğrulandı</b> görünür."
+        "Giriş yapın ve bağlamak istediğiniz cüzdanı açın.",
+        "Ana Sayfa'da bakiyenizin altındaki <b>Bağla</b> kartında <b>Bağla</b>'ya tıklayın. (Veya sağ üstteki resminize, ardından <b>Profili Düzenle</b>'ye ve cüzdanın yanındaki <b>Bağla</b>'ya tıklayın.)",
+        "Onaylamak için <b>Bağla</b>'ya tıklayın. Bu cüzdandan ücret dahil 0.001 ORN'den az bir tutar gönderilir.",
+        "Bir dakika içinde <b>Bağlandı</b> görünür."
       ],
-      "note": "Doğrulama, bakiyesi dahil bu cüzdanın size ait olduğunu herkese gösterir. Paylaşım yapmanıza, satış yapmanıza, takas etmenize ve bahşiş almanıza olanak tanır."
+      "note": "Bağlama, bakiyesi dahil bu cüzdanın size ait olduğunu herkese gösterir. Paylaşım yapmanıza, satış yapmanıza, takas etmenize ve bahşiş almanıza olanak tanır."
     },
     "verify-more": {
-      "title": "Daha fazla cüzdan doğrulayın ve ödemelerin nereye yapılacağını seçin",
+      "title": "Daha fazla cüzdan bağlayın ve ödemelerin nereye yapılacağını seçin",
       "steps": [
         "Başka bir cüzdana geçin: Ana Sayfa'da cüzdan adına tıklayın ve seçin.",
-        "Resminize, ardından <b>Profili Düzenle</b>'ye ve o cüzdanın yanındaki <b>Doğrula</b>'ya tıklayın.",
+        "Resminize, ardından <b>Profili Düzenle</b>'ye ve o cüzdanın yanındaki <b>Bağla</b>'ya tıklayın.",
         "Profilinizde olmasını istediğiniz her cüzdan için tekrarlayın.",
-        "Alıcıların ve bahşiş gönderenlerin ödeme yaptığı cüzdanda <b>Ödeme buraya</b> yazar. Değiştirmek için başka bir doğrulanmış cüzdanda <b>Ödemeyi buraya al</b>'a tıklayın.",
+        "Alıcıların ve bahşiş gönderenlerin ödeme yaptığı cüzdanda <b>Ödeme buraya</b> yazar. Değiştirmek için başka bir bağlanmış cüzdanda <b>Ödemeyi buraya al</b>'a tıklayın.",
         "Bir cüzdanı profilinizden kaldırmak için yanındaki <b>⋯</b> simgesine, ardından <b>Profilinden kaldır</b>'a tıklayın."
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "Herkesle sohbet et",
       "steps": [
         "Ana Sayfa'da konuşma balonu simgeli yuvarlak düğme olan <b>Mesajlar</b>'a tıklayın. <b>Orien Grup Sohbeti</b> en üstte sabitlenmiştir.",
-        "Herkes okuyabilir. Yazmak, yanıtlamak veya tepki vermek için giriş yapın ve bir cüzdan doğrulayın.",
+        "Herkes okuyabilir. Yazmak, yanıtlamak veya tepki vermek için giriş yapın ve bir cüzdan bağlayın.",
         "Yanıtlamak, tepki vermek veya bildirmek için bir mesajın üzerine gelin.",
         "Yeni mesajlar Mesajlar üzerinde bir nokta gösterir. Bunu kapatmak için sohbetin üstündeki zil simgesine tıklayın."
       ],
@@ -2011,7 +2012,7 @@
       "title": "Orien Yapay Zeka Desteği'ne Sor",
       "steps": [
         "Ana Sayfa'da konuşma balonu simgeli yuvarlak düğme olan <b>Mesajlar</b>'a tıklayın. <b>Orien Yapay Zeka Desteği</b> grup sohbetinin altında sabitlenmiştir. Büyük pencerede zilin yanındaki can simidi de bunu açar.",
-        "Orien Network'e giriş yapmış olmanız gerekir. Cüzdan doğrulamanız gerekmez.",
+        "Orien Network'e giriş yapmış olmanız gerekir. Cüzdan bağlamanız gerekmez.",
         "Cüzdan, madencilik, takaslar veya ağ hakkında istediğiniz her şeyi kendi kelimelerinizle sorun.",
         "Sohbeti temizlemek için sohbetin üstündeki <b>Baştan başla</b>'ya tıklayın."
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "ORN Sat",
       "steps": [
-        "Önce giriş yapın ve bu cüzdanı doğrulayın.",
+        "Önce giriş yapın ve bu cüzdanı bağlayın.",
         "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a, ardından <b>Teklif yayınla</b>'ya tıklayın.",
         "SOL veya Bitcoin seçin, ardından kaç ORN satacağınızı, karşılığında ne kadar istediğinizi ve ödeme alacağınız adresi yazın.",
         "<b>Teklifi yayınla</b>'ya tıklayın ve kabul edilene kadar Orien Wallet'ı açık tutun. Ayarlar, <b>Bu bilgisayar</b> altındaki <b>Bu bilgisayarı uyanık tut</b> seçeneği siz uzaktayken açık kalmasını sağlar."
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "Tema Mağazası'nda tema paylaş",
       "steps": [
-        "Doğrulanmış bir cüzdanla Orien Network'e giriş yapmış olmanız gerekir.",
+        "Bağlanmış bir cüzdanla Orien Network'e giriş yapmış olmanız gerekir.",
         "Ana Sayfa'daki dişli simgeli yuvarlak düğme olan <b>Ayarlar</b>'ı, ardından <b>Görünüm</b>'ü açın.",
         "Kendi temalarınızdan birinde paylaş düğmesine (oklu kutu), ardından <b>Temayı paylaş</b>'a tıklayın.",
         "Kontrol edildikten sonra adınızla birlikte mağazada görünür; herkes deneyebilir, kullanabilir ve size bahşiş gönderebilir.",
@@ -2125,8 +2126,8 @@
   "Invite users": "Kullanıcı davet et",
   "Enter code": "Kod gir",
   "Invite a friend to mine - you'll both get 7 free ORN": "Bir arkadaşını madenciliğe davet et, ikiniz de 7 ORN hediye kazanın",
-  "Verify a wallet to get your invite code.": "Davet kodunu almak için bir cüzdanı doğrula.",
-  "Verify wallet": "Cüzdanı doğrula",
+  "Link a wallet to get your invite code.": "Davet kodunu almak için bir cüzdanı bağla.",
+  "Link wallet": "Cüzdanı bağla",
   "Your invite code": "Davet kodun",
   "Copy invite code": "Davet kodunu kopyala",
   "Copy invite link": "Davet bağlantısını kopyala",
@@ -2135,7 +2136,7 @@
   "ORN paid": "Ödenen ORN",
   "Share your invite link or code with a friend.": "Davet bağlantını veya kodunu bir arkadaşınla paylaş.",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Arkadaşından Orien'i indirmesini ve hesabını oluşturduktan sonraki 12 saat içinde kodunu girmesini iste.",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Arkadaşının tek yapması gereken cüzdanını doğrulamak ve bu cüzdanla 10 ayrı saatte madencilik ödülü kazanmak.",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "Arkadaşının tek yapması gereken cüzdanını bağlamak ve bu cüzdanla 10 ayrı saatte madencilik ödülü kazanmak.",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "İkiniz de 7 ORN kazanırsınız. En fazla 5 arkadaşını davet edebilirsin (davet hakkın ileride yenilenebilir).",
   "Your referral window has closed": "Davet kodu girme süren doldu",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Bir arkadaşının kodunu yalnızca Orien Network hesabını oluşturduktan sonraki ilk 12 saat içinde girebilirsin. Bu hesap için süre doldu.",
@@ -2146,7 +2147,7 @@
   "Open Mining": "Madenciliği aç",
   "Sign in to your Orien Network account.": "Orien Network hesabına giriş yap.",
   "Enter your friend’s code within 12 hours of creating your account.": "Arkadaşının kodunu hesabını oluşturduktan sonraki 12 saat içinde gir.",
-  "Verify the wallet you’ll use for mining.": "Madencilikte kullanacağın cüzdanı doğrula.",
+  "Link the wallet you’ll use for mining.": "Madencilikte kullanacağın cüzdanı bağla.",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Bu cüzdanla 10 ayrı saatlik dönemde madencilik ödülü kazan.",
   "You and the friend who invited you each earn 7 ORN.": "Sen ve seni davet eden arkadaşın kişi başı 7 ORN kazanırsınız.",
   "Your referral progress": "Davet durumun",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "7 ORN ödülün ödendi.",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Ödüle hak kazandın. 7 ORN ödülün ödenmeyi bekliyor.",
   "This referral closed before a reward was reserved.": "Bu davet için ödül ayrılmadan önce davet kapandı.",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "Kod kabul edildi. Madencilik saatlerinin sayılması için bir cüzdanı doğrula.",
+  "Code accepted. Link a wallet to start counting your mining hours.": "Kod kabul edildi. Madencilik saatlerinin sayılması için bir cüzdanı bağla.",
   "Mining requirement met. Reward reservation is pending.": "Madencilik koşulunu sağladın. Ödülün ayrılması bekleniyor.",
-  "Code accepted. Mine with your verified wallet to make progress.": "Kod kabul edildi. İlerlemek için doğrulanmış cüzdanınla madencilik yap.",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Kod kabul edildi. Bilgisayarda Orien Wallet üzerinden doğrulanmış cüzdanınla madencilik yap.",
+  "Code accepted. Mine with your linked wallet to make progress.": "Kod kabul edildi. İlerlemek için bağlanmış cüzdanınla madencilik yap.",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "Kod kabul edildi. Bilgisayarda Orien Wallet üzerinden bağlanmış cüzdanınla madencilik yap.",
   "Code copied": "Kod kopyalandı",
   "Link copied": "Bağlantı kopyalandı",
   "Couldn’t copy. Try again.": "Kopyalanamadı. Tekrar dene.",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "Bazı işlemler yenilenemedi.",
   "Couldn’t load Solana activity.": "Solana etkinliği yüklenemedi.",
   "Unlock Solana to view activity.": "Etkinliği görmek için Solana kilidini aç.",
-  "No Solana transactions yet": "Henüz Solana işlemi yok"
+  "No Solana transactions yet": "Henüz Solana işlemi yok",
+  "Unlink": "Bağlantıyı kaldır"
 }

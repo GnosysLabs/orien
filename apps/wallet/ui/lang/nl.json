@@ -51,18 +51,18 @@
   "Agreed by": "Bevestigd door",
   "All": "Alle",
   "All your wallets": "Al je wallets",
-  "Among members with a verified wallet, by ORN mined.": "Onder leden met een geverifieerde wallet, op basis van geminede ORN.",
+  "Among members with a linked wallet, by ORN mined.": "Onder leden met een gekoppelde wallet, op basis van geminede ORN.",
   "Amount": "Bedrag",
   "Amount (ORN)": "Bedrag (ORN)",
   "An address, a name or a checkpoint number": "Een adres, een naam of een checkpointnummer",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Een eerdere betaling vanuit deze wallet moest eerst worden afgerond, dus er is nog niets verstuurd ter verificatie. Tik opnieuw om te versturen.",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "Een eerdere betaling vanuit deze wallet moest eerst worden afgerond, dus er is nog niets verstuurd ter koppeling. Tik opnieuw om te versturen.",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Een eerdere betaling vanuit deze wallet moest eerst worden afgerond, dus deze is nog niet verstuurd. Tik opnieuw op Betalen.",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Een eerdere betaling vanuit deze wallet moest eerst worden afgerond, dus deze fooi is nog niet verstuurd. Tik opnieuw op Fooi.",
   "Another amount": "Ander bedrag",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Antwoorden komen van een AI en kunnen onjuist zijn. Deze heeft nooit je herstelwoorden, wachtwoorden of sleutels nodig: deel ze nooit met iemand.",
   "Any colour you like": "Elke kleur die je wilt",
   "Any moment": "Elk moment",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Iedereen kan meelezen. Om te schrijven, te antwoorden of te reageren, log je in en verifieer je een wallet.",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "Iedereen kan meelezen. Om te schrijven, te antwoorden of te reageren, log je in en koppel je een wallet.",
   "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Iedereen kan het zien, gebruiken en je ervoor een fooi geven. Je Orien Network-naam wordt erbij getoond. Je kunt het op elk moment verwijderen.",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Iedereen kan nu aan deze order verkopen. Zodra dat gebeurt, vergrendelt hun wallet de ORN en opent deze app het betaalscherm.",
   "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Iedereen kan deze nu accepteren. Zodra dat gebeurt, voert je wallet de ruil vanzelf uit.",
@@ -133,7 +133,7 @@
   "Buyer": "Koper",
   "Buyer pays": "Koper betaalt",
   "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "De SOL van de koper is gereserveerd. Je ORN worden nu vergrendeld. Houd deze pagina nog enkele seconden open.",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Kopers op de Markt betalen aan de wallet met het label Hier betaald. Verifieer meer wallets om ertussen te kiezen.",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "Kopers op de Markt betalen aan de wallet met het label Hier betaald. Koppel meer wallets om ertussen te kiezen.",
   "Buying ORN": "ORN kopen",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Via een berichtenapp of e-mail. Het laat de Orien Wallet van de koper weten wat je voor hen hebt vergrendeld en bevat niets geheims.",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Via een berichtenapp of e-mail. Het laat de Orien Wallet van de verkoper weten waar je de Bitcoin betaalt en bevat niets geheims.",
@@ -370,10 +370,10 @@
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Mine een uurtje in Orien Wallet op een computer, of koop een beetje op orien.network.",
   "Mine it on a computer.": "Mine het op een computer.",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Mine op een computer: installeer Orien Wallet daar, koppel deze wallet en druk op",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Mine met een geverifieerde wallet en je cijfers verschijnen hier na het volgende checkpoint.",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "Mine met een gekoppelde wallet en je cijfers verschijnen hier na het volgende checkpoint.",
   "Miners last hour": "Miners afgelopen uur",
   "Miners paid": "Betaalde miners",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Miners die een wallet hebben geverifieerd op hun Orien Network-account, op basis van geminede ORN. Verifieer je wallet op je account om op de lijst te komen.",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "Miners die een wallet hebben gekoppeld op hun Orien Network-account, op basis van geminede ORN. Koppel je wallet op je account om op de lijst te komen.",
   "Minimize": "Minimaliseren",
   "Minimum order is 0.01 SOL": "Minimumorder is 0,01 SOL",
   "Mining": "Minen",
@@ -422,12 +422,12 @@
   "No swaps completed yet. The next swap sets the price.": "Nog geen ruiltransacties voltooid. De volgende ruil bepaalt de prijs.",
   "No swaps yet": "Nog geen ruiltransacties",
   "No trades yet": "Nog geen transacties",
-  "No verified wallet yet": "Nog geen geverifieerde wallet",
-  "No verified wallets yet": "Nog geen geverifieerde wallets",
+  "No linked wallet yet": "Nog geen gekoppelde wallet",
+  "No linked wallets yet": "Nog geen gekoppelde wallets",
   "No wallets yet.": "Nog geen wallets.",
   "Nobody by that name.": "Niemand met die naam.",
   "Nobody is banned.": "Niemand is verbannen.",
-  "Nobody with a verified wallet has been paid for mining yet.": "Er is nog niemand met een geverifieerde wallet betaald voor het minen.",
+  "Nobody with a linked wallet has been paid for mining yet.": "Er is nog niemand met een gekoppelde wallet betaald voor het minen.",
   "None": "Geen",
   "Normal": "Normaal",
   "Not an Orien address": "Geen Orien-adres",
@@ -436,7 +436,7 @@
   "Not in the network's history": "Niet in de geschiedenis van het netwerk",
   "Not now": "Niet nu",
   "Not recorded": "Niet geregistreerd",
-  "Not verified yet": "Nog niet geverifieerd",
+  "Not linked yet": "Nog niet gekoppeld",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Niets gevonden. Zoek een adres (64 letters en cijfers, 0-9 en a-f), een checkpointnummer of de naam van iemand op de Markt.",
   "Nothing from the network about them yet.": "Nog niets van het netwerk over hen.",
   "Nothing has happened at this address yet.": "Er is nog niets gebeurd op dit adres.",
@@ -477,7 +477,7 @@
   "Open Mine": "Open Minen",
   "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Open Orien Wallet op het apparaat waarmee je deze aanbieding hebt geplaatst of geaccepteerd om de ruil af te ronden",
   "Open at login": "Openen bij inloggen",
-  "Open it to verify": "Open om te verifiëren",
+  "Open it to link": "Open om te koppelen",
   "Open offers": "Open aanbiedingen",
   "Open the explorer": "Open de verkenner",
   "Opens Firefox's add-on store: click Add to Firefox": "Opent de add-onwinkel van Firefox: klik op Toevoegen aan Firefox",
@@ -630,8 +630,8 @@
   "Sell amount (ORN)": "Verkoopbedrag (ORN)",
   "Sell from": "Verkopen vanuit",
   "Sell into this offer": "Verkopen aan deze aanbieding",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Verkoopaanbiedingen komen van geverifieerde wallets, zodat kopers kunnen zien met wie ze ruilen. Verificatie koppelt deze wallet aan je Orien Network-naam en verstuurt eenmalig minder dan 0,001 ORN.",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Verkooporders komen van geverifieerde wallets zodat kopers weten met wie ze handelen (verstuurt eenmalig < 0,001 ORN).",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "Verkoopaanbiedingen komen van gekoppelde wallets, zodat kopers kunnen zien met wie ze ruilen. Koppeling koppelt deze wallet aan je Orien Network-naam en verstuurt eenmalig minder dan 0,001 ORN.",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Verkooporders komen van gekoppelde wallets zodat kopers weten met wie ze handelen (verstuurt eenmalig < 0,001 ORN).",
   "Sell something": "Iets verkopen",
   "Seller": "Verkoper",
   "Seller accepts": "Verkoper accepteert",
@@ -643,7 +643,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Verstuur ORN, bekijk je saldo en log met één klik in op orien.network, rechtstreeks vanuit je browser. Je sleutels verlaten Orien Wallet nooit.",
   "Send SOL": "SOL versturen",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Verstuur eenmalig SOL naar een Solana-order. Deze blijft live in het orderboek, zelfs als Orien Wallet gesloten is, wikkelt binnen ongeveer een minuut af zodra deze wordt geaccepteerd en is met één klik te annuleren.",
-  "Send and verify": "Versturen en verifiëren",
+  "Send and link": "Versturen en koppelen",
   "Send me a code": "Stuur me een code",
   "Send report": "Melding versturen",
   "Send the buyer this offer code": "Stuur de koper deze aanbiedingscode",
@@ -656,7 +656,7 @@
   "Sent a GIF": "Heeft een GIF gestuurd",
   "Sent a picture": "Heeft een afbeelding gestuurd",
   "Sent from another app": "Verstuurd vanuit een andere app",
-  "Sent. Verifying, usually within a minute.": "Verstuurd. Bezig met verifiëren, meestal binnen een minuut.",
+  "Sent. Linking, usually within a minute.": "Verstuurd. Bezig met koppelen, meestal binnen een minuut.",
   "Set password": "Wachtwoord instellen",
   "Set the": "Stel de",
   "Set up": "Instellen",
@@ -681,10 +681,10 @@
   "Show your accounts on your profile, if you like. Everyone can see them.": "Toon je accounts op je profiel als je wilt. Iedereen kan ze zien.",
   "Sign Out": "Uitloggen",
   "Sign in": "Inloggen",
-  "Sign in and verify this wallet first.": "Log eerst in en verifieer deze wallet.",
+  "Sign in and link this wallet first.": "Log eerst in en koppel deze wallet.",
   "Sign in to Orien Network": "Inloggen bij Orien Network",
   "Sign in to Orien Network first.": "Log eerst in bij Orien Network.",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Log in bij Orien Network om een vraag te stellen. Een wallet verifiëren is niet nodig.",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "Log in bij Orien Network om een vraag te stellen. Een wallet koppelen is niet nodig.",
   "Sign in to Orien Network to chat, reply or react.": "Log in bij Orien Network om te chatten, antwoorden of reageren.",
   "Sign in to Orien Network to chat.": "Log in bij Orien Network om te chatten.",
   "Sign in to Orien Network to post and react.": "Log in bij Orien Network om te plaatsen en te reageren.",
@@ -696,10 +696,10 @@
   "Sign in to Orien Network to see the themes you shared.": "Log in bij Orien Network om je gedeelde thema's te zien.",
   "Sign in to Orien Network to see your own messages and to chat.": "Log in bij Orien Network om je eigen berichten te zien en te chatten.",
   "Sign in to Orien Network to tip.": "Log in bij Orien Network om een fooi te geven.",
-  "Sign in to Orien Network with a verified wallet to share themes.": "Log in bij Orien Network met een geverifieerde wallet om thema's te delen.",
+  "Sign in to Orien Network with a linked wallet to share themes.": "Log in bij Orien Network met een gekoppelde wallet om thema's te delen.",
   "Sign in to message the seller": "Log in om de verkoper een bericht te sturen",
   "Sign in to trade": "Log in om te handelen",
-  "Sign in, and open the wallet you want to verify.": "Log in en open de wallet die je wilt verifiëren.",
+  "Sign in, and open the wallet you want to link.": "Log in en open de wallet die je wilt koppelen.",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Log uit bij Windows en weer in, en open daarna Orien Wallet. Het minen gaat vanaf dan sneller.",
   "Sign out to finish": "Log uit om te voltooien",
   "Signing in": "Inloggen",
@@ -885,23 +885,24 @@
   "Validator fees": "Validatorkosten",
   "Validators": "Validators",
   "Verified": "Geverifieerd",
-  "Verified wallet": "Geverifieerde wallet",
-  "Verify": "Verifiëren",
-  "Verify a wallet": "Een wallet verifiëren",
-  "Verify a wallet and people who pay it see your name with it.": "Verifieer een wallet zodat mensen die ernaar betalen jouw naam erbij zien.",
-  "Verify a wallet to post and see your mining here.": "Verifieer een wallet om berichten te plaatsen en je mining hier te zien.",
-  "Verify more wallets, and choose where you're paid": "Verifieer meer wallets en kies waar je betaald wordt",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Verifieer een van je wallets op je Orien Network-profiel om te plaatsen, antwoorden en reageren.",
-  "Verify one of your wallets to chat, reply or react.": "Verifieer een van je wallets om te chatten, antwoorden of reageren.",
-  "Verify one of your wallets to chat. Anyone can read along.": "Verifieer een van je wallets om te chatten. Iedereen kan meelezen.",
-  "Verify one of your wallets to react.": "Verifieer een van je wallets om te reageren.",
-  "Verify one of your wallets to reply.": "Verifieer een van je wallets om te antwoorden.",
-  "Verify this wallet": "Deze wallet verifiëren",
-  "Verify this wallet to offer swaps": "Verifieer deze wallet om ruiltransacties aan te bieden",
-  "Verify this wallet to place sell orders": "Verifieer deze wallet om verkooporders te plaatsen",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Verifiëren laat iedereen zien dat de wallet van jou is, inclusief het saldo. Zo kun je berichten plaatsen, verkopen, ruilen en fooien ontvangen.",
-  "Verifying…": "Verifiëren…",
-  "Verifying… usually within a minute": "Verifiëren… meestal binnen een minuut",
+  "Linked": "Gekoppeld",
+  "Linked wallet": "Gekoppelde wallet",
+  "Link": "Koppelen",
+  "Link a wallet": "Een wallet koppelen",
+  "Link a wallet and people who pay it see your name with it.": "Koppel een wallet zodat mensen die ernaar betalen jouw naam erbij zien.",
+  "Link a wallet to post and see your mining here.": "Koppel een wallet om berichten te plaatsen en je mining hier te zien.",
+  "Link more wallets, and choose where you're paid": "Koppel meer wallets en kies waar je betaald wordt",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "Koppel een van je wallets op je Orien Network-profiel om te plaatsen, antwoorden en reageren.",
+  "Link one of your wallets to chat, reply or react.": "Koppel een van je wallets om te chatten, antwoorden of reageren.",
+  "Link one of your wallets to chat. Anyone can read along.": "Koppel een van je wallets om te chatten. Iedereen kan meelezen.",
+  "Link one of your wallets to react.": "Koppel een van je wallets om te reageren.",
+  "Link one of your wallets to reply.": "Koppel een van je wallets om te antwoorden.",
+  "Link this wallet": "Deze wallet koppelen",
+  "Link this wallet to offer swaps": "Koppel deze wallet om ruiltransacties aan te bieden",
+  "Link this wallet to place sell orders": "Koppel deze wallet om verkooporders te plaatsen",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Koppelen laat iedereen zien dat de wallet van jou is, inclusief het saldo. Zo kun je berichten plaatsen, verkopen, ruilen en fooien ontvangen.",
+  "Linking…": "Koppelen…",
+  "Linking… usually within a minute": "Koppelen… meestal binnen een minuut",
   "Version": "Versie",
   "Videos about Orien": "Video's over Orien",
   "View": "Bekijken",
@@ -966,8 +967,8 @@
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "Je hebt 24 thema's, het maximale aantal. Verwijder er eerst een bij Weergave.",
   "You haven't blocked anyone.": "Je hebt niemand geblokkeerd.",
   "You need": "Je hebt nodig",
-  "You need to be signed in to Orien Network with a verified wallet.": "Je moet ingelogd zijn bij Orien Network met een geverifieerde wallet.",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Je moet ingelogd zijn bij Orien Network. Een wallet verifiëren is niet nodig.",
+  "You need to be signed in to Orien Network with a linked wallet.": "Je moet ingelogd zijn bij Orien Network met een gekoppelde wallet.",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "Je moet ingelogd zijn bij Orien Network. Een wallet koppelen is niet nodig.",
   "You pay": "Je betaalt",
   "You sell": "Je verkoopt",
   "You send the buyer the offer code, and paste in the reply code they send back": "Je stuurt de koper de aanbiedingscode en plakt de antwoordcode die zij terugsturen",
@@ -1440,8 +1441,8 @@
       "Gestaked door {0}"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "{0} geverifieerde wallets"
+      "^(\\d+) linked wallets?$",
+      "{0} gekoppelde wallets"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "Plaatsen met {0}"
     ],
     [
-      "^Verify with (.+)$",
-      "Verifiëren met {0}"
+      "^Link with (.+)$",
+      "Koppelen met {0}"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "Bevestigen met {0}"
     ],
     [
-      "^Verify (.+)$",
-      "{0} verifiëren"
+      "^Link (.+)$",
+      "{0} koppelen"
     ],
     [
-      "^Verifying (.+)$",
-      "{0} verifiëren"
+      "^Linking (.+)$",
+      "{0} koppelen"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "Verstuur {0} ORN en verifieer"
+      "^Send ([0-9.,]+) ORN and link$",
+      "Verstuur {0} ORN en koppel"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "Je account is voor de Community, de Markt en ruiltransacties. Je wallets blijven in deze app."
     },
     "verify": {
-      "title": "Een wallet verifiëren",
+      "title": "Een wallet koppelen",
       "steps": [
-        "Log in en open de wallet die je wilt verifiëren.",
-        "Klik op Start op <b>Verifiëren</b> op de kaart <b>Verifiëren</b> onder je saldo. (Of klik rechtsboven op je foto, dan op <b>Profiel bewerken</b> en daarna op <b>Verifiëren</b> naast de wallet.)",
-        "Klik op <b>Verifiëren</b> om te bevestigen. Er wordt minder dan 0,001 ORN vanuit die wallet verstuurd, inclusief kosten.",
-        "Binnen een minuut staat er <b>Geverifieerd</b>."
+        "Log in en open de wallet die je wilt koppelen.",
+        "Klik op Start op <b>Koppelen</b> op de kaart <b>Koppelen</b> onder je saldo. (Of klik rechtsboven op je foto, dan op <b>Profiel bewerken</b> en daarna op <b>Koppelen</b> naast de wallet.)",
+        "Klik op <b>Koppelen</b> om te bevestigen. Er wordt minder dan 0,001 ORN vanuit die wallet verstuurd, inclusief kosten.",
+        "Binnen een minuut staat er <b>Gekoppeld</b>."
       ],
-      "note": "Verifiëren laat iedereen zien dat de wallet van jou is, inclusief het saldo. Zo kun je berichten plaatsen, verkopen, ruilen en fooien ontvangen."
+      "note": "Koppelen laat iedereen zien dat de wallet van jou is, inclusief het saldo. Zo kun je berichten plaatsen, verkopen, ruilen en fooien ontvangen."
     },
     "verify-more": {
-      "title": "Verifieer meer wallets en kies waar je betaald wordt",
+      "title": "Koppel meer wallets en kies waar je betaald wordt",
       "steps": [
         "Wissel naar een andere wallet: klik op Start op de naam van de wallet en kies deze.",
-        "Klik op je foto, dan op <b>Profiel bewerken</b> en daarna op <b>Verifiëren</b> naast die wallet.",
+        "Klik op je foto, dan op <b>Profiel bewerken</b> en daarna op <b>Koppelen</b> naast die wallet.",
         "Herhaal dit voor elke wallet die je op je profiel wilt.",
-        "De wallet waarop kopers en fooigevers betalen heeft het label <b>Hier betaald</b>. Om dit te wijzigen, klik je op <b>Hier betaald worden</b> bij een andere geverifieerde wallet.",
+        "De wallet waarop kopers en fooigevers betalen heeft het label <b>Hier betaald</b>. Om dit te wijzigen, klik je op <b>Hier betaald worden</b> bij een andere gekoppelde wallet.",
         "Om een wallet van je profiel te halen, klik je op <b>⋯</b> ernaast en daarna op <b>Van je profiel verwijderen</b>."
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "Chat met iedereen",
       "steps": [
         "Klik op Start op <b>Berichten</b>, de ronde knop met een tekstballon. <b>Orien-groepschat</b> staat bovenaan vastgezet.",
-        "Iedereen kan meelezen. Om te schrijven, te antwoorden of te reageren, log je in en verifieer je een wallet.",
+        "Iedereen kan meelezen. Om te schrijven, te antwoorden of te reageren, log je in en koppel je een wallet.",
         "Wijs naar een bericht om te antwoorden, te reageren of het te melden.",
         "Nieuwe berichten plaatsen een stip op Berichten. Om dat uit te schakelen, klik je op de bel bovenaan de chat."
       ],
@@ -2011,7 +2012,7 @@
       "title": "Vraag Orien AI-ondersteuning",
       "steps": [
         "Klik op Start op <b>Berichten</b>, de ronde knop met een tekstballon. <b>Orien AI-ondersteuning</b> staat vastgezet onder de groepschat. In een groot venster opent de reddingsboei naast de bel dit ook.",
-        "Je moet ingelogd zijn bij Orien Network. Een wallet verifiëren is niet nodig.",
+        "Je moet ingelogd zijn bij Orien Network. Een wallet koppelen is niet nodig.",
         "Vraag alles over de wallet, minen, ruilen of het netwerk, in je eigen woorden.",
         "Klik bovenaan de chat op <b>Opnieuw beginnen</b> om deze te wissen."
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "ORN verkopen",
       "steps": [
-        "Log eerst in en verifieer deze wallet.",
+        "Log eerst in en koppel deze wallet.",
         "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen, en daarna op <b>Een aanbieding plaatsen</b>.",
         "Kies SOL of Bitcoin, typ hoeveel ORN je wilt verkopen, hoeveel je ervoor wilt en het adres waarop je betaald wilt worden.",
         "Klik op <b>Aanbieding plaatsen</b> en houd Orien Wallet actief totdat deze wordt geaccepteerd. <b>Deze computer wakker houden</b> in Instellingen, <b>Deze computer</b>, houdt de app open terwijl je weg bent."
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "Deel een thema in de Themawinkel",
       "steps": [
-        "Je moet ingelogd zijn bij Orien Network met een geverifieerde wallet.",
+        "Je moet ingelogd zijn bij Orien Network met een gekoppelde wallet.",
         "Open <b>Instellingen</b>, de ronde knop met een tandwiel op Start, en daarna <b>Weergave</b>.",
         "Klik bij een van je eigen thema's op de deelknop (het vierkant met een pijl) en vervolgens op <b>Thema delen</b>.",
         "Het wordt gecontroleerd en verschijnt daarna met jouw naam in de winkel, waar iedereen het kan proberen, gebruiken en je een fooi kan geven.",
@@ -2125,8 +2126,8 @@
   "Invite users": "Gebruikers uitnodigen",
   "Enter code": "Code invoeren",
   "Invite a friend to mine - you'll both get 7 free ORN": "Nodig een vriend uit om te minen en ontvang allebei 7 gratis ORN.",
-  "Verify a wallet to get your invite code.": "Verifieer een wallet om je uitnodigingscode te krijgen.",
-  "Verify wallet": "Wallet verifiëren",
+  "Link a wallet to get your invite code.": "Koppel een wallet om je uitnodigingscode te krijgen.",
+  "Link wallet": "Wallet koppelen",
   "Your invite code": "Je uitnodigingscode",
   "Copy invite code": "Uitnodigingscode kopiëren",
   "Copy invite link": "Uitnodigingslink kopiëren",
@@ -2135,7 +2136,7 @@
   "ORN paid": "Uitbetaalde ORN",
   "Share your invite link or code with a friend.": "Deel je uitnodigingslink of code met een vriend.",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Vraag je vriend om Orien te downloaden en je code binnen 12 uur na het aanmaken van het account te gebruiken.",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Je vriend hoeft alleen een wallet te verifiëren en daarmee in 10 afzonderlijke uren miningbeloningen te verdienen.",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "Je vriend hoeft alleen een wallet te koppelen en daarmee in 10 afzonderlijke uren miningbeloningen te verdienen.",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "Jullie ontvangen elk 7 ORN. Je kunt maximaal 5 vrienden uitnodigen (dit aantal kan later worden vernieuwd).",
   "Your referral window has closed": "De termijn voor het invoeren van een code is verstreken",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Je kunt de code van een vriend alleen invoeren in de eerste 12 uur nadat je je Orien Network-account hebt aangemaakt. Voor dit account is die termijn verstreken.",
@@ -2146,7 +2147,7 @@
   "Open Mining": "Mining openen",
   "Sign in to your Orien Network account.": "Meld je aan bij je Orien Network-account.",
   "Enter your friend’s code within 12 hours of creating your account.": "Voer de code van je vriend in binnen 12 uur nadat je je account hebt aangemaakt.",
-  "Verify the wallet you’ll use for mining.": "Verifieer de wallet waarmee je gaat minen.",
+  "Link the wallet you’ll use for mining.": "Koppel de wallet waarmee je gaat minen.",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Verdien met die wallet miningbeloningen op 10 uurlijkse controlepunten.",
   "You and the friend who invited you each earn 7 ORN.": "Jij en de vriend die je heeft uitgenodigd ontvangen elk 7 ORN.",
   "Your referral progress": "Voortgang van je doorverwijzing",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "Je beloning van 7 ORN is uitbetaald.",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Je voldoet aan de voorwaarden. Je beloning van 7 ORN wacht op uitbetaling.",
   "This referral closed before a reward was reserved.": "Deze doorverwijzing is gesloten voordat een beloning werd gereserveerd.",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "Code geaccepteerd. Verifieer een wallet zodat je mininguren meetellen.",
+  "Code accepted. Link a wallet to start counting your mining hours.": "Code geaccepteerd. Koppel een wallet zodat je mininguren meetellen.",
   "Mining requirement met. Reward reservation is pending.": "Het miningdoel is bereikt. De beloning moet nog worden gereserveerd.",
-  "Code accepted. Mine with your verified wallet to make progress.": "Code geaccepteerd. Mine met je geverifieerde wallet om voortgang te boeken.",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Code geaccepteerd. Mine op een computer met je geverifieerde wallet in Orien Wallet.",
+  "Code accepted. Mine with your linked wallet to make progress.": "Code geaccepteerd. Mine met je gekoppelde wallet om voortgang te boeken.",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "Code geaccepteerd. Mine op een computer met je gekoppelde wallet in Orien Wallet.",
   "Code copied": "Code gekopieerd",
   "Link copied": "Link gekopieerd",
   "Couldn’t copy. Try again.": "Kopiëren is mislukt. Probeer het opnieuw.",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "Een deel van de activiteit kon niet worden vernieuwd.",
   "Couldn’t load Solana activity.": "De Solana-activiteit kon niet worden geladen.",
   "Unlock Solana to view activity.": "Ontgrendel Solana om de activiteit te bekijken.",
-  "No Solana transactions yet": "Nog geen Solana-transacties"
+  "No Solana transactions yet": "Nog geen Solana-transacties",
+  "Unlink": "Ontkoppelen"
 }

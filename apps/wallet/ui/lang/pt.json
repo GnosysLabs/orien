@@ -51,18 +51,18 @@
   "Agreed by": "Confirmado por",
   "All": "Todos",
   "All your wallets": "Todas as suas carteiras",
-  "Among members with a verified wallet, by ORN mined.": "Entre membros com carteira verificada, por ORN minerados.",
+  "Among members with a linked wallet, by ORN mined.": "Entre membros com carteira vinculada, por ORN minerados.",
   "Amount": "Quantidade",
   "Amount (ORN)": "Quantidade (ORN)",
   "An address, a name or a checkpoint number": "Um endereço, nome ou número de checkpoint",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Um pagamento anterior desta carteira precisava terminar primeiro, então nada foi enviado para verificação ainda. Toque novamente para enviar.",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "Um pagamento anterior desta carteira precisava terminar primeiro, então nada foi enviado para vinculação ainda. Toque novamente para enviar.",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Um pagamento anterior desta carteira precisava terminar primeiro, então este ainda não foi enviado. Toque em Pagar novamente.",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Um pagamento anterior desta carteira precisava terminar primeiro, então esta gorjeta ainda não foi enviada. Toque em Gorjeta novamente.",
   "Another amount": "Outro valor",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "As respostas vêm de uma IA e podem estar erradas. Ela nunca precisa das suas palavras de recuperação, senhas ou chaves: nunca compartilhe isso com ninguém.",
   "Any colour you like": "Qualquer cor que você gostar",
   "Any moment": "A qualquer momento",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Qualquer pessoa pode acompanhar. Para escrever, responder ou reagir, entre e verifique uma carteira.",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "Qualquer pessoa pode acompanhar. Para escrever, responder ou reagir, entre e vincule uma carteira.",
   "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Qualquer pessoa pode ver, usar e enviar gorjetas por ele. Seu nome na Orien Network aparece junto. Você pode removê-lo quando quiser.",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Qualquer pessoa pode vender nela agora. Quando isso acontecer, a carteira dela bloqueia os ORN e este app abre a tela de pagamento.",
   "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Qualquer pessoa pode aceitar agora. Quando isso acontecer, sua carteira conclui a troca sozinha.",
@@ -133,7 +133,7 @@
   "Buyer": "Comprador",
   "Buyer pays": "Comprador paga",
   "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "SOL do comprador reservado. Bloqueando seus ORN agora. Mantenha esta página aberta por mais alguns segundos.",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Compradores no Mercado pagam na carteira marcada como Recebe aqui. Verifique mais carteiras para escolher entre elas.",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "Compradores no Mercado pagam na carteira marcada como Recebe aqui. Vincule mais carteiras para escolher entre elas.",
   "Buying ORN": "Comprando ORN",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Por qualquer app de mensagens ou e-mail. Ele informa ao Orien Wallet do comprador o que você bloqueou para ele e não contém nada secreto.",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Por qualquer app de mensagens ou e-mail. Ele informa ao Orien Wallet do vendedor onde você está pagando o Bitcoin e não contém nada secreto.",
@@ -370,10 +370,10 @@
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Minere por uma hora no Orien Wallet em um computador ou compre um pouco em orien.network.",
   "Mine it on a computer.": "Minere em um computador.",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Minere em um computador: instale o Orien Wallet lá, vincule esta carteira e clique em",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Minere com uma carteira verificada e seus números aparecerão aqui após o próximo checkpoint.",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "Minere com uma carteira vinculada e seus números aparecerão aqui após o próximo checkpoint.",
   "Miners last hour": "Mineradores na última hora",
   "Miners paid": "Mineradores pagos",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Mineradores que verificaram uma carteira na conta da Orien Network, por ORN minerados. Verifique sua carteira na sua conta para entrar na lista.",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "Mineradores que vincularam uma carteira na conta da Orien Network, por ORN minerados. Vincule sua carteira na sua conta para entrar na lista.",
   "Minimize": "Minimizar",
   "Minimum order is 0.01 SOL": "A ordem mínima é de 0,01 SOL",
   "Mining": "Minerando",
@@ -422,12 +422,12 @@
   "No swaps completed yet. The next swap sets the price.": "Nenhuma troca concluída ainda. A próxima troca define o preço.",
   "No swaps yet": "Nenhuma troca ainda",
   "No trades yet": "Nenhuma negociação ainda",
-  "No verified wallet yet": "Nenhuma carteira verificada ainda",
-  "No verified wallets yet": "Nenhuma carteira verificada ainda",
+  "No linked wallet yet": "Nenhuma carteira vinculada ainda",
+  "No linked wallets yet": "Nenhuma carteira vinculada ainda",
   "No wallets yet.": "Nenhuma carteira ainda.",
   "Nobody by that name.": "Ninguém com esse nome.",
   "Nobody is banned.": "Ninguém está banido.",
-  "Nobody with a verified wallet has been paid for mining yet.": "Ninguém com carteira verificada recebeu por mineração ainda.",
+  "Nobody with a linked wallet has been paid for mining yet.": "Ninguém com carteira vinculada recebeu por mineração ainda.",
   "None": "Nenhum",
   "Normal": "Normal",
   "Not an Orien address": "Não é um endereço Orien",
@@ -436,7 +436,7 @@
   "Not in the network's history": "Não está no histórico da rede",
   "Not now": "Agora não",
   "Not recorded": "Não registrado",
-  "Not verified yet": "Ainda não verificado",
+  "Not linked yet": "Ainda não vinculado",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Nada encontrado. Pesquise um endereço (64 letras e dígitos, 0-9 e a-f), um número de checkpoint ou o nome de alguém no Mercado.",
   "Nothing from the network about them yet.": "Nada da rede sobre esta conta ainda.",
   "Nothing has happened at this address yet.": "Ainda não houve atividade neste endereço.",
@@ -477,7 +477,7 @@
   "Open Mine": "Abrir Minerar",
   "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Abra o Orien Wallet no dispositivo em que você publicou ou aceitou esta oferta para concluir a troca",
   "Open at login": "Abrir ao iniciar",
-  "Open it to verify": "Abra para verificar",
+  "Open it to link": "Abra para vincular",
   "Open offers": "Ofertas abertas",
   "Open the explorer": "Abrir explorador",
   "Opens Firefox's add-on store: click Add to Firefox": "Abre a loja de extensões do Firefox: clique em Adicionar ao Firefox",
@@ -630,8 +630,8 @@
   "Sell amount (ORN)": "Quantidade de venda (ORN)",
   "Sell from": "Vender a partir de",
   "Sell into this offer": "Vender nesta oferta",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Ofertas de venda vêm de carteiras verificadas para que compradores saibam com quem estão trocando. A verificação vincula esta carteira ao seu nome na Orien Network e envia menos de 0,001 ORN uma única vez.",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Ordens de venda vêm de carteiras verificadas para que compradores saibam com quem estão negociando (envia < 0,001 ORN uma vez).",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "Ofertas de venda vêm de carteiras vinculadas para que compradores saibam com quem estão trocando. A vinculação vincula esta carteira ao seu nome na Orien Network e envia menos de 0,001 ORN uma única vez.",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Ordens de venda vêm de carteiras vinculadas para que compradores saibam com quem estão negociando (envia < 0,001 ORN uma vez).",
   "Sell something": "Vender algo",
   "Seller": "Vendedor",
   "Seller accepts": "Vendedor aceita",
@@ -643,7 +643,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Envie ORN, veja seu saldo e entre em orien.network com um clique, direto do seu navegador. Suas chaves nunca saem do Orien Wallet.",
   "Send SOL": "Enviar SOL",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Envie SOL uma vez para uma ordem na Solana. Ela permanece ativa no livro de ofertas mesmo com o Orien Wallet fechado, liquida em cerca de um minuto ao ser aceita e pode ser cancelada com um clique.",
-  "Send and verify": "Enviar e verificar",
+  "Send and link": "Enviar e vincular",
   "Send me a code": "Enviar código",
   "Send report": "Enviar relato",
   "Send the buyer this offer code": "Envie este código de oferta ao comprador",
@@ -656,7 +656,7 @@
   "Sent a GIF": "Enviou um GIF",
   "Sent a picture": "Enviou uma foto",
   "Sent from another app": "Enviado de outro app",
-  "Sent. Verifying, usually within a minute.": "Enviado. Verificando, geralmente em cerca de um minuto.",
+  "Sent. Linking, usually within a minute.": "Enviado. Vinculando, geralmente em cerca de um minuto.",
   "Set password": "Definir senha",
   "Set the": "Defina",
   "Set up": "Configurar",
@@ -681,10 +681,10 @@
   "Show your accounts on your profile, if you like. Everyone can see them.": "Mostre suas contas no seu perfil, se quiser. Todos podem vê-las.",
   "Sign Out": "Sair",
   "Sign in": "Entrar",
-  "Sign in and verify this wallet first.": "Entre e verifique esta carteira primeiro.",
+  "Sign in and link this wallet first.": "Entre e vincule esta carteira primeiro.",
   "Sign in to Orien Network": "Entrar na Orien Network",
   "Sign in to Orien Network first.": "Entre na Orien Network primeiro.",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Entre na Orien Network para fazer uma pergunta. Não é preciso verificar uma carteira.",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "Entre na Orien Network para fazer uma pergunta. Não é preciso vincular uma carteira.",
   "Sign in to Orien Network to chat, reply or react.": "Entre na Orien Network para conversar, responder ou reagir.",
   "Sign in to Orien Network to chat.": "Entre na Orien Network para conversar.",
   "Sign in to Orien Network to post and react.": "Entre na Orien Network para publicar e reagir.",
@@ -696,10 +696,10 @@
   "Sign in to Orien Network to see the themes you shared.": "Entre na Orien Network para ver os temas que você compartilhou.",
   "Sign in to Orien Network to see your own messages and to chat.": "Entre na Orien Network para ver suas próprias mensagens e conversar.",
   "Sign in to Orien Network to tip.": "Entre na Orien Network para enviar gorjetas.",
-  "Sign in to Orien Network with a verified wallet to share themes.": "Entre na Orien Network com uma carteira verificada para compartilhar temas.",
+  "Sign in to Orien Network with a linked wallet to share themes.": "Entre na Orien Network com uma carteira vinculada para compartilhar temas.",
   "Sign in to message the seller": "Entre para enviar mensagem ao vendedor",
   "Sign in to trade": "Entre para negociar",
-  "Sign in, and open the wallet you want to verify.": "Entre e abra a carteira que você deseja verificar.",
+  "Sign in, and open the wallet you want to link.": "Entre e abra a carteira que você deseja vincular.",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Saia da sessão do Windows e entre novamente, depois abra o Orien Wallet. A mineração ficará mais rápida a partir daí.",
   "Sign out to finish": "Saia da sessão para concluir",
   "Signing in": "Entrando",
@@ -885,23 +885,24 @@
   "Validator fees": "Taxas de validador",
   "Validators": "Validadores",
   "Verified": "Verificada",
-  "Verified wallet": "Carteira verificada",
-  "Verify": "Verificar",
-  "Verify a wallet": "Verificar uma carteira",
-  "Verify a wallet and people who pay it see your name with it.": "Verifique uma carteira para que quem pagar para ela veja seu nome junto.",
-  "Verify a wallet to post and see your mining here.": "Verifique uma carteira para publicar e ver sua mineração aqui.",
-  "Verify more wallets, and choose where you're paid": "Verifique mais carteiras e escolha onde receber",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Verifique uma das suas carteiras no seu perfil da Orien Network para publicar, responder e reagir.",
-  "Verify one of your wallets to chat, reply or react.": "Verifique uma das suas carteiras para conversar, responder ou reagir.",
-  "Verify one of your wallets to chat. Anyone can read along.": "Verifique uma das suas carteiras para conversar. Qualquer pessoa pode acompanhar.",
-  "Verify one of your wallets to react.": "Verifique uma das suas carteiras para reagir.",
-  "Verify one of your wallets to reply.": "Verifique uma das suas carteiras para responder.",
-  "Verify this wallet": "Verificar esta carteira",
-  "Verify this wallet to offer swaps": "Verifique esta carteira para oferecer trocas",
-  "Verify this wallet to place sell orders": "Verifique esta carteira para criar ordens de venda",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Verificar mostra a todos que a carteira é sua, incluindo o saldo. Isso permite publicar, vender, trocar e receber gorjetas.",
-  "Verifying…": "Verificando…",
-  "Verifying… usually within a minute": "Verificando… geralmente em cerca de um minuto",
+  "Linked": "Vinculada",
+  "Linked wallet": "Carteira vinculada",
+  "Link": "Vincular",
+  "Link a wallet": "Vincular uma carteira",
+  "Link a wallet and people who pay it see your name with it.": "Vincule uma carteira para que quem pagar para ela veja seu nome junto.",
+  "Link a wallet to post and see your mining here.": "Vincule uma carteira para publicar e ver sua mineração aqui.",
+  "Link more wallets, and choose where you're paid": "Vincule mais carteiras e escolha onde receber",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "Vincule uma das suas carteiras no seu perfil da Orien Network para publicar, responder e reagir.",
+  "Link one of your wallets to chat, reply or react.": "Vincule uma das suas carteiras para conversar, responder ou reagir.",
+  "Link one of your wallets to chat. Anyone can read along.": "Vincule uma das suas carteiras para conversar. Qualquer pessoa pode acompanhar.",
+  "Link one of your wallets to react.": "Vincule uma das suas carteiras para reagir.",
+  "Link one of your wallets to reply.": "Vincule uma das suas carteiras para responder.",
+  "Link this wallet": "Vincular esta carteira",
+  "Link this wallet to offer swaps": "Vincule esta carteira para oferecer trocas",
+  "Link this wallet to place sell orders": "Vincule esta carteira para criar ordens de venda",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Vincular mostra a todos que a carteira é sua, incluindo o saldo. Isso permite publicar, vender, trocar e receber gorjetas.",
+  "Linking…": "Vinculando…",
+  "Linking… usually within a minute": "Vinculando… geralmente em cerca de um minuto",
   "Version": "Versão",
   "Videos about Orien": "Vídeos sobre a Orien",
   "View": "Ver",
@@ -966,8 +967,8 @@
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "Você tem 24 temas, o limite máximo. Exclua um em Aparência primeiro.",
   "You haven't blocked anyone.": "Você não bloqueou ninguém.",
   "You need": "Você precisa de",
-  "You need to be signed in to Orien Network with a verified wallet.": "Você precisa estar conectado à Orien Network com uma carteira verificada.",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Você precisa estar conectado à Orien Network. Não é preciso verificar uma carteira.",
+  "You need to be signed in to Orien Network with a linked wallet.": "Você precisa estar conectado à Orien Network com uma carteira vinculada.",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "Você precisa estar conectado à Orien Network. Não é preciso vincular uma carteira.",
   "You pay": "Você paga",
   "You sell": "Você vende",
   "You send the buyer the offer code, and paste in the reply code they send back": "Você envia o código de oferta ao comprador e cola o código de resposta que ele devolver",
@@ -1440,8 +1441,8 @@
       "Em stake por {0}"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "{0} carteiras verificadas"
+      "^(\\d+) linked wallets?$",
+      "{0} carteiras vinculadas"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "Publicar com {0}"
     ],
     [
-      "^Verify with (.+)$",
-      "Verificar com {0}"
+      "^Link with (.+)$",
+      "Vincular com {0}"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "Confirmar com {0}"
     ],
     [
-      "^Verify (.+)$",
-      "Verificar {0}"
+      "^Link (.+)$",
+      "Vincular {0}"
     ],
     [
-      "^Verifying (.+)$",
-      "Verificando {0}"
+      "^Linking (.+)$",
+      "Vinculando {0}"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "Enviar {0} ORN e verificar"
+      "^Send ([0-9.,]+) ORN and link$",
+      "Enviar {0} ORN e vincular"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "Sua conta é para a Comunidade, o Mercado e trocas. Suas carteiras ficam neste app."
     },
     "verify": {
-      "title": "Verificar uma carteira",
+      "title": "Vincular uma carteira",
       "steps": [
-        "Entre na sua conta e abra a carteira que você deseja verificar.",
-        "No Início, clique em <b>Verificar</b> no cartão <b>Verificar</b> abaixo do seu saldo. (Ou clique na sua foto no canto superior direito, depois em <b>Editar perfil</b> e em <b>Verificar</b> ao lado da carteira.)",
-        "Clique em <b>Verificar</b> para confirmar. Isso envia menos de 0,001 ORN dessa carteira, taxa incluída.",
-        "Em cerca de um minuto aparece <b>Verificada</b>."
+        "Entre na sua conta e abra a carteira que você deseja vincular.",
+        "No Início, clique em <b>Vincular</b> no cartão <b>Vincular</b> abaixo do seu saldo. (Ou clique na sua foto no canto superior direito, depois em <b>Editar perfil</b> e em <b>Vincular</b> ao lado da carteira.)",
+        "Clique em <b>Vincular</b> para confirmar. Isso envia menos de 0,001 ORN dessa carteira, taxa incluída.",
+        "Em cerca de um minuto aparece <b>Vinculada</b>."
       ],
-      "note": "Verificar mostra a todos que a carteira é sua, incluindo o saldo. Isso permite publicar, vender, trocar e receber gorjetas."
+      "note": "Vincular mostra a todos que a carteira é sua, incluindo o saldo. Isso permite publicar, vender, trocar e receber gorjetas."
     },
     "verify-more": {
-      "title": "Verifique mais carteiras e escolha onde receber",
+      "title": "Vincule mais carteiras e escolha onde receber",
       "steps": [
         "Troque para outra carteira: clique no nome da carteira no Início e selecione-a.",
-        "Clique na sua foto, depois em <b>Editar perfil</b> e em <b>Verificar</b> ao lado dessa carteira.",
+        "Clique na sua foto, depois em <b>Editar perfil</b> e em <b>Vincular</b> ao lado dessa carteira.",
         "Repita para cada carteira que deseja no seu perfil.",
-        "A carteira onde compradores e quem envia gorjetas pagam mostra <b>Recebe aqui</b>. Para mudar, clique em <b>Receber aqui</b> em outra carteira verificada.",
+        "A carteira onde compradores e quem envia gorjetas pagam mostra <b>Recebe aqui</b>. Para mudar, clique em <b>Receber aqui</b> em outra carteira vinculada.",
         "Para tirar uma carteira do seu perfil, clique em <b>⋯</b> ao lado dela e depois em <b>Remover do seu perfil</b>."
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "Conversar com todos",
       "steps": [
         "No Início, clique em <b>Mensagens</b>, o botão redondo com um balão de fala. O <b>Bate-papo em grupo da Orien</b> fica fixado no topo.",
-        "Qualquer pessoa pode acompanhar. Para escrever, responder ou reagir, entre e verifique uma carteira.",
+        "Qualquer pessoa pode acompanhar. Para escrever, responder ou reagir, entre e vincule uma carteira.",
         "Passe o cursor sobre uma mensagem para responder, reagir ou denunciar.",
         "Novas mensagens colocam um ponto em Mensagens. Para desativar isso, clique no sino no topo do bate-papo."
       ],
@@ -2011,7 +2012,7 @@
       "title": "Perguntar ao Suporte IA da Orien",
       "steps": [
         "No Início, clique em <b>Mensagens</b>, o botão redondo com um balão de fala. O <b>Suporte IA da Orien</b> fica fixado abaixo do bate-papo em grupo. Em uma janela grande, a boia ao lado do sino também abre o suporte.",
-        "Você precisa estar conectado à Orien Network. Não é preciso verificar uma carteira.",
+        "Você precisa estar conectado à Orien Network. Não é preciso vincular uma carteira.",
         "Pergunte qualquer coisa sobre a carteira, mineração, trocas ou a rede, com suas próprias palavras.",
         "Clique em <b>Recomeçar</b> no topo da conversa para limpá-la."
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "Vender ORN",
       "steps": [
-        "Entre e verifique esta carteira primeiro.",
+        "Entre e vincule esta carteira primeiro.",
         "No Início, clique em <b>Trocar</b>, o botão redondo com duas setas, e depois em <b>Publicar oferta</b>.",
         "Escolha SOL ou Bitcoin, depois digite quantos ORN vender, quanto quer por eles e o endereço em que vai receber.",
         "Clique em <b>Publicar oferta</b> e mantenha o Orien Wallet aberto até que ela seja aceita. A opção <b>Manter computador acordado</b> em Configurações, <b>Este computador</b>, mantém a oferta aberta enquanto você estiver fora."
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "Compartilhar um tema na Loja de Temas",
       "steps": [
-        "Você precisa estar conectado à Orien Network com uma carteira verificada.",
+        "Você precisa estar conectado à Orien Network com uma carteira vinculada.",
         "Abra <b>Configurações</b>, o botão redondo com uma engrenagem no Início, e depois <b>Aparência</b>.",
         "Em um dos seus temas, clique no botão de compartilhar (a caixa com uma seta) e depois em <b>Compartilhar tema</b>.",
         "Ele é verificado e depois aparece na loja com seu nome, onde qualquer pessoa pode experimentar, usar e enviar gorjetas para você.",
@@ -2125,8 +2126,8 @@
   "Invite users": "Convidar usuários",
   "Enter code": "Inserir código",
   "Invite a friend to mine - you'll both get 7 free ORN": "Convide um amigo para minerar e ganhem 7 ORN grátis cada um.",
-  "Verify a wallet to get your invite code.": "Verifique uma carteira para receber seu código de convite.",
-  "Verify wallet": "Verificar carteira",
+  "Link a wallet to get your invite code.": "Vincule uma carteira para receber seu código de convite.",
+  "Link wallet": "Vincular carteira",
   "Your invite code": "Seu código de convite",
   "Copy invite code": "Copiar código de convite",
   "Copy invite link": "Copiar link de convite",
@@ -2135,7 +2136,7 @@
   "ORN paid": "ORN pagos",
   "Share your invite link or code with a friend.": "Compartilhe seu link ou código de convite com um amigo.",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Peça ao seu amigo que baixe o Orien e use seu código em até 12 horas após criar a conta.",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Seu amigo só precisa verificar a carteira e ganhar recompensas de mineração com ela em 10 horas distintas.",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "Seu amigo só precisa vincular a carteira e ganhar recompensas de mineração com ela em 10 horas distintas.",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "Cada um ganha 7 ORN. Você pode convidar até 5 amigos (esse limite poderá ser renovado no futuro).",
   "Your referral window has closed": "O prazo para inserir um código terminou",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Você só pode inserir o código de um amigo nas primeiras 12 horas após criar sua conta na Orien Network. Esse prazo já terminou para esta conta.",
@@ -2146,7 +2147,7 @@
   "Open Mining": "Abrir mineração",
   "Sign in to your Orien Network account.": "Entre na sua conta da Orien Network.",
   "Enter your friend’s code within 12 hours of creating your account.": "Insira o código do seu amigo em até 12 horas após criar sua conta.",
-  "Verify the wallet you’ll use for mining.": "Verifique a carteira que você usará para minerar.",
+  "Link the wallet you’ll use for mining.": "Vincule a carteira que você usará para minerar.",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Ganhe recompensas de mineração com essa carteira em 10 pontos de controle horários.",
   "You and the friend who invited you each earn 7 ORN.": "Você e a pessoa que fez o convite ganham 7 ORN cada.",
   "Your referral progress": "Progresso da sua indicação",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "Sua recompensa de 7 ORN foi paga.",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Você cumpriu os requisitos. Sua recompensa de 7 ORN aguarda pagamento.",
   "This referral closed before a reward was reserved.": "Esta indicação foi encerrada antes da reserva de uma recompensa.",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "Código aceito. Verifique uma carteira para começar a contar suas horas de mineração.",
+  "Code accepted. Link a wallet to start counting your mining hours.": "Código aceito. Vincule uma carteira para começar a contar suas horas de mineração.",
   "Mining requirement met. Reward reservation is pending.": "Requisito de mineração cumprido. A reserva da recompensa está pendente.",
-  "Code accepted. Mine with your verified wallet to make progress.": "Código aceito. Minere com sua carteira verificada para avançar.",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Código aceito. Minere com sua carteira verificada no Orien Wallet em um computador.",
+  "Code accepted. Mine with your linked wallet to make progress.": "Código aceito. Minere com sua carteira vinculada para avançar.",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "Código aceito. Minere com sua carteira vinculada no Orien Wallet em um computador.",
   "Code copied": "Código copiado",
   "Link copied": "Link copiado",
   "Couldn’t copy. Try again.": "Não foi possível copiar. Tente novamente.",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "Parte da atividade não pôde ser atualizada.",
   "Couldn’t load Solana activity.": "Não foi possível carregar a atividade da Solana.",
   "Unlock Solana to view activity.": "Desbloqueie a Solana para ver a atividade.",
-  "No Solana transactions yet": "Ainda não há transações na Solana"
+  "No Solana transactions yet": "Ainda não há transações na Solana",
+  "Unlink": "Desvincular"
 }

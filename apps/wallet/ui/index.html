@@ -3561,8 +3561,8 @@
         <div class="ref-panel" id="ref-invite" role="tabpanel" aria-labelledby="ref-tab-invite">
           <h3>Invite a friend to mine - you'll both get 7 free ORN</h3>
           <div id="ref-invite-verification" class="ref-invite-row" hidden>
-            <p>Verify a wallet to get your invite code.</p>
-            <button type="button" class="pill pearl" id="ref-invite-verify">Verify wallet</button>
+            <p>Link a wallet to get your invite code.</p>
+            <button type="button" class="pill pearl" id="ref-invite-verify">Link wallet</button>
           </div>
           <div id="ref-sharing" class="ref-invite-row" hidden>
             <div class="ref-sharing-code">
@@ -3584,7 +3584,7 @@
           <ol class="guide-steps" id="ref-invite-steps" role="list">
             <li data-complete-label="Completed">Share your invite link or code with a friend.</li>
             <li data-complete-label="Completed">Have your friend download Orien and apply your code within 12 hours of creating their account.</li>
-            <li data-complete-label="Completed">Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.</li>
+            <li data-complete-label="Completed">Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.</li>
             <li data-complete-label="Completed">You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)</li>
           </ol>
         </div>
@@ -3612,11 +3612,11 @@
             <button type="button" class="pill pearl" id="ref-mine" hidden>Open Mining</button>
           </div>
           <p id="ref-claim-info" role="status"></p>
-          <button type="button" class="pill pearl" id="ref-claim-verify" hidden>Verify wallet</button>
+          <button type="button" class="pill pearl" id="ref-claim-verify" hidden>Link wallet</button>
           <ol class="guide-steps" id="ref-code-steps" role="list">
             <li data-complete-label="Completed">Sign in to your Orien Network account.</li>
             <li data-complete-label="Completed">Enter your friend’s code within 12 hours of creating your account.</li>
-            <li data-complete-label="Completed">Verify the wallet you’ll use for mining.</li>
+            <li data-complete-label="Completed">Link the wallet you’ll use for mining.</li>
             <li data-complete-label="Completed">Earn mining rewards in 10 hourly checkpoints with that wallet.</li>
             <li data-complete-label="Completed">You and the friend who invited you each earn 7 ORN.</li>
           </ol>
@@ -3841,7 +3841,7 @@
       </div>
 
       <!-- Verifying the open wallet: one tap from Home, while it isn't yet. -->
-      <div class="vw-card" id="vw-card" hidden><span class="vw-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span><div class="vw-text" id="vw-text"></div><button class="pill pearl" id="vw-go">Verify</button><button class="ch-ask-x vw-x" id="vw-x" aria-label="Don't show this again" title="Don't show this again"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+      <div class="vw-card" id="vw-card" hidden><span class="vw-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span><div class="vw-text" id="vw-text"></div><button class="pill pearl" id="vw-go">Link</button><button class="ch-ask-x vw-x" id="vw-x" aria-label="Don't show this again" title="Don't show this again"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
       <div class="section-head">
         <h3>Activity</h3>
         <button class="link" id="view-all" hidden>View all</button>
@@ -4184,7 +4184,7 @@
       <!-- Verifying wallets, so people paying them see "Name – Wallet". -->
       <div class="verify-card" id="pf-verify" hidden>
         <div class="vc-title">Your wallets</div>
-        <p class="vc-text" id="vf-intro">Verify a wallet and people who pay it see your name with it.</p>
+        <p class="vc-text" id="vf-intro">Link a wallet and people who pay it see your name with it.</p>
         <div id="vf-list"></div>
         <div class="vf-confirm" id="vf-confirm" hidden>
           <p class="vc-text" id="vf-text"></p>
@@ -4192,7 +4192,7 @@
             <label for="vf-pw">Wallet password</label>
             <div class="box plain"><input type="password" id="vf-pw" autocomplete="off"></div>
           </div>
-          <div class="vf-actions"><button class="pill" id="vf-cancel">Cancel</button><button class="pill pearl" id="vf-go">Send and verify</button></div>
+          <div class="vf-actions"><button class="pill" id="vf-cancel">Cancel</button><button class="pill pearl" id="vf-go">Send and link</button></div>
         </div>
       </div>
         <div class="pf-danger">
@@ -4649,9 +4649,9 @@
               </div>
 
               <div class="ex-verify" id="ex-verify" hidden>
-                <strong>Verify this wallet to place sell orders</strong>
-                <p>Sell orders come from verified wallets so buyers know who they're trading with (sends &lt; 0.001 ORN once).</p>
-                <button type="button" class="pill pearl" id="ex-verify-go">Verify this wallet</button>
+                <strong>Link this wallet to place sell orders</strong>
+                <p>Sell orders come from linked wallets so buyers know who they're trading with (sends &lt; 0.001 ORN once).</p>
+                <button type="button" class="pill pearl" id="ex-verify-go">Link this wallet</button>
               </div>
 
               <div class="ex-row2">
@@ -4722,9 +4722,9 @@
       </div>
       <!-- Sell offers come from verified wallets: shown when the open one isn't. -->
       <div class="verify-card bp-verify" id="bp-verify" hidden>
-        <div class="vc-title">Verify this wallet to offer swaps</div>
-        <p class="vc-text">Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.</p>
-        <button class="pill pearl" id="bp-verify-go">Verify this wallet</button>
+        <div class="vc-title">Link this wallet to offer swaps</div>
+        <p class="vc-text">Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.</p>
+        <button class="pill pearl" id="bp-verify-go">Link this wallet</button>
       </div>
       <p class="lede" id="bp-lede">Offer your ORN for SOL. When someone takes it, this app locks the ORN for them and runs the swap, as long as it's open.</p>
       <div class="tabs" role="tablist" id="bp-tabs" hidden>
@@ -5010,7 +5010,7 @@
   <p id="vw-say"></p>
   <div class="field" id="vw-pw-box" hidden><div class="box plain"><input id="vw-pw" type="password" autocomplete="current-password" placeholder="Wallet password"></div></div>
   <div class="problem" id="vw-problem" hidden></div>
-  <div id="vw-buttons"><button class="primary pearl" id="vw-yes">Verify</button><button class="secondary" id="vw-no">Cancel</button></div>
+  <div id="vw-buttons"><button class="primary pearl" id="vw-yes">Link</button><button class="secondary" id="vw-no">Cancel</button></div>
 </div></div>
 <div id="upd-veil" hidden><div id="upd-card" role="dialog" aria-modal="true" aria-labelledby="upd-title">
   <div id="upd-icon"></div>
@@ -7286,7 +7286,7 @@
       setTimeout(tsShareClose, 900);
     } catch (e) {
       $("tss-no").disabled = false; $("tss-yes").disabled = false; $("tss-yes").textContent = "Share theme";
-      problem("tss-problem", String(e).startsWith("signin:") ? "Sign in to Orien Network with a verified wallet to share themes." : mkProblem(e));
+      problem("tss-problem", String(e).startsWith("signin:") ? "Sign in to Orien Network with a linked wallet to share themes." : mkProblem(e));
     }
   };
   // Built themes follow you to your other devices: the list, without the
@@ -7655,17 +7655,17 @@
       `Type the 6-digit code from the email and ${tap} <b>Continue</b>.`,
       `New here? Choose a username, then ${tap} <b>Make my account</b>.`,
     ], "Your account is for the Community, the Market and swaps. Your wallets stay in this app.");
-    add("Orien Network", "verify", "Verify a wallet", [
-      "Sign in, and open the wallet you want to verify.",
-      `On Home, ${tap} <b>Verify</b> on the <b>Verify</b> card under your balance. (Or ${tap} your picture at the top right, then <b>Edit Profile</b>, then <b>Verify</b> beside the wallet.)`,
-      `${Tap} <b>Verify</b> to confirm. It sends less than 0.001 ORN from that wallet, fee included.`,
-      "Within a minute it shows <b>Verified</b>.",
-    ], "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.");
-    add("Orien Network", "verify-more", "Verify more wallets, and choose where you’re paid", [
+    add("Orien Network", "verify", "Link a wallet", [
+      "Sign in, and open the wallet you want to link.",
+      `On Home, ${tap} <b>Link</b> on the <b>Link</b> card under your balance. (Or ${tap} your picture at the top right, then <b>Edit Profile</b>, then <b>Link</b> beside the wallet.)`,
+      `${Tap} <b>Link</b> to confirm. It sends less than 0.001 ORN from that wallet, fee included.`,
+      "Within a minute it shows <b>Linked</b>.",
+    ], "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.");
+    add("Orien Network", "verify-more", "Link more wallets, and choose where you’re paid", [
       `Switch to another wallet: ${tap} the wallet’s name on Home and pick it.`,
-      `${Tap} your picture, then <b>Edit Profile</b>, then <b>Verify</b> beside that wallet.`,
+      `${Tap} your picture, then <b>Edit Profile</b>, then <b>Link</b> beside that wallet.`,
       "Repeat for each wallet you want on your profile.",
-      `Under <b>Payout wallet</b>, choose the verified ORN wallet that receives payments and tips.`,
+      `Under <b>Payout wallet</b>, choose the linked ORN wallet that receives payments and tips.`,
       `To take a wallet off your profile, ${tap} <b>Unlink</b> beside its name.`,
     ]);
     add("Orien Network", "tip", "Tip someone", [
@@ -7676,13 +7676,13 @@
     ], "Tips are payments and can’t be undone.");
     add("Orien Network", "chat", "Chat with everyone", [
       `On Home, ${tap} ${MESSAGES}. <b>Orien Group Chat</b> is pinned at the top.`,
-      "Anyone can read along. To write, reply or react, sign in and verify a wallet.",
+      "Anyone can read along. To write, reply or react, sign in and link a wallet.",
       `${phone ? "Tap a message" : "Point at a message"} to reply, react or report it.`,
       `New messages put a dot on Messages. To turn that off, ${tap} the bell at the top of the chat.`,
     ], "Everything in the group chat is public. Be kind.");
     add("Orien Network", "ai", "Ask Orien AI Support", [
       `On Home, ${tap} ${MESSAGES}. <b>Orien AI Support</b> is pinned under the group chat.${phone ? "" : " In a big window, the life buoy beside the bell opens it too."}`,
-      "You need to be signed in to Orien Network. Verifying a wallet isn’t needed.",
+      "You need to be signed in to Orien Network. Linking a wallet isn’t needed.",
       "Ask anything about the wallet, mining, swaps or the network, in your own words.",
       `${Tap} <b>Start over</b> at the top of the chat to clear it.`,
     ], "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.");
@@ -7713,7 +7713,7 @@
         "The ORN arrive in this wallet by themselves.",
       ]);
       add("Getting ORN", "sell", "Sell ORN", [
-        "Sign in and verify this wallet first.",
+        "Sign in and link this wallet first.",
         `On Home, click ${SWAP}, then <b>Post an offer</b>.`,
         "Choose SOL or Bitcoin, then type how many ORN to sell, how much you want for them, and the address you’ll be paid at.",
         "Click <b>Post the offer</b>, and keep Orien Wallet running until it’s taken. <b>Keep this computer awake</b> in Settings, <b>This computer</b>, keeps it open while you’re away.",
@@ -7746,7 +7746,7 @@
         "Like it? The coins button tips its maker some ORN. The flag reports a theme that breaks the rules.",
       ], "A theme you use is your own copy: the maker can’t change it, and you can edit or delete it like one you built.");
       add("Themes", "theme-share", "Share a theme in the Theme Store", [
-        "You need to be signed in to Orien Network with a verified wallet.",
+        "You need to be signed in to Orien Network with a linked wallet.",
         `Open ${gear}, then <b>Appearance</b>.`,
         "On one of your own themes, click the share button (the box with an arrow), then <b>Share theme</b>.",
         "It’s checked, then shows in the store with your name, where anyone can try it, use it and tip you.",
@@ -9103,7 +9103,7 @@
       ...people.map((g) => {
         const info = memberInfo.get(g.id), a = (info && info.account) || {};
         const n = info ? (info.wallets || []).length : null;
-        const sub = info && info.gone ? "Not available" : n === null ? "Orien Network" : n ? `${n} verified wallet${n === 1 ? "" : "s"}` : "No verified wallets yet";
+        const sub = info && info.gone ? "Not available" : n === null ? "Orien Network" : n ? `${n} linked wallet${n === 1 ? "" : "s"}` : "No linked wallets yet";
         const picture = a.picture || (g.addresses[0] && (profileOf(g.addresses[0]) || {}).picture);
         return { key: g.name.toLowerCase(), html: `<div class="tx contact" data-member="${g.id}">
           <span class="face">${esc((g.name || "?").slice(0, 1).toUpperCase())}${picture ? picImg(picture) : robot(a.name || (g.addresses[0] && (profileOf(g.addresses[0]) || {}).name))}</span>
@@ -9275,7 +9275,7 @@
     for (const address of group.addresses) if (!rows.some((r) => r.address === address)) rows.push({ address, name: (named(address) || {}).name || "Saved address" });
     $("mb-wallets").innerHTML = rows.length
       ? `<div class="list">${rows.map((r) => `<div class="tx mb-wallet"><div class="tx-main"><div class="title">${walletLabel(r.name)}${r.address === market ? '<span class="mb-tag">Market</span>' : ""}</div><div class="sub">${short(r.address)}</div></div><button class="pill" data-send="${r.address}">Send</button></div>`).join("")}</div>`
-      : `<div class="empty">${info && info.gone ? "This profile isn't available." : info ? `No verified wallets yet. Wallets ${esc(name)} verifies show up here.` : "Loading…"}</div>`;
+      : `<div class="empty">${info && info.gone ? "This profile isn't available." : info ? "No linked wallets yet" : "Loading…"}</div>`;
     $("mb-remove").textContent = mb.armed ? `Remove ${name}? Tap again` : "Remove from contacts";
     $("mb-remove").classList.toggle("armed", mb.armed);
   }
@@ -10302,7 +10302,7 @@
     $("ex-verify").hidden = exSide === "buy" || !exUnverified;
     const busy = typeof vw !== "undefined" && vw.waiting === open;
     $("ex-verify-go").disabled = busy;
-    $("ex-verify-go").textContent = busy ? "Verifying… usually within a minute" : "Verify this wallet";
+    $("ex-verify-go").textContent = busy ? "Linking… usually within a minute" : "Link this wallet";
     updateExReady();
   }
   $("ex-side-buy").onclick = () => { exSide = "buy"; $("ex-problem").hidden = true; syncExTicket(); };
@@ -10612,7 +10612,7 @@
     // Sent and waiting for the network: said on the button, not offered again.
     const busy = typeof vw !== "undefined" && vw.waiting === open;
     $("bp-verify-go").disabled = busy;
-    $("bp-verify-go").textContent = busy ? "Verifying… usually within a minute" : "Verify this wallet";
+    $("bp-verify-go").textContent = busy ? "Linking… usually within a minute" : "Link this wallet";
     postReady();
   }
   // The same one-tap confirm as Home's: posting opens once it's verified.
@@ -10859,6 +10859,7 @@
 
   const BADGE = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m16 9-5.5 5.5L8 12"/></svg>';
   const VERIFIED = `<span class="verified" title="This wallet proved it belongs to this profile">${BADGE} Verified</span>`;
+  const LINKED_WALLET = `<span class="verified">${BADGE} Linked</span>`;
   // ---- Orien Market ----
   const CATS = [["", "Everything"], ["design", "Design"], ["software", "Software"], ["teaching", "Teaching"], ["goods", "Goods"], ["other", "Other"]];
   const CAT_ICON = {
@@ -11138,7 +11139,7 @@
     };
     const box = (key, placeholder, small) => you && you.verified
       ? `<div class="cm-inline-write${small ? " sub" : ""}">${cmFace(you)}<div class="cm-write"><textarea data-reply-box="${key}" rows="1" maxlength="500" placeholder="${esc(placeholder)}">${esc((cm.rdraft.get(key) || {}).body || "")}</textarea><div class="cm-attach" data-rattach="${key}"${rdraftHtml(key) ? "" : " hidden"}>${rdraftHtml(key)}</div><div class="cm-send"><div class="cm-tools"><button class="cm-tool" data-rphoto="${key}" aria-label="Add photos" title="Photos"${rdraftOf(key).gif || rdraftOf(key).photos.length >= 4 ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button><button class="cm-tool" data-rgif="${key}" aria-label="Add a GIF" title="GIF"${rdraftOf(key).gif || rdraftOf(key).photos.length ? " disabled" : ""}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7.5H6.25A3.25 3.25 0 0 0 3 10.75v2.5a3.25 3.25 0 0 0 3.25 3.25H9V12H7"/><path d="M12.5 7.5v9"/><path d="M20.75 7.5h-4v9"/><path d="M16.75 12h3.25"/></svg></button></div>${small ? `<button class="pill" data-answer-cancel="${post.id}">Cancel</button>` : ""}<button class="pill pearl" data-reply-send="${key}"${rdraftReady(key) ? "" : " disabled"}>Reply</button></div></div></div>`
-      : `<div class="cm-inline-join"><button class="pill pearl" data-join>${you ? "Verify a wallet" : "Sign in"}</button><span>to reply.</span></div>`;
+      : `<div class="cm-inline-join"><button class="pill pearl" data-join>${you ? "Link a wallet" : "Sign in"}</button><span>to reply.</span></div>`;
     const open0 = !!(writing && top.some((r) => r.id === writing.id) && you && you.verified);
     const list = top.map((r) => {
       const kids = under(r.id);
@@ -11193,8 +11194,8 @@
       $(box).hidden = !verified;
       $(join).hidden = !!verified;
       if (verified) $(me).innerHTML = `${esc(you.name.slice(0, 1).toUpperCase())}${you.picture ? picImg(you.picture) : robot(you.name)}`;
-      $(text).textContent = you ? "Verify one of your wallets on your Orien Network profile to post, reply and react." : "Sign in to Orien Network to post, reply and react.";
-      $(go).textContent = you ? "Verify a wallet" : "Sign in";
+      $(text).textContent = you ? "Link one of your wallets to your Orien Network profile to post, reply and react." : "Sign in to Orien Network to post, reply and react.";
+      $(go).textContent = you ? "Link a wallet" : "Sign in";
     }
   }
   async function cmLoad(more) {
@@ -11231,17 +11232,17 @@
     const you = cm.you;
     $("cm-you").innerHTML = !you
       ? '<b>New here?</b><p>Sign in to Orien Network to post and react.</p><button class="pill pearl" data-rail-go="signin">Sign in</button>'
-      : `<div class="cm-me-row" data-user="${esc(you.name)}">${cmPerson(you.name, you.picture)}<div class="mw0"><div class="cm-name">${esc(you.name)}</div><div class="cm-when">${you.verified ? "Verified wallet" : "No verified wallet yet"}</div></div></div>`
+      : `<div class="cm-me-row" data-user="${esc(you.name)}">${cmPerson(you.name, you.picture)}<div class="mw0"><div class="cm-name">${esc(you.name)}</div><div class="cm-when">${you.verified ? "Linked wallet" : "No linked wallet yet"}</div></div></div>`
         + (you.stats ? `<div class="cm-stats"><div><b>#${you.stats.rank}</b><span>rank</span></div><div><b>${cmOrn(you.stats.mined)}</b><span>ORN mined</span></div><div><b>${you.stats.streak}h</b><span>in a row</span></div></div>`
-          : `<p>${you.verified ? "Mine with a verified wallet and your figures show here after the next checkpoint." : "Verify a wallet to post and see your mining here."}</p>`)
-        + (you.verified ? "" : '<button class="pill pearl" data-rail-go="verify">Verify a wallet</button>');
+          : `<p>${you.verified ? "Mine with a linked wallet and your figures show here after the next checkpoint." : "Link a wallet to post and see your mining here."}</p>`)
+        + (you.verified ? "" : '<button class="pill pearl" data-rail-go="verify">Link a wallet</button>');
     const miners = (cm.board && cm.board.miners) || [];
     const rows = cm.allMiners ? miners : miners.slice(0, 8);
     $("cm-board").innerHTML = '<h3><span class="pearl-text">🏆</span> Top miners</h3>'
       + (rows.length ? rows.map((r) => `<button class="cm-row" ${r.name ? `data-user="${esc(r.name)}"` : ""}><span class="cm-rank">${r.rank <= 3 ? MEDALS[r.rank - 1] : r.rank}</span>${cmPerson(r.name, r.picture)}<span class="cm-rname">${esc(r.name || "")}${r.streak > 0 ? `<span class="cm-rsub">🔥 ${r.streak}h</span>` : ""}</span><span class="cm-amt">${cmOrn(r.mined)}</span></button>`).join("")
-        : '<p class="cm-none">Nobody with a verified wallet has been paid for mining yet.</p>')
+        : '<p class="cm-none">Nobody with a linked wallet has been paid for mining yet.</p>')
       + (miners.length > 8 ? `<button class="cm-showall" data-rail-go="all"><span class="pearl-text">${cm.allMiners ? "Show less" : "Show more"}</span></button>` : "")
-      + '<p class="cm-note">Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.</p>';
+      + '<p class="cm-note">Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.</p>';
   }
   $("cm-you").addEventListener("click", (e) => { const go = e.target.closest("[data-rail-go]"); if (go) cmJoin(); });
   $("cm-board").addEventListener("click", (e) => {
@@ -11587,7 +11588,7 @@
     // Reply to a reply: a box under it, with their name.
     const answer = e.target.closest("[data-answer]");
     if (answer) {
-      if (!(cm.you && cm.you.verified)) { problem(cmWhere(answer), cm.you ? "Verify one of your wallets to reply." : "Sign in to Orien Network to reply."); return; }
+      if (!(cm.you && cm.you.verified)) { problem(cmWhere(answer), cm.you ? "Link one of your wallets to reply." : "Sign in to Orien Network to reply."); return; }
       const [postId, id, ...name] = answer.dataset.answer.split(":");
       const was = cm.answering.get(Number(postId));
       if (was && was.id === Number(id)) cm.answering.delete(Number(postId));
@@ -11616,7 +11617,7 @@
       return;
     }
     if ((t.dataset.react || t.dataset.pick || t.dataset.emojiPick) && !(cm.you && cm.you.verified)) {
-      problem(cmWhere(t), cm.you ? "Verify one of your wallets to react." : "Sign in to Orien Network to react.");
+      problem(cmWhere(t), cm.you ? "Link one of your wallets to react." : "Sign in to Orien Network to react.");
       return;
     }
     if (t.dataset.pick) {
@@ -12090,7 +12091,7 @@
     $("sl-mining").hidden = !m;
     if (m) $("sl-mining").innerHTML = '<h3><span class="pearl-text">🏆</span> Mining</h3>'
       + `<div class="sl-stats"><div><b>${m.rank <= 3 ? MEDALS[m.rank - 1] : `#${m.rank}`}</b><span>top miner</span></div><div><b>${cmOrn(m.mined)}</b><span>ORN mined</span></div><div><b>${m.streak}h</b><span>in a row</span></div></div>`
-      + '<p class="cm-note">Among members with a verified wallet, by ORN mined.</p>';
+      + '<p class="cm-note">Among members with a linked wallet, by ORN mined.</p>';
     paintSellerTools(answer);
     // Their part of the community: their posts, and the network's about them.
     sl.posts = []; sl.more = false;
@@ -12377,11 +12378,11 @@
       : (!data.active ? "The referral program hasn’t opened yet." : !data.open ? "All rewards for this program have been reserved." : "");
     $("ref-invite-info").textContent = status || (data && data.completed >= data.invite_limit ? "You’ve reached your five-referral limit." : "");
     const miningWallet = claim?.mining_wallet && view?.address !== claim.mining_wallet
-      ? "wallet " + short(claim.mining_wallet) : "your verified wallet";
+      ? "wallet " + short(claim.mining_wallet) : "your linked wallet";
     $("ref-claim-info").textContent = claim?.status === "paid" ? "Your 7 ORN reward has been paid."
       : claim?.status === "qualified" ? "You’ve qualified. Your 7 ORN reward is awaiting payout."
       : claim?.status === "closed" ? "This referral closed before a reward was reserved."
-      : claim?.status === "pending" ? (!claim.verified ? "Code accepted. Verify a wallet to start counting your mining hours."
+      : claim?.status === "pending" ? (!claim.verified ? "Code accepted. Link a wallet to start counting your mining hours."
         : claim.hours >= data.hours_required ? "Mining requirement met. Reward reservation is pending."
         : "Code accepted. Mine with " + miningWallet + (phone ? " in Orien Wallet on a computer." : " to make progress."))
       : status;
@@ -13173,7 +13174,7 @@
     $("ch-blocked").innerHTML = !board.me
       ? 'Sign in to Orien Network to chat.<br><button class="pill pearl" id="rm-signin">Sign in</button>'
       : !you ? "Loading…" : you.banned ? "You can't send in the group chat right now. You can still read along."
-      : 'Verify one of your wallets to chat. Anyone can read along.<br><button class="pill pearl" id="rm-verify">Verify a wallet</button>';
+      : 'Link one of your wallets to chat. Anyone can read along.<br><button class="pill pearl" id="rm-verify">Link a wallet</button>';
     if (!ok) { room.reply = null; $("rm-reply").hidden = true; $("rm-attach").hidden = true; }
     else roomAttachPaint();
   }
@@ -13284,7 +13285,7 @@
     if (room.you && room.you.verified && !room.you.banned) return true;
     // The card above the box already says why: it nudges instead of a second message.
     if (!$("ch-blocked").hidden) { const c = $("ch-blocked"); c.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 260 }); return false; }
-    problem("ch-problem", board.me ? "Verify one of your wallets to chat, reply or react." : "Sign in to Orien Network to chat, reply or react.");
+    problem("ch-problem", board.me ? "Link one of your wallets to chat, reply or react." : "Sign in to Orien Network to chat, reply or react.");
     return false;
   }
   async function roomClick(e) {
@@ -13471,7 +13472,7 @@
     $("ch-compose").hidden = !ok;
     $("rm-photo").hidden = true; $("rm-gif").hidden = true;
     $("ch-blocked").hidden = ok;
-    if (!ok) $("ch-blocked").innerHTML = 'Sign in to Orien Network to ask a question. Verifying a wallet isn’t needed.<br><button class="pill pearl" id="rm-signin">Sign in</button>';
+    if (!ok) $("ch-blocked").innerHTML = 'Sign in to Orien Network to ask a question. Linking a wallet isn’t needed.<br><button class="pill pearl" id="rm-signin">Sign in</button>';
   }
   function aiPaint() {
     if (!chat.ai) return;
@@ -13620,8 +13621,8 @@
       const noOrn = phone
         ? "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network."
         : "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.";
-      $("se-gate").innerHTML = `<b>Verify a wallet to sell</b><p>Buyers pay you straight from their wallet, so your profile needs a verified wallet to be paid at. Verifying sends a tiny amount, less than 0.001 ORN, from that wallet.</p>
-        <button class="pill pearl" id="se-verify" type="button">Verify a wallet</button><p class="hint">${noOrn}</p>`;
+      $("se-gate").innerHTML = `<b>Link a wallet to sell</b><p>Buyers pay you straight from their wallet, so your profile needs a linked wallet to be paid at. Linking sends a tiny amount, less than 0.001 ORN, from that wallet.</p>
+        <button class="pill pearl" id="se-verify" type="button">Link a wallet</button><p class="hint">${noOrn}</p>`;
       $("se-verify").onclick = () => openProfile();
     }
     sale.editing = listing || null;
@@ -13756,8 +13757,8 @@
     const typed = !linked && view?.locked && !view.biometric;
     const address = linked || (wallet.current && currentSol);
     return `<form class="vf-sol" data-orn="${esc(wallet.address)}" data-account="${account}" data-sol="${esc(linked || "")}">
-      <div class="vf-row"><div><div class="vf-name"><span>${walletLabel(wallet.name, "SOL")}</span>${linked ? VERIFIED : ""}</div><div class="vc-sub" title="${esc(address || "")}">${address ? esc(short(address)) : "—"}</div></div>
-      <button class="pill${linked ? "" : " pearl"}" type="submit">${linked ? "Unlink" : "Verify"}</button></div>
+      <div class="vf-row"><div><div class="vf-name"><span>${walletLabel(wallet.name, "SOL")}</span>${linked ? LINKED_WALLET : ""}</div><div class="vc-sub" title="${esc(address || "")}">${address ? esc(short(address)) : "—"}</div></div>
+      <button class="pill${linked ? "" : " pearl"}" type="submit">${linked ? "Unlink" : "Link"}</button></div>
       ${typed ? '<div class="field"><label>Wallet password<div class="box plain"><input type="password" autocomplete="current-password" required></div></label></div>' : ""}
       <div class="problem" role="alert" hidden></div></form>`;
   }
@@ -13818,20 +13819,20 @@
       ? "Don't have any ORN yet? Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network."
       : "Don't have any ORN yet? Mine for an hour from the Mine screen, or buy a little on Swap.";
     $("vf-intro").hidden = anyVerified;
-    $("vf-intro").innerHTML = anyVerified ? "" : `Verify a wallet to sell on the Market: buyers pay it, and see your name with it.<span class="vf-hint">${noOrn}</span>`;
+    $("vf-intro").innerHTML = anyVerified ? "" : `Link a wallet to sell on the Market: buyers pay it, and see your name with it.<span class="vf-hint">${noOrn}</span>`;
     $("vf-list").innerHTML = rows.map(r => {
       const st = state(r.address);
       const verified = !!(st && st.verified), waiting = !!(st && !st.verified);
       // While one is being verified (confirming below, or sent and waiting)
       // its Verify button gives way to where it stands.
       const busy = verifying === r.address;
-      const status = verified ? "" : waiting ? " · Waiting" : " · Not verified yet";
+      const status = verified ? "" : waiting ? " · Waiting" : " · Not linked yet";
       const action = verified ? ""
-        : busy ? `<span class="vf-wait">${proof ? "Confirm below" : "Verifying…"}</span>`
-        : r.current ? `<button class="pill pearl" data-verify="${r.address}">Verify</button>`
-        : r.here ? '<span class="vf-wait">Open it to verify</span>' : "";
+        : busy ? `<span class="vf-wait">${proof ? "Confirm below" : "Linking…"}</span>`
+        : r.current ? `<button class="pill pearl" data-verify="${r.address}">Link</button>`
+        : r.here ? '<span class="vf-wait">Open it to link</span>' : "";
       const unlink = st ? `<button type="button" class="pill" data-unlink="${esc(r.address)}">Unlink</button>` : "";
-      const ornRow = `<div class="vf-row"><div class="vf-who"><div class="vf-name">${walletLabel(r.name)}${verified ? " " + VERIFIED : ""}</div><div class="vc-sub">${short(r.address)}${status}</div></div><div class="vf-acts">${action}${unlink}</div></div>`;
+      const ornRow = `<div class="vf-row"><div class="vf-who"><div class="vf-name">${walletLabel(r.name)}${verified ? " " + LINKED_WALLET : ""}</div><div class="vc-sub">${short(r.address)}${status}</div></div><div class="vf-acts">${action}${unlink}</div></div>`;
       const solRow = solProfileRow(r, st, profileId, currentSol);
       return solRow ? `<div class="vf-pair">${ornRow}${solRow}</div>` : ornRow;
     }).join("");
@@ -13898,11 +13899,11 @@
     verifying = address;
     button.outerHTML = '<span class="vf-wait">Confirm below</span>';
     // Plainly, before anything is sent: what verifying means, and the amount.
-    $("vf-text").textContent = `Verifying ties the wallet to your name publicly: everyone will see it's yours, including its balance. It sends ${proof.orn} ORN from this wallet to Orien Network: less than 0.001 ORN, fee included.`;
+    $("vf-text").textContent = `Linking makes this wallet public on your profile: everyone will see it's yours, including its balance. It sends ${proof.orn} ORN from this wallet to Orien Network: less than 0.001 ORN, fee included.`;
     $("vf-pw-field").hidden = !(view && view.locked && !view.biometric);
     $("vf-go").hidden = false;
     $("vf-go").disabled = false;
-    $("vf-go").textContent = `Send ${proof.orn} ORN and verify`;
+    $("vf-go").textContent = `Send ${proof.orn} ORN and link`;
     $("vf-confirm").hidden = false;
     if (!$("vf-pw-field").hidden) $("vf-pw").focus();
   }
@@ -13919,14 +13920,14 @@
       const sent = await invoke("send_payment", { to: proof.to, amount: proof.orn, password });
       $("vf-pw").value = "";
       if (sent && sent.earlier) {
-        $("vf-go").textContent = `Send ${proof.orn} ORN and verify`;
+        $("vf-go").textContent = `Send ${proof.orn} ORN and link`;
         $("vf-go").disabled = false;
-        $("vf-text").textContent = "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.";
+        $("vf-text").textContent = "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.";
         return;
       }
       refresh();
       proof = null;
-      await renderVerify("Sent. Verifying, usually within a minute.");
+      await renderVerify("Sent. Linking, usually within a minute.");
       // The market sees the payment a few seconds after it's final.
       for (let i = 0; i < 36; i++) {
         await new Promise((r) => setTimeout(r, 5000));
@@ -13945,7 +13946,7 @@
       }
       renderVerify("Sent. It's taking longer than usual; check back here in a few minutes.");
     } catch (e) {
-      if (proof) $("vf-go").textContent = `Send ${proof.orn} ORN and verify`;
+      if (proof) $("vf-go").textContent = `Send ${proof.orn} ORN and link`;
       $("vf-go").disabled = false;
       problem("pf-problem", e);
     }
@@ -14080,8 +14081,8 @@
     const anyVerified = states.some((p) => p.verified);
     const enough = Number(String(view.most || "0").replace(/,/g, "")) >= 0.001;
     if (!waiting && (anyVerified || !enough)) { card.hidden = true; return; }
-    $("vw-text").innerHTML = waiting ? `<b>Verifying ${walletLabel(vwName())}</b><span>Usually within a minute.</span>`
-      : `<b>Verify ${walletLabel(vwName())}</b><span>To chat, post and sell on Orien Network.</span>`;
+    $("vw-text").innerHTML = waiting ? `<b>Linking ${walletLabel(vwName())}</b><span>Usually within a minute.</span>`
+      : `<b>Link ${walletLabel(vwName())}</b><span>To chat, post and sell on Orien Network.</span>`;
     $("vw-go").hidden = waiting;
     card.hidden = false;
   }
@@ -14091,12 +14092,12 @@
     if (!board.me) return;
     const typed = !!(view.locked && !view.biometric);
     $("vw-problem").hidden = true;
-    $("vw-title").textContent = `Verify ${vwName()}`;
+    $("vw-title").textContent = `Link ${vwName()}`;
     $("vw-say").textContent = "Getting it ready…";
     $("vw-pw-box").hidden = !typed;
     $("vw-yes").disabled = true;
     $("vw-yes").hidden = false;
-    $("vw-yes").textContent = "Verify";
+    $("vw-yes").textContent = "Link";
     $("vw-no").textContent = "Cancel";
     vw.short = false;
     const veil = $("vw-veil");
@@ -14107,14 +14108,14 @@
     try { vw.proof = await invoke("board_verify", { address: view.address }); }
     catch (e) { $("vw-say").textContent = ""; problem("vw-problem", e); return; }
     $("vw-say").textContent = `This ties ${vwName()} to your name publicly: everyone will see it's yours, including its balance. It sends ${vw.proof.orn} ORN to Orien Network, less than 0.001 ORN with the fee.`;
-    $("vw-yes").textContent = view.biometric && !typed ? `Verify with ${bio}` : `Send ${vw.proof.orn} ORN and verify`;
+    $("vw-yes").textContent = view.biometric && !typed ? `Link with ${bio}` : `Send ${vw.proof.orn} ORN and link`;
     $("vw-yes").disabled = false;
     if (typed) $("vw-pw").focus();
   }
   function vwShort() {
     vw.short = true; vw.proof = null;
     $("vw-pw-box").hidden = true;
-    $("vw-say").textContent = `Verifying sends less than 0.001 ORN from ${vwName()}, and it doesn't hold that yet. `
+    $("vw-say").textContent = `Linking sends less than 0.001 ORN from ${vwName()}, and it doesn't hold that yet. `
       + (phone ? "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network." : "Mine for an hour from the Mine screen, or buy a little on Swap.");
     $("vw-yes").hidden = phone;
     $("vw-yes").disabled = false;
@@ -14141,7 +14142,7 @@
       const sent = await invoke("send_payment", { to: proof.to, amount: proof.orn, password });
       if (sent && sent.earlier) {
         $("vw-yes").textContent = label; $("vw-yes").disabled = false;
-        $("vw-say").textContent = "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.";
+        $("vw-say").textContent = "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.";
         return;
       }
       vw.proof = null; vw.waiting = address;

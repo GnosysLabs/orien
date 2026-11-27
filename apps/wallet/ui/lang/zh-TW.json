@@ -51,18 +51,18 @@
   "Agreed by": "共識節點",
   "All": "全部",
   "All your wallets": "所有錢包",
-  "Among members with a verified wallet, by ORN mined.": "按已驗證錢包成員挖出的 ORN 數量排名。",
+  "Among members with a linked wallet, by ORN mined.": "按已連結錢包成員挖出的 ORN 數量排名。",
   "Amount": "金額",
   "Amount (ORN)": "數量 (ORN)",
   "An address, a name or a checkpoint number": "輸入地址、使用者名稱或檢查點編號",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "此錢包之前的一筆轉帳需要先完成，因此驗證交易尚未發出。請再次點擊發送。",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "此錢包之前的一筆轉帳需要先完成，因此連結交易尚未發出。請再次點擊發送。",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "此錢包之前的一筆轉帳需要先完成，因此這筆付款尚未發出。請再次點擊付款。",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "此錢包之前的一筆轉帳需要先完成，因此這筆打賞尚未發出。請再次點擊打賞。",
   "Another amount": "其他金額",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "回答由 AI 生成，可能存在錯誤。它絕不需要你的助記詞、密碼或私鑰，請勿向任何人透露這些資訊。",
   "Any colour you like": "任選你喜歡的顏色",
   "Any moment": "即將到達",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "所有人都可以瀏覽內容。如需發文、回覆或互動，請登入並驗證一個錢包。",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "所有人都可以瀏覽內容。如需發文、回覆或互動，請登入並連結一個錢包。",
   "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "所有人都可以查看、使用並為此向你打賞。你的 Orien Network 使用者名稱會一並顯示，你隨時可以將其下架。",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "現在任何人都可以向此買單出售。當有人出售時，對方錢包會鎖定 ORN，本應用程式會自動開啟支付頁面。",
   "Anyone can take it now. When they do, your wallet runs the swap by itself.": "現在任何人都可以接單。一旦有人接單，你的錢包會自動執行兌換。",
@@ -133,7 +133,7 @@
   "Buyer": "買家",
   "Buyer pays": "買家支付",
   "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "買家的 SOL 已預留，正在鎖定你的 ORN。請保持此頁面開啟幾秒鐘。",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "市場上的買家會向標記為「在此收款」的錢包付款。驗證更多錢包即可在其中切換。",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "市場上的買家會向標記為「在此收款」的錢包付款。連結更多錢包即可在其中切換。",
   "Buying ORN": "正在買入 ORN",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "可透過任意通訊軟體或郵件發送。它用於告知買家的 Orien Wallet 你為其鎖定的內容，不包含任何私密資訊。",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "可透過任意通訊軟體或郵件發送。它用於告知賣家的 Orien Wallet 你將向何處支付 Bitcoin，不包含任何私密資訊。",
@@ -370,10 +370,10 @@
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "在電腦版 Orien Wallet 中挖一小時，或在 orien.network 買入一點。",
   "Mine it on a computer.": "在電腦上挖礦獲取。",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "在電腦上挖礦：在電腦安裝 Orien Wallet，連結此錢包，然後點擊",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "使用已驗證錢包挖礦，你的數據將在下一個檢查點後顯示在這裡。",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "使用已連結錢包挖礦，你的數據將在下一個檢查點後顯示在這裡。",
   "Miners last hour": "上小時礦工數",
   "Miners paid": "獲獎勵礦工",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "按挖出的 ORN 數量排列在 Orien Network 帳號上驗證過錢包的礦工。在帳號中驗證你的錢包即可上榜。",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "按挖出的 ORN 數量排列在 Orien Network 帳號上連結過錢包的礦工。在帳號中連結你的錢包即可上榜。",
   "Minimize": "最小化",
   "Minimum order is 0.01 SOL": "最小訂單金額為 0.01 SOL",
   "Mining": "挖礦",
@@ -422,12 +422,12 @@
   "No swaps completed yet. The next swap sets the price.": "尚無已完成的兌換，下一筆兌換將確定價格。",
   "No swaps yet": "暫無兌換記錄",
   "No trades yet": "暫無成交",
-  "No verified wallet yet": "尚無已驗證錢包",
-  "No verified wallets yet": "暫無已驗證錢包",
+  "No linked wallet yet": "尚無已連結錢包",
+  "No linked wallets yet": "暫無已連結錢包",
   "No wallets yet.": "暫無錢包。",
   "Nobody by that name.": "未找到該用戶。",
   "Nobody is banned.": "當前沒有被停權的用戶。",
-  "Nobody with a verified wallet has been paid for mining yet.": "尚無已驗證錢包的用戶獲得過挖礦獎勵。",
+  "Nobody with a linked wallet has been paid for mining yet.": "尚無已連結錢包的用戶獲得過挖礦獎勵。",
   "None": "無",
   "Normal": "正常",
   "Not an Orien address": "不是有效的 Orien 地址",
@@ -436,7 +436,7 @@
   "Not in the network's history": "不在網路記錄中",
   "Not now": "暫不",
   "Not recorded": "未記錄",
-  "Not verified yet": "尚未驗證",
+  "Not linked yet": "尚未連結",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "未找到結果。請搜尋地址（64 位字母和數字，0-9 及 a-f）、檢查點編號或市場上的使用者名稱。",
   "Nothing from the network about them yet.": "網路中尚無關於他們的動態。",
   "Nothing has happened at this address yet.": "該地址暫無任何記錄。",
@@ -477,7 +477,7 @@
   "Open Mine": "開啟挖礦",
   "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "請在你發布或接受此報價的裝置上開啟 Orien Wallet 以完成兌換",
   "Open at login": "登入時自動開啟",
-  "Open it to verify": "開啟以驗證",
+  "Open it to link": "開啟以連結",
   "Open offers": "開放報價",
   "Open the explorer": "開啟瀏覽器",
   "Opens Firefox's add-on store: click Add to Firefox": "開啟 Firefox 附加元件商店：點擊「加到 Firefox」",
@@ -630,8 +630,8 @@
   "Sell amount (ORN)": "賣出數量 (ORN)",
   "Sell from": "最高買價",
   "Sell into this offer": "向此買單出售",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "賣單均來自已驗證錢包，以便買家確認交易對象。驗證會將此錢包與你的 Orien Network 使用者名稱綁定，並僅需發送不到 0.001 ORN 一次。",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "賣單來自已驗證錢包，以便買家了解交易對象（僅需一次性發送少於 0.001 ORN）。",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "賣單均來自已連結錢包，以便買家確認交易對象。連結會將此錢包與你的 Orien Network 使用者名稱綁定，並僅需發送不到 0.001 ORN 一次。",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "賣單來自已連結錢包，以便買家了解交易對象（僅需一次性發送少於 0.001 ORN）。",
   "Sell something": "發布商品",
   "Seller": "賣家",
   "Seller accepts": "賣家接受",
@@ -643,7 +643,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "直接在瀏覽器中發送 ORN、查看餘額並一鍵登入 orien.network。你的私鑰絕不會離開 Orien Wallet。",
   "Send SOL": "發送 SOL",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "向 Solana 訂單一次性發送 SOL。即使關閉 Orien Wallet 訂單也會持續在訂單簿上生效，接單後約 1 分鐘結算，且支援一鍵取消。",
-  "Send and verify": "發送並驗證",
+  "Send and link": "發送並連結",
   "Send me a code": "發送驗證碼",
   "Send report": "送出回報",
   "Send the buyer this offer code": "將此報價碼發送給買家",
@@ -656,7 +656,7 @@
   "Sent a GIF": "發送了一個 GIF",
   "Sent a picture": "發送了一張圖片",
   "Sent from another app": "從其他應用程式發送",
-  "Sent. Verifying, usually within a minute.": "已發送，正在驗證，通常在 1 分鐘內完成。",
+  "Sent. Linking, usually within a minute.": "已發送，正在連結，通常在 1 分鐘內完成。",
   "Set password": "設定密碼",
   "Set the": "設定",
   "Set up": "前往設定",
@@ -681,10 +681,10 @@
   "Show your accounts on your profile, if you like. Everyone can see them.": "如有需要，可在個人資料中展示你的帳號，所有人均可見。",
   "Sign Out": "登出",
   "Sign in": "登入",
-  "Sign in and verify this wallet first.": "請先登入並驗證此錢包。",
+  "Sign in and link this wallet first.": "請先登入並連結此錢包。",
   "Sign in to Orien Network": "登入 Orien Network",
   "Sign in to Orien Network first.": "請先登入 Orien Network。",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "登入 Orien Network 即可提問，無需驗證錢包。",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "登入 Orien Network 即可提問，無需連結錢包。",
   "Sign in to Orien Network to chat, reply or react.": "登入 Orien Network 即可聊天、回覆或互動。",
   "Sign in to Orien Network to chat.": "登入 Orien Network 即可聊天。",
   "Sign in to Orien Network to post and react.": "登入 Orien Network 即可發文和互動。",
@@ -696,10 +696,10 @@
   "Sign in to Orien Network to see the themes you shared.": "登入 Orien Network 以查看你分享的主題。",
   "Sign in to Orien Network to see your own messages and to chat.": "登入 Orien Network 以查看自己的訊息並參與聊天。",
   "Sign in to Orien Network to tip.": "登入 Orien Network 即可打賞。",
-  "Sign in to Orien Network with a verified wallet to share themes.": "請使用已驗證錢包登入 Orien Network 以分享主題。",
+  "Sign in to Orien Network with a linked wallet to share themes.": "請使用已連結錢包登入 Orien Network 以分享主題。",
   "Sign in to message the seller": "登入後聯絡賣家",
   "Sign in to trade": "登入後交易",
-  "Sign in, and open the wallet you want to verify.": "登入並開啟你要驗證的錢包。",
+  "Sign in, and open the wallet you want to link.": "登入並開啟你要連結的錢包。",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "登出 Windows 並重新登入，然後開啟 Orien Wallet，之後挖礦速度就會提升。",
   "Sign out to finish": "登出以完成設定",
   "Signing in": "正在登入",
@@ -885,23 +885,24 @@
   "Validator fees": "驗證節點手續費",
   "Validators": "驗證節點",
   "Verified": "已驗證",
-  "Verified wallet": "已驗證錢包",
-  "Verify": "驗證",
-  "Verify a wallet": "驗證錢包",
-  "Verify a wallet and people who pay it see your name with it.": "驗證錢包後，向你付款的人將能看到與地址對應的使用者名稱。",
-  "Verify a wallet to post and see your mining here.": "驗證錢包後即可發文並在此查看你的挖礦數據。",
-  "Verify more wallets, and choose where you're paid": "驗證更多錢包，並選擇收款錢包",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "在你的 Orien Network 個人資料中驗證一個錢包，即可發文、回覆和互動。",
-  "Verify one of your wallets to chat, reply or react.": "驗證你的任一錢包即可聊天、回覆或互動。",
-  "Verify one of your wallets to chat. Anyone can read along.": "驗證你的任一錢包即可發言，所有人都可以瀏覽聊天內容。",
-  "Verify one of your wallets to react.": "驗證你的任一錢包即可互動。",
-  "Verify one of your wallets to reply.": "驗證你的任一錢包即可回覆。",
-  "Verify this wallet": "驗證此錢包",
-  "Verify this wallet to offer swaps": "驗證此錢包以發布兌換",
-  "Verify this wallet to place sell orders": "驗證此錢包以發布賣單",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "驗證後會向所有人展示此錢包歸你所有（包括餘額），同時解鎖發文、出售商品、兌換和接收打賞功能。",
-  "Verifying…": "正在驗證…",
-  "Verifying… usually within a minute": "正在驗證…通常在 1 分鐘內完成",
+  "Linked": "已連結",
+  "Linked wallet": "已連結錢包",
+  "Link": "連結",
+  "Link a wallet": "連結錢包",
+  "Link a wallet and people who pay it see your name with it.": "連結錢包後，向你付款的人將能看到與地址對應的使用者名稱。",
+  "Link a wallet to post and see your mining here.": "連結錢包後即可發文並在此查看你的挖礦數據。",
+  "Link more wallets, and choose where you're paid": "連結更多錢包，並選擇收款錢包",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "在你的 Orien Network 個人資料中連結一個錢包，即可發文、回覆和互動。",
+  "Link one of your wallets to chat, reply or react.": "連結你的任一錢包即可聊天、回覆或互動。",
+  "Link one of your wallets to chat. Anyone can read along.": "連結你的任一錢包即可發言，所有人都可以瀏覽聊天內容。",
+  "Link one of your wallets to react.": "連結你的任一錢包即可互動。",
+  "Link one of your wallets to reply.": "連結你的任一錢包即可回覆。",
+  "Link this wallet": "連結此錢包",
+  "Link this wallet to offer swaps": "連結此錢包以發布兌換",
+  "Link this wallet to place sell orders": "連結此錢包以發布賣單",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "連結後會向所有人展示此錢包歸你所有（包括餘額），同時解鎖發文、出售商品、兌換和接收打賞功能。",
+  "Linking…": "正在連結…",
+  "Linking… usually within a minute": "正在連結…通常在 1 分鐘內完成",
   "Version": "版本",
   "Videos about Orien": "關於 Orien 的影片",
   "View": "查看",
@@ -966,8 +967,8 @@
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "你已有 24 個主題，達到數量上限。請先在外觀中刪除一個。",
   "You haven't blocked anyone.": "你還沒有封鎖任何人。",
   "You need": "你需要",
-  "You need to be signed in to Orien Network with a verified wallet.": "你需要使用已驗證錢包登入 Orien Network。",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "你需要登入 Orien Network，無需驗證錢包。",
+  "You need to be signed in to Orien Network with a linked wallet.": "你需要使用已連結錢包登入 Orien Network。",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "你需要登入 Orien Network，無需連結錢包。",
   "You pay": "你支付",
   "You sell": "你出售",
   "You send the buyer the offer code, and paste in the reply code they send back": "你將報價碼發給買家，然後貼上對方發回的回覆碼",
@@ -1440,8 +1441,8 @@
       "質押者 {0}"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "{0} 個已驗證錢包"
+      "^(\\d+) linked wallets?$",
+      "{0} 個已連結錢包"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "使用 {0} 發布"
     ],
     [
-      "^Verify with (.+)$",
-      "使用 {0} 驗證"
+      "^Link with (.+)$",
+      "使用 {0} 連結"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "使用 {0} 確認"
     ],
     [
-      "^Verify (.+)$",
-      "驗證 {0}"
+      "^Link (.+)$",
+      "連結 {0}"
     ],
     [
-      "^Verifying (.+)$",
-      "正在驗證 {0}"
+      "^Linking (.+)$",
+      "正在連結 {0}"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "發送 {0} ORN 並驗證"
+      "^Send ([0-9.,]+) ORN and link$",
+      "發送 {0} ORN 並連結"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "你的帳號用於社群、市場和兌換，你的錢包始終儲存在本應用程式中。"
     },
     "verify": {
-      "title": "驗證錢包",
+      "title": "連結錢包",
       "steps": [
-        "登入並開啟你要驗證的錢包。",
-        "在首頁餘額下方的<b>驗證</b>卡片上點擊<b>驗證</b>。（或者點擊右上角頭像，選擇<b>編輯資料</b>，然後點擊該錢包旁的<b>驗證</b>。）",
-        "點擊<b>驗證</b>以確認。此操作會從該錢包發送不到 0.001 ORN（含手續費）。",
-        "1 分鐘內即可顯示<b>已驗證</b>。"
+        "登入並開啟你要連結的錢包。",
+        "在首頁餘額下方的<b>連結</b>卡片上點擊<b>連結</b>。（或者點擊右上角頭像，選擇<b>編輯資料</b>，然後點擊該錢包旁的<b>連結</b>。）",
+        "點擊<b>連結</b>以確認。此操作會從該錢包發送不到 0.001 ORN（含手續費）。",
+        "1 分鐘內即可顯示<b>已連結</b>。"
       ],
-      "note": "驗證後會向所有人展示此錢包歸你所有（包括餘額），同時解鎖發文、出售商品、兌換和接收打賞功能。"
+      "note": "連結後會向所有人展示此錢包歸你所有（包括餘額），同時解鎖發文、出售商品、兌換和接收打賞功能。"
     },
     "verify-more": {
-      "title": "驗證更多錢包，並選擇收款錢包",
+      "title": "連結更多錢包，並選擇收款錢包",
       "steps": [
         "切換到另一個錢包：在首頁點擊錢包名稱並選擇它。",
-        "點擊你的頭像，選擇<b>編輯資料</b>，然後點擊該錢包旁的<b>驗證</b>。",
+        "點擊你的頭像，選擇<b>編輯資料</b>，然後點擊該錢包旁的<b>連結</b>。",
         "對每個想展示在個人資料中的錢包重複此操作。",
-        "買家和打賞者付款的錢包會顯示<b>在此收款</b>。如需變更，請在另一個已驗證錢包上點擊<b>在此收款</b>。",
+        "買家和打賞者付款的錢包會顯示<b>在此收款</b>。如需變更，請在另一個已連結錢包上點擊<b>在此收款</b>。",
         "如需將某個錢包從個人資料中移除，請點擊它旁邊的 <b>⋯</b>，然後點擊<b>從個人資料移除</b>。"
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "和大家聊天",
       "steps": [
         "在首頁點擊<b>訊息</b>（帶對話氣泡圖示的圓形按鈕）。<b>Orien 群組聊天</b>置頂在最上方。",
-        "所有人都可以瀏覽內容。如需發言、回覆或心情回應，請登入並驗證一個錢包。",
+        "所有人都可以瀏覽內容。如需發言、回覆或心情回應，請登入並連結一個錢包。",
         "將滑鼠游標停在訊息上即可回覆、心情回應或檢舉。",
         "有新訊息時，訊息圖示上會出現小紅點。如需關閉提醒，請點擊聊天頂部的鈴鐺圖示。"
       ],
@@ -2011,7 +2012,7 @@
       "title": "諮詢 Orien AI 客服",
       "steps": [
         "在首頁點擊<b>訊息</b>（帶對話氣泡圖示的圓形按鈕）。<b>Orien AI 客服</b>置頂在群組聊天下方。在寬螢幕視窗中，點擊鈴鐺旁的救生圈圖示也可以開啟。",
-        "你需要登入 Orien Network，無需驗證錢包。",
+        "你需要登入 Orien Network，無需連結錢包。",
         "用你自己的話提問，任何關於錢包、挖礦、兌換或網路的問題都可以。",
         "點擊聊天頂部的<b>重新開始</b>可清空對話。"
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "賣出 ORN",
       "steps": [
-        "請先登入並驗證此錢包。",
+        "請先登入並連結此錢包。",
         "在首頁點擊<b>兌換</b>（帶雙向箭頭圖示的圓形按鈕），然後點擊<b>發布報價</b>。",
         "選擇 SOL 或 Bitcoin，然後輸入要賣出的 ORN 數量、期望收到的金額以及收款地址。",
         "點擊<b>發布報價</b>，並保持 Orien Wallet 運行直到有人接單。在設定中的<b>此電腦</b>開啟<b>防止電腦進入睡眠</b>，可在你離開時保持運行。"
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "在主題商店分享主題",
       "steps": [
-        "你需要使用已驗證錢包登入 Orien Network。",
+        "你需要使用已連結錢包登入 Orien Network。",
         "開啟<b>設定</b>（首頁上帶齒輪的圓形按鈕），然後進入<b>外觀</b>。",
         "在你自己的主題上點擊分享按鈕（帶箭頭的方框），然後點擊<b>分享主題</b>。",
         "審核通過後會附帶你的使用者名稱展示在商店中，任何人都可以試用、使用並向你打賞。",
@@ -2125,8 +2126,8 @@
   "Invite users": "邀請好友",
   "Enter code": "輸入邀請碼",
   "Invite a friend to mine - you'll both get 7 free ORN": "邀請好友挖礦，雙方各得 7 ORN 免費獎勵",
-  "Verify a wallet to get your invite code.": "驗證錢包即可取得邀請碼。",
-  "Verify wallet": "驗證錢包",
+  "Link a wallet to get your invite code.": "連結錢包即可取得邀請碼。",
+  "Link wallet": "連結錢包",
   "Your invite code": "你的邀請碼",
   "Copy invite code": "複製邀請碼",
   "Copy invite link": "複製邀請連結",
@@ -2135,7 +2136,7 @@
   "ORN paid": "已支付的 ORN",
   "Share your invite link or code with a friend.": "將邀請連結或邀請碼分享給好友。",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "請好友下載 Orien，並在建立帳戶後的 12 小時內使用你的邀請碼。",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "好友只要驗證錢包，並在 10 個不同的小時內用該錢包獲得挖礦獎勵。",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "好友只要連結錢包，並在 10 個不同的小時內用該錢包獲得挖礦獎勵。",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "雙方各得 7 ORN。你最多可邀請 5 位好友（邀請名額未來可能會重設）。",
   "Your referral window has closed": "輸入邀請碼的期限已過",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "只能在建立 Orien Network 帳戶後的前 12 小時內輸入好友的邀請碼。此帳戶已超過期限。",
@@ -2146,7 +2147,7 @@
   "Open Mining": "開啟挖礦頁面",
   "Sign in to your Orien Network account.": "登入你的 Orien Network 帳戶。",
   "Enter your friend’s code within 12 hours of creating your account.": "在建立帳戶後的 12 小時內輸入好友的邀請碼。",
-  "Verify the wallet you’ll use for mining.": "驗證你將用於挖礦的錢包。",
+  "Link the wallet you’ll use for mining.": "連結你將用於挖礦的錢包。",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "使用該錢包在 10 個不同的整點檢查點獲得挖礦獎勵。",
   "You and the friend who invited you each earn 7 ORN.": "你和邀請你的好友各得 7 ORN。",
   "Your referral progress": "你的推薦獎勵進度",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "你的 7 ORN 獎勵已發放。",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "你已達標，7 ORN 獎勵等待發放中。",
   "This referral closed before a reward was reserved.": "這筆推薦在獎勵保留前已結束。",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "邀請碼已接受。請驗證錢包以開始累計挖礦時數。",
+  "Code accepted. Link a wallet to start counting your mining hours.": "邀請碼已接受。請連結錢包以開始累計挖礦時數。",
   "Mining requirement met. Reward reservation is pending.": "已符合挖礦條件，等待保留獎勵中。",
-  "Code accepted. Mine with your verified wallet to make progress.": "邀請碼已接受。請使用已驗證的錢包挖礦以累計進度。",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "邀請碼已接受。請在電腦上開啟 Orien Wallet，使用已驗證的錢包挖礦。",
+  "Code accepted. Mine with your linked wallet to make progress.": "邀請碼已接受。請使用已連結的錢包挖礦以累計進度。",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "邀請碼已接受。請在電腦上開啟 Orien Wallet，使用已連結的錢包挖礦。",
   "Code copied": "已複製邀請碼",
   "Link copied": "已複製連結",
   "Couldn’t copy. Try again.": "無法複製，請再試一次。",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "部分活動無法重新整理。",
   "Couldn’t load Solana activity.": "無法載入 Solana 活動。",
   "Unlock Solana to view activity.": "解鎖 Solana 以檢視活動。",
-  "No Solana transactions yet": "尚無 Solana 交易"
+  "No Solana transactions yet": "尚無 Solana 交易",
+  "Unlink": "取消連結"
 }

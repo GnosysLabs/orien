@@ -51,18 +51,18 @@
   "Agreed by": "Подтвердили",
   "All": "Все",
   "All your wallets": "Все ваши кошельки",
-  "Among members with a verified wallet, by ORN mined.": "Среди участников с подтверждённым кошельком, по добытым ORN.",
+  "Among members with a linked wallet, by ORN mined.": "Среди участников с привязанным кошельком, по добытым ORN.",
   "Amount": "Сумма",
   "Amount (ORN)": "Сумма (ORN)",
   "An address, a name or a checkpoint number": "Адрес, имя или номер контрольной точки",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Сначала должен был завершиться предыдущий платёж с этого кошелька, поэтому транзакция для подтверждения ещё не отправлена. Нажмите снова, чтобы отправить.",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "Сначала должен был завершиться предыдущий платёж с этого кошелька, поэтому транзакция для привязки ещё не отправлена. Нажмите снова, чтобы отправить.",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Сначала должен был завершиться предыдущий платёж с этого кошелька, поэтому этот ещё не отправлен. Нажмите «Оплатить» снова.",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Сначала должен был завершиться предыдущий платёж с этого кошелька, поэтому чаевые ещё не отправлены. Нажмите «Чаевые» снова.",
   "Another amount": "Другая сумма",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Ответы даёт ИИ, и они могут быть ошибочными. Ему никогда не нужны ваши слова восстановления, пароли или ключи: никому их не передавайте.",
   "Any colour you like": "Любой цвет на ваш вкус",
   "Any moment": "С минуты на минуту",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Читать может любой. Чтобы писать, отвечать или ставить реакции, войдите и подтвердите кошелёк.",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "Читать может любой. Чтобы писать, отвечать или ставить реакции, войдите и привяжите кошелёк.",
   "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Любой сможет видеть её, использовать и отправлять вам чаевые. Рядом будет указано ваше имя в Orien Network. Вы можете снять её с публикации в любой момент.",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Теперь любой может продать по этому ордеру. Когда это произойдёт, его кошелёк заблокирует ORN, а это приложение откроет экран оплаты.",
   "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Теперь любой может принять его. Когда это произойдёт, ваш кошелёк проведёт обмен сам.",
@@ -133,7 +133,7 @@
   "Buyer": "Покупатель",
   "Buyer pays": "Покупатель платит",
   "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "SOL покупателя зарезервированы. Блокируем ваши ORN. Не закрывайте страницу ещё несколько секунд.",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Покупатели на Маркете платят на кошелёк с меткой «Оплата сюда». Подтвердите ещё кошельки, чтобы выбирать между ними.",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "Покупатели на Маркете платят на кошелёк с меткой «Оплата сюда». Привяжите ещё кошельки, чтобы выбирать между ними.",
   "Buying ORN": "Покупка ORN",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Через любой мессенджер или почту. Он сообщает Orien Wallet покупателя, что вы для него заблокировали, и не содержит никаких секретов.",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Через любой мессенджер или почту. Он сообщает Orien Wallet продавца, куда вы отправляете Bitcoin, и не содержит никаких секретов.",
@@ -370,10 +370,10 @@
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Помайните час в Orien Wallet на компьютере или купите немного на orien.network.",
   "Mine it on a computer.": "Добудьте их на компьютере.",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Майните на компьютере: установите туда Orien Wallet, привяжите этот кошелёк и нажмите",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Майните с подтверждённым кошельком, и ваша статистика появится здесь после следующей контрольной точки.",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "Майните с привязанным кошельком, и ваша статистика появится здесь после следующей контрольной точки.",
   "Miners last hour": "Майнеров за последний час",
   "Miners paid": "Майнеров получили выплату",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Майнеры, подтвердившие кошелёк в аккаунте Orien Network, по добытым ORN. Подтвердите кошелёк в своём аккаунте, чтобы попасть в список.",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "Майнеры, привязавшие кошелёк в аккаунте Orien Network, по добытым ORN. Привяжите кошелёк в своём аккаунте, чтобы попасть в список.",
   "Minimize": "Свернуть",
   "Minimum order is 0.01 SOL": "Минимальный ордер: 0,01 SOL",
   "Mining": "Майнинг",
@@ -422,12 +422,12 @@
   "No swaps completed yet. The next swap sets the price.": "Завершённых обменов пока нет. Следующий обмен задаст цену.",
   "No swaps yet": "Обменов пока нет",
   "No trades yet": "Сделок пока нет",
-  "No verified wallet yet": "Подтверждённого кошелька пока нет",
-  "No verified wallets yet": "Подтверждённых кошельков пока нет",
+  "No linked wallet yet": "Привязанного кошелька пока нет",
+  "No linked wallets yet": "Привязанных кошельков пока нет",
   "No wallets yet.": "Кошельков пока нет.",
   "Nobody by that name.": "Никого с таким именем не найдено.",
   "Nobody is banned.": "Никто не заблокирован.",
-  "Nobody with a verified wallet has been paid for mining yet.": "Пока никто с подтверждённым кошельком не получил выплату за майнинг.",
+  "Nobody with a linked wallet has been paid for mining yet.": "Пока никто с привязанным кошельком не получил выплату за майнинг.",
   "None": "Нет",
   "Normal": "Обычный",
   "Not an Orien address": "Неверный адрес Orien",
@@ -436,7 +436,7 @@
   "Not in the network's history": "Нет в истории сети",
   "Not now": "Не сейчас",
   "Not recorded": "Не записано",
-  "Not verified yet": "Ещё не подтверждён",
+  "Not linked yet": "Ещё не привязан",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Ничего не найдено. Ищите по адресу (64 символа: 0-9 и a-f), номеру контрольной точки или имени продавца на Маркете.",
   "Nothing from the network about them yet.": "Сеть пока ничего о них не публиковала.",
   "Nothing has happened at this address yet.": "По этому адресу пока ничего не происходило.",
@@ -477,7 +477,7 @@
   "Open Mine": "Открыть Майнинг",
   "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Откройте Orien Wallet на устройстве, с которого вы разместили или приняли это предложение, чтобы завершить обмен",
   "Open at login": "Запускать при входе в систему",
-  "Open it to verify": "Откройте его для подтверждения",
+  "Open it to link": "Откройте его для привязки",
   "Open offers": "Открытые предложения",
   "Open the explorer": "Открыть обозреватель",
   "Opens Firefox's add-on store: click Add to Firefox": "Откроется магазин дополнений Firefox: нажмите «Добавить в Firefox»",
@@ -630,8 +630,8 @@
   "Sell amount (ORN)": "Сумма продажи (ORN)",
   "Sell from": "Продать с",
   "Sell into this offer": "Продать по этому предложению",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Предложения о продаже размещаются с подтверждённых кошельков, чтобы покупатели видели, с кем меняются. Подтверждение привязывает кошелёк к вашему имени в Orien Network и один раз отправляет с него меньше 0,001 ORN.",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Ордеры на продажу размещаются с подтверждённых кошельков, чтобы покупатели знали, с кем торгуют (единоразовая отправка < 0,001 ORN).",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "Предложения о продаже размещаются с привязанных кошельков, чтобы покупатели видели, с кем меняются. При этом кошелёк привязывается к вашему имени в Orien Network и один раз отправляет с него меньше 0,001 ORN.",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Ордеры на продажу размещаются с привязанных кошельков, чтобы покупатели знали, с кем торгуют (единоразовая отправка < 0,001 ORN).",
   "Sell something": "Продать что-нибудь",
   "Seller": "Продавец",
   "Seller accepts": "Продавец принимает",
@@ -643,7 +643,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Отправляйте ORN, проверяйте баланс и входите на orien.network в один клик прямо из браузера. Ваши ключи никогда не покидают Orien Wallet.",
   "Send SOL": "Отправить SOL",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Отправьте SOL один раз в ордер Solana. Он остаётся активным в стакане даже при закрытом Orien Wallet, исполняется примерно за минуту и отменяется в один клик.",
-  "Send and verify": "Отправить и подтвердить",
+  "Send and link": "Отправить и привязать",
   "Send me a code": "Отправить код",
   "Send report": "Отправить жалобу",
   "Send the buyer this offer code": "Отправьте покупателю этот код предложения",
@@ -656,7 +656,7 @@
   "Sent a GIF": "Отправлен GIF",
   "Sent a picture": "Отправлено изображение",
   "Sent from another app": "Отправлено из другого приложения",
-  "Sent. Verifying, usually within a minute.": "Отправлено. Идёт подтверждение, обычно в течение минуты.",
+  "Sent. Linking, usually within a minute.": "Отправлено. Идёт привязка, обычно в течение минуты.",
   "Set password": "Задать пароль",
   "Set the": "Настройте",
   "Set up": "Настроить",
@@ -681,10 +681,10 @@
   "Show your accounts on your profile, if you like. Everyone can see them.": "При желании укажите свои аккаунты в профиле. Их увидят все.",
   "Sign Out": "Выйти",
   "Sign in": "Войти",
-  "Sign in and verify this wallet first.": "Сначала войдите и подтвердите этот кошелёк.",
+  "Sign in and link this wallet first.": "Сначала войдите и привяжите этот кошелёк.",
   "Sign in to Orien Network": "Войти в Orien Network",
   "Sign in to Orien Network first.": "Сначала войдите в Orien Network.",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Войдите в Orien Network, чтобы задать вопрос. Подтверждать кошелёк не требуется.",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "Войдите в Orien Network, чтобы задать вопрос. Привязывать кошелёк не требуется.",
   "Sign in to Orien Network to chat, reply or react.": "Войдите в Orien Network, чтобы писать в чат, отвечать или ставить реакции.",
   "Sign in to Orien Network to chat.": "Войдите в Orien Network, чтобы писать в чат.",
   "Sign in to Orien Network to post and react.": "Войдите в Orien Network, чтобы публиковать и ставить реакции.",
@@ -696,10 +696,10 @@
   "Sign in to Orien Network to see the themes you shared.": "Войдите в Orien Network, чтобы увидеть опубликованные вами темы.",
   "Sign in to Orien Network to see your own messages and to chat.": "Войдите в Orien Network, чтобы видеть свои сообщения и общаться.",
   "Sign in to Orien Network to tip.": "Войдите в Orien Network, чтобы отправлять чаевые.",
-  "Sign in to Orien Network with a verified wallet to share themes.": "Войдите в Orien Network с подтверждённым кошельком, чтобы делиться темами.",
+  "Sign in to Orien Network with a linked wallet to share themes.": "Войдите в Orien Network с привязанным кошельком, чтобы делиться темами.",
   "Sign in to message the seller": "Войдите, чтобы написать продавцу",
   "Sign in to trade": "Войдите, чтобы торговать",
-  "Sign in, and open the wallet you want to verify.": "Войдите и откройте кошелёк, который хотите подтвердить.",
+  "Sign in, and open the wallet you want to link.": "Войдите и откройте кошелёк, который хотите привязать.",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Выйдите из Windows и войдите снова, затем откройте Orien Wallet. После этого майнинг будет работать быстрее.",
   "Sign out to finish": "Выйдите из системы для завершения",
   "Signing in": "Вход",
@@ -885,23 +885,24 @@
   "Validator fees": "Комиссии валидаторов",
   "Validators": "Валидаторы",
   "Verified": "Подтверждён",
-  "Verified wallet": "Подтверждённый кошелёк",
-  "Verify": "Подтвердить",
-  "Verify a wallet": "Подтвердить кошелёк",
-  "Verify a wallet and people who pay it see your name with it.": "Подтвердите кошелёк, и отправители платежей будут видеть ваше имя рядом с ним.",
-  "Verify a wallet to post and see your mining here.": "Подтвердите кошелёк, чтобы публиковать и видеть свой майнинг здесь.",
-  "Verify more wallets, and choose where you're paid": "Подтвердите больше кошельков и выберите, куда получать оплату",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Подтвердите один из своих кошельков в профиле Orien Network, чтобы публиковать, отвечать и ставить реакции.",
-  "Verify one of your wallets to chat, reply or react.": "Подтвердите один из своих кошельков, чтобы писать в чат, отвечать или ставить реакции.",
-  "Verify one of your wallets to chat. Anyone can read along.": "Подтвердите один из своих кошельков, чтобы писать в чат. Читать может любой.",
-  "Verify one of your wallets to react.": "Подтвердите один из своих кошельков, чтобы ставить реакции.",
-  "Verify one of your wallets to reply.": "Подтвердите один из своих кошельков, чтобы отвечать.",
-  "Verify this wallet": "Подтвердить этот кошелёк",
-  "Verify this wallet to offer swaps": "Подтвердите этот кошелёк, чтобы предлагать обмены",
-  "Verify this wallet to place sell orders": "Подтвердите этот кошелёк, чтобы размещать ордеры на продажу",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Подтверждение показывает всем, что кошелёк ваш, включая его баланс. Это даёт возможность публиковать, продавать, обменивать и получать чаевые.",
-  "Verifying…": "Подтверждение…",
-  "Verifying… usually within a minute": "Подтверждение… обычно в течение минуты",
+  "Linked": "Привязан",
+  "Linked wallet": "Привязанный кошелёк",
+  "Link": "Привязать",
+  "Link a wallet": "Привязать кошелёк",
+  "Link a wallet and people who pay it see your name with it.": "Привяжите кошелёк, и отправители платежей будут видеть ваше имя рядом с ним.",
+  "Link a wallet to post and see your mining here.": "Привяжите кошелёк, чтобы публиковать и видеть свой майнинг здесь.",
+  "Link more wallets, and choose where you're paid": "Привяжите больше кошельков и выберите, куда получать оплату",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "Привяжите один из своих кошельков в профиле Orien Network, чтобы публиковать, отвечать и ставить реакции.",
+  "Link one of your wallets to chat, reply or react.": "Привяжите один из своих кошельков, чтобы писать в чат, отвечать или ставить реакции.",
+  "Link one of your wallets to chat. Anyone can read along.": "Привяжите один из своих кошельков, чтобы писать в чат. Читать может любой.",
+  "Link one of your wallets to react.": "Привяжите один из своих кошельков, чтобы ставить реакции.",
+  "Link one of your wallets to reply.": "Привяжите один из своих кошельков, чтобы отвечать.",
+  "Link this wallet": "Привязать этот кошелёк",
+  "Link this wallet to offer swaps": "Привяжите этот кошелёк, чтобы предлагать обмены",
+  "Link this wallet to place sell orders": "Привяжите этот кошелёк, чтобы размещать ордеры на продажу",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Привязка показывает всем, что кошелёк ваш, включая его баланс. Это даёт возможность публиковать, продавать, обменивать и получать чаевые.",
+  "Linking…": "Привязка…",
+  "Linking… usually within a minute": "Привязка… обычно в течение минуты",
   "Version": "Версия",
   "Videos about Orien": "Видео об Orien",
   "View": "Открыть",
@@ -966,8 +967,8 @@
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "У вас уже 24 темы, это максимум. Сначала удалите одну в разделе «Оформление».",
   "You haven't blocked anyone.": "Вы никого не блокировали.",
   "You need": "Вам потребуется",
-  "You need to be signed in to Orien Network with a verified wallet.": "Нужно войти в Orien Network с подтверждённым кошельком.",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Нужно войти в Orien Network. Подтверждать кошелёк не требуется.",
+  "You need to be signed in to Orien Network with a linked wallet.": "Нужно войти в Orien Network с привязанным кошельком.",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "Нужно войти в Orien Network. Привязывать кошелёк не требуется.",
   "You pay": "Вы платите",
   "You sell": "Вы продаёте",
   "You send the buyer the offer code, and paste in the reply code they send back": "Вы отправляете покупателю код предложения и вставляете код ответа, который он пришлёт",
@@ -1440,8 +1441,8 @@
       "Стейк от {0}"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "Подтверждённых кошельков: {0}"
+      "^(\\d+) linked wallets?$",
+      "Привязанных кошельков: {0}"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "Опубликовать через {0}"
     ],
     [
-      "^Verify with (.+)$",
-      "Подтвердить через {0}"
+      "^Link with (.+)$",
+      "Привязать через {0}"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "Подтвердить через {0}"
     ],
     [
-      "^Verify (.+)$",
-      "Подтвердить {0}"
+      "^Link (.+)$",
+      "Привязать {0}"
     ],
     [
-      "^Verifying (.+)$",
-      "Подтверждение {0}"
+      "^Linking (.+)$",
+      "Привязка {0}"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "Отправить {0} ORN и подтвердить"
+      "^Send ([0-9.,]+) ORN and link$",
+      "Отправить {0} ORN и привязать"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "Ваш аккаунт нужен для Сообщества, Маркета и обменов. Кошельки хранятся только в этом приложении."
     },
     "verify": {
-      "title": "Подтвердить кошелёк",
+      "title": "Привязать кошелёк",
       "steps": [
-        "Войдите и откройте кошелёк, который хотите подтвердить.",
-        "На Главной нажмите <b>Подтвердить</b> на карточке <b>Подтвердить</b> под балансом. (Или нажмите на своё фото в правом верхнем углу, затем <b>Редактировать профиль</b> и <b>Подтвердить</b> рядом с кошельком.)",
-        "Нажмите <b>Подтвердить</b> для подтверждения. С кошелька отправится меньше 0,001 ORN с учётом комиссии.",
-        "В течение минуты появится статус <b>Подтверждён</b>."
+        "Войдите и откройте кошелёк, который хотите привязать.",
+        "На Главной нажмите <b>Привязать</b> на карточке <b>Привязать</b> под балансом. (Или нажмите на своё фото в правом верхнем углу, затем <b>Редактировать профиль</b> и <b>Привязать</b> рядом с кошельком.)",
+        "Нажмите <b>Привязать</b> для подтверждения. С кошелька отправится меньше 0,001 ORN с учётом комиссии.",
+        "В течение минуты появится статус <b>Привязан</b>."
       ],
-      "note": "Подтверждение показывает всем, что кошелёк ваш, включая его баланс. Это даёт возможность публиковать, продавать, обменивать и получать чаевые."
+      "note": "Привязка показывает всем, что кошелёк ваш, включая его баланс. Это даёт возможность публиковать, продавать, обменивать и получать чаевые."
     },
     "verify-more": {
-      "title": "Подтвердите больше кошельков и выберите, куда получать оплату",
+      "title": "Привяжите больше кошельков и выберите, куда получать оплату",
       "steps": [
         "Переключитесь на другой кошелёк: нажмите на название кошелька на Главной и выберите его.",
-        "Нажмите на своё фото, затем <b>Редактировать профиль</b>, затем <b>Подтвердить</b> рядом с этим кошельком.",
+        "Нажмите на своё фото, затем <b>Редактировать профиль</b>, затем <b>Привязать</b> рядом с этим кошельком.",
         "Повторите для каждого кошелька, который хотите добавить в профиль.",
-        "Кошелёк, на который платят покупатели и отправляют чаевые, отмечен как <b>Оплата сюда</b>. Чтобы изменить его, нажмите <b>Получать оплату сюда</b> на другом подтверждённом кошельке.",
+        "Кошелёк, на который платят покупатели и отправляют чаевые, отмечен как <b>Оплата сюда</b>. Чтобы изменить его, нажмите <b>Получать оплату сюда</b> на другом привязанном кошельке.",
         "Чтобы убрать кошелёк из профиля, нажмите <b>⋯</b> рядом с ним, затем <b>Убрать из профиля</b>."
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "Общайтесь со всеми",
       "steps": [
         "На Главной нажмите <b>Сообщения</b>, круглую кнопку с облачком сообщения. <b>Общий чат Orien</b> закреплён вверху.",
-        "Читать может любой. Чтобы писать, отвечать или ставить реакции, войдите и подтвердите кошелёк.",
+        "Читать может любой. Чтобы писать, отвечать или ставить реакции, войдите и привяжите кошелёк.",
         "Наведите на сообщение, чтобы ответить, поставить реакцию или пожаловаться.",
         "Новые сообщения отображаются точкой на кнопке Сообщений. Чтобы отключить это, нажмите на колокольчик вверху чата."
       ],
@@ -2011,7 +2012,7 @@
       "title": "Спросить ИИ-поддержку Orien",
       "steps": [
         "На Главной нажмите <b>Сообщения</b>, круглую кнопку с облачком сообщения. <b>ИИ-поддержка Orien</b> закреплена под общим чатом. В широком окне её также открывает спасательный круг рядом с колокольчиком.",
-        "Нужно войти в Orien Network. Подтверждать кошелёк не требуется.",
+        "Нужно войти в Orien Network. Привязывать кошелёк не требуется.",
         "Спросите что угодно о кошельке, майнинге, обменах или сети своими словами.",
         "Нажмите <b>Начать заново</b> вверху чата, чтобы очистить его."
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "Продать ORN",
       "steps": [
-        "Сначала войдите и подтвердите этот кошелёк.",
+        "Сначала войдите и привяжите этот кошелёк.",
         "На Главной нажмите <b>Обмен</b>, круглую кнопку с двумя стрелками, затем <b>Разместить предложение</b>.",
         "Выберите SOL или Bitcoin, затем укажите, сколько ORN продаёте, сколько хотите за них получить и адрес для получения оплаты.",
         "Нажмите <b>Опубликовать предложение</b> и не закрывайте Orien Wallet, пока его не примут. Параметр <b>Не давать компьютеру засыпать</b> в Настройках, раздел <b>Этот компьютер</b>, сохранит его активным, пока вас нет."
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "Поделитесь темой в Магазине тем",
       "steps": [
-        "Нужно войти в Orien Network с подтверждённым кошельком.",
+        "Нужно войти в Orien Network с привязанным кошельком.",
         "Откройте <b>Настройки</b>, круглую кнопку с шестерёнкой на Главной, затем <b>Оформление</b>.",
         "На одной из своих тем нажмите кнопку «Поделиться» (квадрат со стрелкой), затем <b>Поделиться темой</b>.",
         "После проверки она появится в магазине с вашим именем, где любой сможет её примерить, использовать и отправить вам чаевые.",
@@ -2125,8 +2126,8 @@
   "Invite users": "Пригласить друзей",
   "Enter code": "Ввести код",
   "Invite a friend to mine - you'll both get 7 free ORN": "Пригласите друга заняться майнингом и получите по 7 ORN в подарок",
-  "Verify a wallet to get your invite code.": "Подтвердите кошелёк, чтобы получить код приглашения.",
-  "Verify wallet": "Подтвердить кошелёк",
+  "Link a wallet to get your invite code.": "Привяжите кошелёк, чтобы получить код приглашения.",
+  "Link wallet": "Привязать кошелёк",
   "Your invite code": "Ваш код приглашения",
   "Copy invite code": "Скопировать код приглашения",
   "Copy invite link": "Скопировать ссылку-приглашение",
@@ -2135,7 +2136,7 @@
   "ORN paid": "Выплачено ORN",
   "Share your invite link or code with a friend.": "Отправьте другу ссылку или код приглашения.",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Попросите друга скачать Orien и ввести ваш код в течение 12 часов после создания аккаунта.",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Вашему другу достаточно подтвердить кошелёк и получить на него награды за майнинг в 10 разных часовых интервалах.",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "Вашему другу достаточно привязать кошелёк и получить на него награды за майнинг в 10 разных часовых интервалах.",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "Вы получите по 7 ORN. Можно пригласить до 5 друзей (в будущем лимит приглашений может обновиться).",
   "Your referral window has closed": "Срок ввода кода истёк",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Код друга можно ввести только в первые 12 часов после создания аккаунта Orien Network. Для этого аккаунта срок уже истёк.",
@@ -2146,7 +2147,7 @@
   "Open Mining": "Перейти к майнингу",
   "Sign in to your Orien Network account.": "Войдите в свой аккаунт Orien Network.",
   "Enter your friend’s code within 12 hours of creating your account.": "Введите код друга в течение 12 часов после создания аккаунта.",
-  "Verify the wallet you’ll use for mining.": "Подтвердите кошелёк, который будете использовать для майнинга.",
+  "Link the wallet you’ll use for mining.": "Привяжите кошелёк, который будете использовать для майнинга.",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Получите на этот кошелёк награды за майнинг в 10 разных часовых интервалах.",
   "You and the friend who invited you each earn 7 ORN.": "Вы и пригласивший вас друг получите по 7 ORN.",
   "Your referral progress": "Ваш прогресс по приглашению",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "Ваша награда в 7 ORN выплачена.",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Вы выполнили условия. Ваша награда в 7 ORN ожидает выплаты.",
   "This referral closed before a reward was reserved.": "Приглашение закрылось до резервирования награды.",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "Код принят. Подтвердите кошелёк, чтобы начался учёт часов майнинга.",
+  "Code accepted. Link a wallet to start counting your mining hours.": "Код принят. Привяжите кошелёк, чтобы начался учёт часов майнинга.",
   "Mining requirement met. Reward reservation is pending.": "Условие по майнингу выполнено. Награда ожидает резервирования.",
-  "Code accepted. Mine with your verified wallet to make progress.": "Код принят. Используйте подтверждённый кошелёк для учёта часов майнинга.",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Код принят. Занимайтесь майнингом с подтверждённым кошельком в Orien Wallet на компьютере.",
+  "Code accepted. Mine with your linked wallet to make progress.": "Код принят. Используйте привязанный кошелёк для учёта часов майнинга.",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "Код принят. Занимайтесь майнингом с привязанным кошельком в Orien Wallet на компьютере.",
   "Code copied": "Код скопирован",
   "Link copied": "Ссылка скопирована",
   "Couldn’t copy. Try again.": "Не удалось скопировать. Попробуйте ещё раз.",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "Не удалось обновить часть истории.",
   "Couldn’t load Solana activity.": "Не удалось загрузить историю Solana.",
   "Unlock Solana to view activity.": "Разблокируйте Solana, чтобы посмотреть историю.",
-  "No Solana transactions yet": "Транзакций Solana пока нет"
+  "No Solana transactions yet": "Транзакций Solana пока нет",
+  "Unlink": "Отвязать"
 }

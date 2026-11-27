@@ -51,18 +51,18 @@
   "Agreed by": "Disepakati oleh",
   "All": "Semua",
   "All your wallets": "Semua dompet Anda",
-  "Among members with a verified wallet, by ORN mined.": "Di antara anggota dengan dompet terverifikasi, berdasarkan ORN yang ditambang.",
+  "Among members with a linked wallet, by ORN mined.": "Di antara anggota dengan dompet tertaut, berdasarkan ORN yang ditambang.",
   "Amount": "Jumlah",
   "Amount (ORN)": "Jumlah (ORN)",
   "An address, a name or a checkpoint number": "Alamat, nama, atau nomor checkpoint",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "Pembayaran sebelumnya dari dompet ini harus selesai lebih dulu, jadi belum ada yang dikirim untuk verifikasi. Ketuk lagi untuk mengirimkannya.",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "Pembayaran sebelumnya dari dompet ini harus selesai lebih dulu, jadi belum ada yang dikirim untuk menautkan dompet. Ketuk lagi untuk mengirimkannya.",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "Pembayaran sebelumnya dari dompet ini harus selesai lebih dulu, jadi pembayaran ini belum terkirim. Ketuk Bayar lagi.",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "Pembayaran sebelumnya dari dompet ini harus selesai lebih dulu, jadi tip ini belum terkirim. Ketuk Beri tip lagi.",
   "Another amount": "Jumlah lain",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "Jawaban berasal dari AI dan bisa saja salah. AI tidak pernah membutuhkan kata pemulihan, kata sandi, atau kunci Anda: jangan pernah membagikannya kepada siapa pun.",
   "Any colour you like": "Warna apa pun yang Anda suka",
   "Any moment": "Sebentar lagi",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "Siapa saja dapat ikut membaca. Untuk menulis, membalas, atau memberi reaksi, masuk dan verifikasi dompet.",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "Siapa saja dapat ikut membaca. Untuk menulis, membalas, atau memberi reaksi, masuk dan tautkan dompet.",
   "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "Siapa saja dapat melihatnya, menggunakannya, dan memberi tip kepada Anda. Nama Orien Network Anda ditampilkan bersamanya. Anda dapat menurunkannya kapan saja.",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "Siapa saja dapat menjual ke pesanan ini sekarang. Saat mereka melakukannya, dompet mereka mengunci ORN dan aplikasi ini membuka layar pembayaran.",
   "Anyone can take it now. When they do, your wallet runs the swap by itself.": "Siapa saja dapat mengambilnya sekarang. Saat mereka melakukannya, dompet Anda menjalankan penukaran secara otomatis.",
@@ -133,7 +133,7 @@
   "Buyer": "Pembeli",
   "Buyer pays": "Pembeli membayar",
   "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "SOL pembeli telah dicadangkan. Mengunci ORN Anda sekarang. Biarkan halaman ini terbuka beberapa detik lagi.",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "Pembeli di Pasar membayar ke dompet yang bertanda Dibayar di sini. Verifikasi dompet lain untuk memilih di antaranya.",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "Pembeli di Pasar membayar ke dompet yang bertanda Dibayar di sini. Tautkan dompet lain untuk memilih di antaranya.",
   "Buying ORN": "Membeli ORN",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "Melalui aplikasi pesan atau email apa pun. Ini memberi tahu Orien Wallet pembeli apa yang Anda kunci untuk mereka, dan tidak berisi rahasia apa pun.",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "Melalui aplikasi pesan atau email apa pun. Ini memberi tahu Orien Wallet penjual ke mana Anda membayar Bitcoin, dan tidak berisi rahasia apa pun.",
@@ -370,10 +370,10 @@
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "Tambang selama satu jam di Orien Wallet pada komputer, atau beli sedikit di orien.network.",
   "Mine it on a computer.": "Tambang di komputer.",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "Tambang di komputer: pasang Orien Wallet di sana, tautkan dompet ini, lalu tekan",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "Tambang dengan dompet terverifikasi dan angka Anda akan tampil di sini setelah checkpoint berikutnya.",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "Tambang dengan dompet tertaut dan angka Anda akan tampil di sini setelah checkpoint berikutnya.",
   "Miners last hour": "Penambang jam lalu",
   "Miners paid": "Penambang dibayar",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "Penambang yang telah memverifikasi dompet pada akun Orien Network mereka, berdasarkan ORN yang ditambang. Verifikasi dompet di akun Anda untuk masuk daftar.",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "Penambang yang telah menautkan dompet pada akun Orien Network mereka, berdasarkan ORN yang ditambang. Tautkan dompet di akun Anda untuk masuk daftar.",
   "Minimize": "Minimalkan",
   "Minimum order is 0.01 SOL": "Pesanan minimum adalah 0,01 SOL",
   "Mining": "Penambangan",
@@ -422,12 +422,12 @@
   "No swaps completed yet. The next swap sets the price.": "Belum ada penukaran yang selesai. Penukaran berikutnya akan menentukan harga.",
   "No swaps yet": "Belum ada penukaran",
   "No trades yet": "Belum ada transaksi",
-  "No verified wallet yet": "Belum ada dompet terverifikasi",
-  "No verified wallets yet": "Belum ada dompet terverifikasi",
+  "No linked wallet yet": "Belum ada dompet tertaut",
+  "No linked wallets yet": "Belum ada dompet tertaut",
   "No wallets yet.": "Belum ada dompet.",
   "Nobody by that name.": "Tidak ada yang bernama itu.",
   "Nobody is banned.": "Tidak ada yang diblokir permanen.",
-  "Nobody with a verified wallet has been paid for mining yet.": "Belum ada pemilik dompet terverifikasi yang dibayar untuk menambang.",
+  "Nobody with a linked wallet has been paid for mining yet.": "Belum ada pemilik dompet tertaut yang dibayar untuk menambang.",
   "None": "Tidak ada",
   "Normal": "Normal",
   "Not an Orien address": "Bukan alamat Orien",
@@ -436,7 +436,7 @@
   "Not in the network's history": "Tidak ada dalam riwayat jaringan",
   "Not now": "Tidak sekarang",
   "Not recorded": "Tidak tercatat",
-  "Not verified yet": "Belum terverifikasi",
+  "Not linked yet": "Belum tertaut",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "Tidak ada yang ditemukan. Cari alamat (64 huruf dan angka, 0-9 dan a-f), nomor checkpoint, atau nama seseorang di Pasar.",
   "Nothing from the network about them yet.": "Belum ada informasi dari jaringan tentang mereka.",
   "Nothing has happened at this address yet.": "Belum ada aktivitas pada alamat ini.",
@@ -477,7 +477,7 @@
   "Open Mine": "Buka Tambang",
   "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "Buka Orien Wallet di perangkat tempat Anda memasang atau mengambil penawaran ini untuk menyelesaikan penukaran",
   "Open at login": "Buka saat masuk",
-  "Open it to verify": "Buka untuk memverifikasi",
+  "Open it to link": "Buka untuk menautkan",
   "Open offers": "Penawaran terbuka",
   "Open the explorer": "Buka penjelajah",
   "Opens Firefox's add-on store: click Add to Firefox": "Membuka toko add-on Firefox: klik Add to Firefox",
@@ -630,8 +630,8 @@
   "Sell amount (ORN)": "Jumlah jual (ORN)",
   "Sell from": "Jual dari",
   "Sell into this offer": "Jual ke penawaran ini",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "Penawaran jual berasal dari dompet terverifikasi, sehingga pembeli dapat melihat dengan siapa mereka bertukar. Verifikasi menautkan dompet ini ke nama Orien Network Anda dan mengirim kurang dari 0,001 ORN darinya, sekali saja.",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Pesanan jual berasal dari dompet terverifikasi agar pembeli tahu dengan siapa mereka bertransaksi (mengirim < 0,001 ORN sekali saja).",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "Penawaran jual berasal dari dompet tertaut, sehingga pembeli dapat melihat dengan siapa mereka bertukar. Saat dompet ini ditautkan ke profil Orien Network Anda, aplikasi mengirim kurang dari 0,001 ORN darinya, sekali saja.",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "Pesanan jual berasal dari dompet tertaut agar pembeli tahu dengan siapa mereka bertransaksi (mengirim < 0,001 ORN sekali saja).",
   "Sell something": "Jual sesuatu",
   "Seller": "Penjual",
   "Seller accepts": "Penjual menerima",
@@ -643,7 +643,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "Kirim ORN, lihat saldo Anda, dan masuk ke orien.network dengan satu klik langsung dari browser Anda. Kunci Anda tidak pernah meninggalkan Orien Wallet.",
   "Send SOL": "Kirim SOL",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "Kirim SOL sekali ke pesanan Solana. Pesanan tetap aktif di buku pesanan meski Orien Wallet ditutup, selesai dalam sekitar satu menit saat diambil, dan dapat dibatalkan dengan satu klik.",
-  "Send and verify": "Kirim dan verifikasi",
+  "Send and link": "Kirim dan tautkan",
   "Send me a code": "Kirimkan saya kode",
   "Send report": "Kirim laporan",
   "Send the buyer this offer code": "Kirim kode penawaran ini kepada pembeli",
@@ -656,7 +656,7 @@
   "Sent a GIF": "Mengirim GIF",
   "Sent a picture": "Mengirim gambar",
   "Sent from another app": "Dikirim dari aplikasi lain",
-  "Sent. Verifying, usually within a minute.": "Terkirim. Memverifikasi, biasanya dalam satu menit.",
+  "Sent. Linking, usually within a minute.": "Terkirim. Menautkan, biasanya dalam satu menit.",
   "Set password": "Atur kata sandi",
   "Set the": "Atur",
   "Set up": "Siapkan",
@@ -681,10 +681,10 @@
   "Show your accounts on your profile, if you like. Everyone can see them.": "Tampilkan akun Anda di profil jika Anda mau. Semua orang dapat melihatnya.",
   "Sign Out": "Keluar",
   "Sign in": "Masuk",
-  "Sign in and verify this wallet first.": "Masuk dan verifikasi dompet ini terlebih dahulu.",
+  "Sign in and link this wallet first.": "Masuk dan tautkan dompet ini terlebih dahulu.",
   "Sign in to Orien Network": "Masuk ke Orien Network",
   "Sign in to Orien Network first.": "Masuk ke Orien Network terlebih dahulu.",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "Masuk ke Orien Network untuk mengajukan pertanyaan. Verifikasi dompet tidak diperlukan.",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "Masuk ke Orien Network untuk mengajukan pertanyaan. Anda tidak perlu menautkan dompet.",
   "Sign in to Orien Network to chat, reply or react.": "Masuk ke Orien Network untuk mengobrol, membalas, atau memberi reaksi.",
   "Sign in to Orien Network to chat.": "Masuk ke Orien Network untuk mengobrol.",
   "Sign in to Orien Network to post and react.": "Masuk ke Orien Network untuk memposting dan memberi reaksi.",
@@ -696,10 +696,10 @@
   "Sign in to Orien Network to see the themes you shared.": "Masuk ke Orien Network untuk melihat tema yang Anda bagikan.",
   "Sign in to Orien Network to see your own messages and to chat.": "Masuk ke Orien Network untuk melihat pesan Anda dan mengobrol.",
   "Sign in to Orien Network to tip.": "Masuk ke Orien Network untuk memberi tip.",
-  "Sign in to Orien Network with a verified wallet to share themes.": "Masuk ke Orien Network dengan dompet terverifikasi untuk membagikan tema.",
+  "Sign in to Orien Network with a linked wallet to share themes.": "Masuk ke Orien Network dengan dompet tertaut untuk membagikan tema.",
   "Sign in to message the seller": "Masuk untuk mengirim pesan ke penjual",
   "Sign in to trade": "Masuk untuk bertransaksi",
-  "Sign in, and open the wallet you want to verify.": "Masuk, lalu buka dompet yang ingin Anda verifikasi.",
+  "Sign in, and open the wallet you want to link.": "Masuk, lalu buka dompet yang ingin Anda tautkan.",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "Keluar dari Windows lalu masuk kembali, kemudian buka Orien Wallet. Penambangan akan berjalan lebih cepat sejak saat itu.",
   "Sign out to finish": "Keluar untuk menyelesaikan",
   "Signing in": "Sedang masuk",
@@ -885,23 +885,24 @@
   "Validator fees": "Biaya validator",
   "Validators": "Validator",
   "Verified": "Terverifikasi",
-  "Verified wallet": "Dompet terverifikasi",
-  "Verify": "Verifikasi",
-  "Verify a wallet": "Verifikasi dompet",
-  "Verify a wallet and people who pay it see your name with it.": "Verifikasi dompet agar orang yang membayarnya melihat nama Anda bersamanya.",
-  "Verify a wallet to post and see your mining here.": "Verifikasi dompet untuk memposting dan melihat penambangan Anda di sini.",
-  "Verify more wallets, and choose where you're paid": "Verifikasi dompet lain, dan pilih tempat menerima pembayaran",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "Verifikasi salah satu dompet Anda di profil Orien Network untuk memposting, membalas, dan memberi reaksi.",
-  "Verify one of your wallets to chat, reply or react.": "Verifikasi salah satu dompet Anda untuk mengobrol, membalas, atau memberi reaksi.",
-  "Verify one of your wallets to chat. Anyone can read along.": "Verifikasi salah satu dompet Anda untuk mengobrol. Siapa saja dapat ikut membaca.",
-  "Verify one of your wallets to react.": "Verifikasi salah satu dompet Anda untuk memberi reaksi.",
-  "Verify one of your wallets to reply.": "Verifikasi salah satu dompet Anda untuk membalas.",
-  "Verify this wallet": "Verifikasi dompet ini",
-  "Verify this wallet to offer swaps": "Verifikasi dompet ini untuk menawarkan penukaran",
-  "Verify this wallet to place sell orders": "Verifikasi dompet ini untuk membuat pesanan jual",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Verifikasi menunjukkan kepada semua orang bahwa dompet ini milik Anda, termasuk saldonya. Ini memungkinkan Anda memposting, menjual, menukar, dan menerima tip.",
-  "Verifying…": "Memverifikasi…",
-  "Verifying… usually within a minute": "Memverifikasi… biasanya dalam satu menit",
+  "Linked": "Tertaut",
+  "Linked wallet": "Dompet tertaut",
+  "Link": "Tautkan",
+  "Link a wallet": "Tautkan dompet",
+  "Link a wallet and people who pay it see your name with it.": "Tautkan dompet agar orang yang membayarnya melihat nama Anda bersamanya.",
+  "Link a wallet to post and see your mining here.": "Tautkan dompet untuk memposting dan melihat penambangan Anda di sini.",
+  "Link more wallets, and choose where you're paid": "Tautkan dompet lain, dan pilih tempat menerima pembayaran",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "Tautkan salah satu dompet Anda di profil Orien Network untuk memposting, membalas, dan memberi reaksi.",
+  "Link one of your wallets to chat, reply or react.": "Tautkan salah satu dompet Anda untuk mengobrol, membalas, atau memberi reaksi.",
+  "Link one of your wallets to chat. Anyone can read along.": "Tautkan salah satu dompet Anda untuk mengobrol. Siapa saja dapat ikut membaca.",
+  "Link one of your wallets to react.": "Tautkan salah satu dompet Anda untuk memberi reaksi.",
+  "Link one of your wallets to reply.": "Tautkan salah satu dompet Anda untuk membalas.",
+  "Link this wallet": "Tautkan dompet ini",
+  "Link this wallet to offer swaps": "Tautkan dompet ini untuk menawarkan penukaran",
+  "Link this wallet to place sell orders": "Tautkan dompet ini untuk membuat pesanan jual",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "Menautkan dompet menunjukkan kepada semua orang bahwa dompet ini milik Anda, termasuk saldonya. Ini memungkinkan Anda memposting, menjual, menukar, dan menerima tip.",
+  "Linking…": "Menautkan…",
+  "Linking… usually within a minute": "Menautkan… biasanya dalam satu menit",
   "Version": "Versi",
   "Videos about Orien": "Video tentang Orien",
   "View": "Lihat",
@@ -966,8 +967,8 @@
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "Anda memiliki 24 tema, batas maksimal yang tersedia. Hapus satu tema di Tampilan terlebih dahulu.",
   "You haven't blocked anyone.": "Anda belum memblokir siapa pun.",
   "You need": "Anda memerlukan",
-  "You need to be signed in to Orien Network with a verified wallet.": "Anda harus masuk ke Orien Network dengan dompet terverifikasi.",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "Anda harus masuk ke Orien Network. Verifikasi dompet tidak diperlukan.",
+  "You need to be signed in to Orien Network with a linked wallet.": "Anda harus masuk ke Orien Network dengan dompet tertaut.",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "Anda harus masuk ke Orien Network. Anda tidak perlu menautkan dompet.",
   "You pay": "Anda membayar",
   "You sell": "Anda menjual",
   "You send the buyer the offer code, and paste in the reply code they send back": "Anda mengirim kode penawaran kepada pembeli, lalu menempelkan kode balasan yang mereka kirim kembali",
@@ -1440,8 +1441,8 @@
       "Di-stake oleh {0}"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "{0} dompet terverifikasi"
+      "^(\\d+) linked wallets?$",
+      "{0} dompet tertaut"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "Kirim dengan {0}"
     ],
     [
-      "^Verify with (.+)$",
-      "Verifikasi dengan {0}"
+      "^Link with (.+)$",
+      "Tautkan dengan {0}"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "Konfirmasi dengan {0}"
     ],
     [
-      "^Verify (.+)$",
-      "Verifikasi {0}"
+      "^Link (.+)$",
+      "Tautkan {0}"
     ],
     [
-      "^Verifying (.+)$",
-      "Memverifikasi {0}"
+      "^Linking (.+)$",
+      "Menautkan {0}"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "Kirim {0} ORN dan verifikasi"
+      "^Send ([0-9.,]+) ORN and link$",
+      "Kirim {0} ORN dan tautkan"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "Akun Anda untuk Komunitas, Pasar, dan penukaran. Dompet Anda tetap tersimpan di aplikasi ini."
     },
     "verify": {
-      "title": "Verifikasi dompet",
+      "title": "Tautkan dompet",
       "steps": [
-        "Masuk, lalu buka dompet yang ingin Anda verifikasi.",
-        "Di Beranda, klik <b>Verifikasi</b> pada kartu <b>Verifikasi</b> di bawah saldo Anda. (Atau klik foto Anda di kanan atas, lalu <b>Edit Profil</b>, kemudian <b>Verifikasi</b> di samping dompet.)",
-        "Klik <b>Verifikasi</b> untuk mengonfirmasi. Ini mengirim kurang dari 0,001 ORN dari dompet tersebut, termasuk biaya.",
-        "Dalam satu menit akan tampil <b>Terverifikasi</b>."
+        "Masuk, lalu buka dompet yang ingin Anda tautkan.",
+        "Di Beranda, klik <b>Tautkan</b> pada kartu <b>Tautkan</b> di bawah saldo Anda. (Atau klik foto Anda di kanan atas, lalu <b>Edit Profil</b>, kemudian <b>Tautkan</b> di samping dompet.)",
+        "Klik <b>Tautkan</b> untuk mengonfirmasi. Ini mengirim kurang dari 0,001 ORN dari dompet tersebut, termasuk biaya.",
+        "Dalam satu menit akan tampil <b>Tertaut</b>."
       ],
-      "note": "Verifikasi menunjukkan kepada semua orang bahwa dompet ini milik Anda, termasuk saldonya. Ini memungkinkan Anda memposting, menjual, menukar, dan menerima tip."
+      "note": "Menautkan dompet menunjukkan kepada semua orang bahwa dompet ini milik Anda, termasuk saldonya. Ini memungkinkan Anda memposting, menjual, menukar, dan menerima tip."
     },
     "verify-more": {
-      "title": "Verifikasi dompet lain, dan pilih tempat menerima pembayaran",
+      "title": "Tautkan dompet lain, dan pilih tempat menerima pembayaran",
       "steps": [
         "Beralih ke dompet lain: klik nama dompet di Beranda lalu pilih dompet tersebut.",
-        "Klik foto Anda, lalu <b>Edit Profil</b>, kemudian <b>Verifikasi</b> di samping dompet itu.",
+        "Klik foto Anda, lalu <b>Edit Profil</b>, kemudian <b>Tautkan</b> di samping dompet itu.",
         "Ulangi untuk setiap dompet yang ingin Anda tampilkan di profil.",
-        "Dompet yang dibayar oleh pembeli dan pemberi tip bertanda <b>Dibayar di sini</b>. Untuk mengubahnya, klik <b>Terima pembayaran di sini</b> pada dompet terverifikasi lainnya.",
+        "Dompet yang dibayar oleh pembeli dan pemberi tip bertanda <b>Dibayar di sini</b>. Untuk mengubahnya, klik <b>Terima pembayaran di sini</b> pada dompet tertaut lainnya.",
         "Untuk menghapus dompet dari profil Anda, klik <b>⋯</b> di sampingnya, lalu <b>Hapus dari profil Anda</b>."
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "Mengobrol dengan semua orang",
       "steps": [
         "Di Beranda, klik <b>Pesan</b>, tombol bulat dengan balon ucapan. <b>Obrolan Grup Orien</b> disematkan di paling atas.",
-        "Siapa saja dapat ikut membaca. Untuk menulis, membalas, atau memberi reaksi, masuk dan verifikasi dompet.",
+        "Siapa saja dapat ikut membaca. Untuk menulis, membalas, atau memberi reaksi, masuk dan tautkan dompet.",
         "Arahkan ke pesan untuk membalas, memberi reaksi, atau melaporkannya.",
         "Pesan baru menampilkan titik pada Pesan. Untuk mematikannya, klik ikon lonceng di bagian atas obrolan."
       ],
@@ -2011,7 +2012,7 @@
       "title": "Tanya Dukungan AI Orien",
       "steps": [
         "Di Beranda, klik <b>Pesan</b>, tombol bulat dengan balon ucapan. <b>Dukungan AI Orien</b> disematkan di bawah obrolan grup. Di jendela besar, ikon pelampung di samping lonceng juga membukanya.",
-        "Anda harus masuk ke Orien Network. Verifikasi dompet tidak diperlukan.",
+        "Anda harus masuk ke Orien Network. Anda tidak perlu menautkan dompet.",
         "Tanyakan apa saja tentang dompet, penambangan, penukaran, atau jaringan dengan kata-kata Anda sendiri.",
         "Klik <b>Mulai ulang</b> di bagian atas obrolan untuk membersihkannya."
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "Jual ORN",
       "steps": [
-        "Masuk dan verifikasi dompet ini terlebih dahulu.",
+        "Masuk dan tautkan dompet ini terlebih dahulu.",
         "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah, lalu <b>Pasang penawaran</b>.",
         "Pilih SOL atau Bitcoin, lalu ketik berapa banyak ORN yang ingin dijual, harga yang Anda inginkan, dan alamat tempat Anda menerima pembayaran.",
         "Klik <b>Pasang penawaran</b>, dan biarkan Orien Wallet tetap berjalan sampai diambil. <b>Jaga komputer ini tetap menyala</b> di Pengaturan, <b>Komputer ini</b>, membuatnya tetap terbuka saat Anda pergi."
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "Bagikan tema di Toko Tema",
       "steps": [
-        "Anda harus masuk ke Orien Network dengan dompet terverifikasi.",
+        "Anda harus masuk ke Orien Network dengan dompet tertaut.",
         "Buka <b>Pengaturan</b>, tombol bulat berikon roda gigi di Beranda, lalu <b>Tampilan</b>.",
         "Pada salah satu tema milik Anda, klik tombol bagikan (kotak dengan panah), lalu <b>Bagikan tema</b>.",
         "Tema akan diperiksa, lalu tampil di toko dengan nama Anda, sehingga siapa saja dapat mencobanya, menggunakannya, dan memberi tip kepada Anda.",
@@ -2125,8 +2126,8 @@
   "Invite users": "Undang pengguna",
   "Enter code": "Masukkan kode",
   "Invite a friend to mine - you'll both get 7 free ORN": "Undang teman untuk menambang dan kalian masing-masing akan mendapat 7 ORN gratis",
-  "Verify a wallet to get your invite code.": "Verifikasi dompet untuk mendapatkan kode undangan Anda.",
-  "Verify wallet": "Verifikasi dompet",
+  "Link a wallet to get your invite code.": "Tautkan dompet untuk mendapatkan kode undangan Anda.",
+  "Link wallet": "Tautkan dompet",
   "Your invite code": "Kode undangan Anda",
   "Copy invite code": "Salin kode undangan",
   "Copy invite link": "Salin tautan undangan",
@@ -2135,7 +2136,7 @@
   "ORN paid": "ORN dibayarkan",
   "Share your invite link or code with a friend.": "Bagikan tautan atau kode undangan Anda kepada teman.",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "Minta teman Anda mengunduh Orien dan memasukkan kode Anda dalam 12 jam setelah membuat akun.",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "Teman Anda hanya perlu memverifikasi dompetnya dan mendapatkan imbalan penambangan dengan dompet itu pada 10 jam yang berbeda.",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "Teman Anda hanya perlu menautkan dompetnya dan mendapatkan imbalan penambangan dengan dompet itu pada 10 jam yang berbeda.",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "Anda masing-masing mendapat 7 ORN. Anda dapat mengundang hingga 5 teman (kuota undangan mungkin diperbarui di masa mendatang).",
   "Your referral window has closed": "Waktu untuk memasukkan kode telah habis",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "Anda hanya dapat memasukkan kode teman dalam 12 jam pertama sejak membuat akun Orien Network. Batas waktu untuk akun ini sudah lewat.",
@@ -2146,7 +2147,7 @@
   "Open Mining": "Buka penambangan",
   "Sign in to your Orien Network account.": "Masuk ke akun Orien Network Anda.",
   "Enter your friend’s code within 12 hours of creating your account.": "Masukkan kode teman dalam 12 jam sejak Anda membuat akun.",
-  "Verify the wallet you’ll use for mining.": "Verifikasi dompet yang akan Anda gunakan untuk menambang.",
+  "Link the wallet you’ll use for mining.": "Tautkan dompet yang akan Anda gunakan untuk menambang.",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "Dapatkan imbalan penambangan dengan dompet itu pada 10 periode per jam yang berbeda.",
   "You and the friend who invited you each earn 7 ORN.": "Anda dan teman yang mengundang Anda masing-masing mendapat 7 ORN.",
   "Your referral progress": "Progres referal Anda",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "Imbalan 7 ORN Anda sudah dibayarkan.",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "Anda telah memenuhi syarat. Imbalan 7 ORN Anda menunggu pembayaran.",
   "This referral closed before a reward was reserved.": "Referal ini berakhir sebelum imbalannya dialokasikan.",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "Kode diterima. Verifikasi dompet agar jam penambangan mulai dihitung.",
+  "Code accepted. Link a wallet to start counting your mining hours.": "Kode diterima. Tautkan dompet agar jam penambangan mulai dihitung.",
   "Mining requirement met. Reward reservation is pending.": "Syarat penambangan terpenuhi. Imbalan menunggu alokasi.",
-  "Code accepted. Mine with your verified wallet to make progress.": "Kode diterima. Gunakan dompet terverifikasi Anda untuk mulai mengumpulkan jam penambangan.",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "Kode diterima. Tambang dengan dompet terverifikasi Anda di Orien Wallet pada komputer.",
+  "Code accepted. Mine with your linked wallet to make progress.": "Kode diterima. Gunakan dompet tertaut Anda untuk mulai mengumpulkan jam penambangan.",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "Kode diterima. Tambang dengan dompet tertaut Anda di Orien Wallet pada komputer.",
   "Code copied": "Kode disalin",
   "Link copied": "Tautan disalin",
   "Couldn’t copy. Try again.": "Gagal menyalin. Coba lagi.",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "Sebagian aktivitas tidak dapat diperbarui.",
   "Couldn’t load Solana activity.": "Aktivitas Solana tidak dapat dimuat.",
   "Unlock Solana to view activity.": "Buka kunci Solana untuk melihat aktivitas.",
-  "No Solana transactions yet": "Belum ada transaksi Solana"
+  "No Solana transactions yet": "Belum ada transaksi Solana",
+  "Unlink": "Lepas tautan"
 }

@@ -51,18 +51,18 @@
   "Agreed by": "共识节点",
   "All": "全部",
   "All your wallets": "所有钱包",
-  "Among members with a verified wallet, by ORN mined.": "按已验证钱包成员挖出的 ORN 数量排名。",
+  "Among members with a linked wallet, by ORN mined.": "按已关联钱包成员挖出的 ORN 数量排名。",
   "Amount": "金额",
   "Amount (ORN)": "数量 (ORN)",
   "An address, a name or a checkpoint number": "输入地址、用户名或检查点编号",
-  "An earlier payment from this wallet had to finish first, so nothing was sent for verifying yet. Tap again to send it.": "此钱包之前的一笔转账需要先完成，因此验证交易尚未发出。请再次点击发送。",
+  "An earlier payment from this wallet had to finish first, so nothing was sent for linking yet. Tap again to send it.": "此钱包之前的一笔转账需要先完成，因此关联交易尚未发出。请再次点击发送。",
   "An earlier payment from this wallet had to finish first, so this one wasn't sent yet. Tap Pay again.": "此钱包之前的一笔转账需要先完成，因此这笔付款尚未发出。请再次点击支付。",
   "An earlier payment from this wallet had to finish first, so this tip wasn't sent yet. Tap Tip again.": "此钱包之前的一笔转账需要先完成，因此这笔打赏尚未发出。请再次点击打赏。",
   "Another amount": "其他金额",
   "Answers come from an AI and can be wrong. It never needs your recovery words, passwords or keys: never share them with anyone.": "回答由 AI 生成，可能存在错误。它绝不需要你的助记词、密码或私钥，请勿向任何人透露这些信息。",
   "Any colour you like": "任选你喜欢的颜色",
   "Any moment": "即将到达",
-  "Anyone can read along. To write, reply or react, sign in and verify a wallet.": "所有人都可以浏览内容。如需发帖、回复或互动，请登录并验证一个钱包。",
+  "Anyone can read along. To write, reply or react, sign in and link a wallet.": "所有人都可以浏览内容。如需发帖、回复或互动，请登录并关联一个钱包。",
   "Anyone can see it, use it and tip you for it. Your Orien Network name is shown with it. You can take it down at any time.": "所有人都可以查看、使用并为此向你打赏。你的 Orien Network 用户名会一并显示，你随时可以将其下架。",
   "Anyone can sell into it now. When they do, their wallet locks the ORN and this app opens the pay screen.": "现在任何人都可以向此买单出售。当有人出售时，对方钱包会锁定 ORN，本应用会自动打开支付页面。",
   "Anyone can take it now. When they do, your wallet runs the swap by itself.": "现在任何人都可以接单。一旦有人接单，你的钱包会自动执行兑换。",
@@ -133,7 +133,7 @@
   "Buyer": "买家",
   "Buyer pays": "买家支付",
   "Buyer's SOL reserved. Locking your ORN now. Keep this page open for a few more seconds.": "买家的 SOL 已预留，正在锁定你的 ORN。请保持此页面打开几秒钟。",
-  "Buyers on the Market pay the wallet marked Paid here. Verify more to choose between them.": "市场上的买家会向标记为“在此收款”的钱包付款。验证更多钱包即可在其中切换。",
+  "Buyers on the Market pay the wallet marked Paid here. Link more to choose between them.": "市场上的买家会向标记为“在此收款”的钱包付款。关联更多钱包即可在其中切换。",
   "Buying ORN": "正在买入 ORN",
   "By any message app or email. It tells the buyer's Orien Wallet what you locked for them, and holds nothing secret.": "可通过任意聊天软件或邮件发送。它用于告知买家的 Orien Wallet 你为其锁定的内容，不包含任何私密信息。",
   "By any message app or email. It tells the seller's Orien Wallet where you're paying the Bitcoin, and holds nothing secret.": "可通过任意聊天软件或邮件发送。它用于告知卖家的 Orien Wallet 你将向何处支付 Bitcoin，不包含任何私密信息。",
@@ -370,10 +370,10 @@
   "Mine for an hour in Orien Wallet on a computer, or buy a little at orien.network.": "在电脑版 Orien Wallet 中挖一小时，或在 orien.network 买入一点。",
   "Mine it on a computer.": "在电脑上挖矿获取。",
   "Mine on a computer: install Orien Wallet there, link this wallet, and press": "在电脑上挖矿：在电脑安装 Orien Wallet，关联此钱包，然后点击",
-  "Mine with a verified wallet and your figures show here after the next checkpoint.": "使用已验证钱包挖矿，你的数据将在下一个检查点后显示在这里。",
+  "Mine with a linked wallet and your figures show here after the next checkpoint.": "使用已关联钱包挖矿，你的数据将在下一个检查点后显示在这里。",
   "Miners last hour": "上小时矿工数",
   "Miners paid": "获奖励矿工",
-  "Miners who have verified a wallet on their Orien Network account, by ORN mined. Verify your wallet on your account to be on the list.": "按挖出的 ORN 数量排列在 Orien Network 账号上验证过钱包的矿工。在账号中验证你的钱包即可上榜。",
+  "Miners who have linked a wallet on their Orien Network account, by ORN mined. Link your wallet on your account to be on the list.": "按挖出的 ORN 数量排列在 Orien Network 账号上关联过钱包的矿工。在账号中关联你的钱包即可上榜。",
   "Minimize": "最小化",
   "Minimum order is 0.01 SOL": "最小订单金额为 0.01 SOL",
   "Mining": "挖矿",
@@ -422,12 +422,12 @@
   "No swaps completed yet. The next swap sets the price.": "尚无已完成的兑换，下一笔兑换将确定价格。",
   "No swaps yet": "暂无兑换记录",
   "No trades yet": "暂无成交",
-  "No verified wallet yet": "尚无已验证钱包",
-  "No verified wallets yet": "暂无已验证钱包",
+  "No linked wallet yet": "尚无已关联钱包",
+  "No linked wallets yet": "暂无已关联钱包",
   "No wallets yet.": "暂无钱包。",
   "Nobody by that name.": "未找到该用户。",
   "Nobody is banned.": "当前没有被封禁的用户。",
-  "Nobody with a verified wallet has been paid for mining yet.": "尚无已验证钱包的用户获得过挖矿奖励。",
+  "Nobody with a linked wallet has been paid for mining yet.": "尚无已关联钱包的用户获得过挖矿奖励。",
   "None": "无",
   "Normal": "正常",
   "Not an Orien address": "不是有效的 Orien 地址",
@@ -436,7 +436,7 @@
   "Not in the network's history": "不在网络记录中",
   "Not now": "暂不",
   "Not recorded": "未记录",
-  "Not verified yet": "尚未验证",
+  "Not linked yet": "尚未关联",
   "Nothing found. Search an address (64 letters and digits, 0-9 and a-f), a checkpoint number, or the name of someone on the Market.": "未找到结果。请搜索地址（64 位字母和数字，0-9 及 a-f）、检查点编号或市场上的用户名。",
   "Nothing from the network about them yet.": "网络中尚无关于他们的动态。",
   "Nothing has happened at this address yet.": "该地址暂无任何记录。",
@@ -477,7 +477,7 @@
   "Open Mine": "打开挖矿",
   "Open Orien Wallet on the device you posted or took this offer from to finish the swap": "请在你发布或接受此报价的设备上打开 Orien Wallet 以完成兑换",
   "Open at login": "开机自启",
-  "Open it to verify": "打开它以验证",
+  "Open it to link": "打开它以关联",
   "Open offers": "开放报价",
   "Open the explorer": "打开浏览器",
   "Opens Firefox's add-on store: click Add to Firefox": "打开 Firefox 附加组件商店：点击“添加到 Firefox”",
@@ -630,8 +630,8 @@
   "Sell amount (ORN)": "卖出数量 (ORN)",
   "Sell from": "最高买价",
   "Sell into this offer": "向此买单出售",
-  "Sell offers come from verified wallets, so buyers can see who they're swapping with. Verifying ties this wallet to your Orien Network name and sends less than 0.001 ORN from it, once.": "卖单均来自已验证钱包，以便买家确认交易对象。验证会将此钱包与你的 Orien Network 用户名绑定，并仅需发送不到 0.001 ORN 一次。",
-  "Sell orders come from verified wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "卖单来自已验证钱包，以便买家了解交易对象（仅需一次性发送少于 0.001 ORN）。",
+  "Sell offers come from linked wallets, so buyers can see who they're swapping with. Linking this wallet to your Orien Network profile sends less than 0.001 ORN from it, once.": "卖单均来自已关联钱包，以便买家确认交易对象。关联会将此钱包与你的 Orien Network 用户名绑定，并仅需发送不到 0.001 ORN 一次。",
+  "Sell orders come from linked wallets so buyers know who they're trading with (sends < 0.001 ORN once).": "卖单来自已关联钱包，以便买家了解交易对象（仅需一次性发送少于 0.001 ORN）。",
   "Sell something": "发布商品",
   "Seller": "卖家",
   "Seller accepts": "卖家接受",
@@ -643,7 +643,7 @@
   "Send ORN, see your balance, and sign in to orien.network with one click, right from your browser. Your keys never leave Orien Wallet.": "直接在浏览器中发送 ORN、查看余额并一键登录 orien.network。你的私钥绝不会离开 Orien Wallet。",
   "Send SOL": "发送 SOL",
   "Send SOL once into a Solana order. It stays live on the order book even while Orien Wallet is closed, settles in about a minute when taken, and cancels in one click.": "向 Solana 订单一次性发送 SOL。即使关闭 Orien Wallet 订单也会持续在订单簿上生效，接单后约 1 分钟结算，且支持一键取消。",
-  "Send and verify": "发送并验证",
+  "Send and link": "发送并关联",
   "Send me a code": "发送验证码",
   "Send report": "提交反馈",
   "Send the buyer this offer code": "将此报价码发送给买家",
@@ -656,7 +656,7 @@
   "Sent a GIF": "发送了一个 GIF",
   "Sent a picture": "发送了一张图片",
   "Sent from another app": "从其他应用发送",
-  "Sent. Verifying, usually within a minute.": "已发送，正在验证，通常在 1 分钟内完成。",
+  "Sent. Linking, usually within a minute.": "已发送，正在关联，通常在 1 分钟内完成。",
   "Set password": "设置密码",
   "Set the": "设置",
   "Set up": "去设置",
@@ -681,10 +681,10 @@
   "Show your accounts on your profile, if you like. Everyone can see them.": "如有需要，可在个人资料中展示你的账号，所有人均可见。",
   "Sign Out": "退出登录",
   "Sign in": "登录",
-  "Sign in and verify this wallet first.": "请先登录并验证此钱包。",
+  "Sign in and link this wallet first.": "请先登录并关联此钱包。",
   "Sign in to Orien Network": "登录 Orien Network",
   "Sign in to Orien Network first.": "请先登录 Orien Network。",
-  "Sign in to Orien Network to ask a question. Verifying a wallet isn't needed.": "登录 Orien Network 即可提问，无需验证钱包。",
+  "Sign in to Orien Network to ask a question. Linking a wallet isn't needed.": "登录 Orien Network 即可提问，无需关联钱包。",
   "Sign in to Orien Network to chat, reply or react.": "登录 Orien Network 即可聊天、回复或互动。",
   "Sign in to Orien Network to chat.": "登录 Orien Network 即可聊天。",
   "Sign in to Orien Network to post and react.": "登录 Orien Network 即可发帖和互动。",
@@ -696,10 +696,10 @@
   "Sign in to Orien Network to see the themes you shared.": "登录 Orien Network 以查看你分享的主题。",
   "Sign in to Orien Network to see your own messages and to chat.": "登录 Orien Network 以查看自己的消息并参与聊天。",
   "Sign in to Orien Network to tip.": "登录 Orien Network 即可打赏。",
-  "Sign in to Orien Network with a verified wallet to share themes.": "请使用已验证钱包登录 Orien Network 以分享主题。",
+  "Sign in to Orien Network with a linked wallet to share themes.": "请使用已关联钱包登录 Orien Network 以分享主题。",
   "Sign in to message the seller": "登录后联系卖家",
   "Sign in to trade": "登录后交易",
-  "Sign in, and open the wallet you want to verify.": "登录并打开你要验证的钱包。",
+  "Sign in, and open the wallet you want to link.": "登录并打开你要关联的钱包。",
   "Sign out of Windows and back in, then open Orien Wallet. Mining runs faster from then on.": "注销 Windows 并重新登录，然后打开 Orien Wallet，之后挖矿速度就会提升。",
   "Sign out to finish": "注销以完成设置",
   "Signing in": "正在登录",
@@ -885,23 +885,24 @@
   "Validator fees": "验证节点手续费",
   "Validators": "验证节点",
   "Verified": "已验证",
-  "Verified wallet": "已验证钱包",
-  "Verify": "验证",
-  "Verify a wallet": "验证钱包",
-  "Verify a wallet and people who pay it see your name with it.": "验证钱包后，向你付款的人将能看到与地址对应的用户名。",
-  "Verify a wallet to post and see your mining here.": "验证钱包后即可发帖并在此查看你的挖矿数据。",
-  "Verify more wallets, and choose where you're paid": "验证更多钱包，并选择收款钱包",
-  "Verify one of your wallets on your Orien Network profile to post, reply and react.": "在你的 Orien Network 个人资料中验证一个钱包，即可发帖、回复和互动。",
-  "Verify one of your wallets to chat, reply or react.": "验证你的任一钱包即可聊天、回复或互动。",
-  "Verify one of your wallets to chat. Anyone can read along.": "验证你的任一钱包即可发言，所有人都可以浏览聊天内容。",
-  "Verify one of your wallets to react.": "验证你的任一钱包即可互动。",
-  "Verify one of your wallets to reply.": "验证你的任一钱包即可回复。",
-  "Verify this wallet": "验证此钱包",
-  "Verify this wallet to offer swaps": "验证此钱包以发布兑换",
-  "Verify this wallet to place sell orders": "验证此钱包以发布卖单",
-  "Verifying shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "验证后会向所有人展示此钱包归你所有（包括余额），同时解锁发帖、出售商品、兑换和接收打赏功能。",
-  "Verifying…": "正在验证…",
-  "Verifying… usually within a minute": "正在验证…通常在 1 分钟内完成",
+  "Linked": "已关联",
+  "Linked wallet": "已关联钱包",
+  "Link": "关联",
+  "Link a wallet": "关联钱包",
+  "Link a wallet and people who pay it see your name with it.": "关联钱包后，向你付款的人将能看到与地址对应的用户名。",
+  "Link a wallet to post and see your mining here.": "关联钱包后即可发帖并在此查看你的挖矿数据。",
+  "Link more wallets, and choose where you're paid": "关联更多钱包，并选择收款钱包",
+  "Link one of your wallets to your Orien Network profile to post, reply and react.": "在你的 Orien Network 个人资料中关联一个钱包，即可发帖、回复和互动。",
+  "Link one of your wallets to chat, reply or react.": "关联你的任一钱包即可聊天、回复或互动。",
+  "Link one of your wallets to chat. Anyone can read along.": "关联你的任一钱包即可发言，所有人都可以浏览聊天内容。",
+  "Link one of your wallets to react.": "关联你的任一钱包即可互动。",
+  "Link one of your wallets to reply.": "关联你的任一钱包即可回复。",
+  "Link this wallet": "关联此钱包",
+  "Link this wallet to offer swaps": "关联此钱包以发布兑换",
+  "Link this wallet to place sell orders": "关联此钱包以发布卖单",
+  "Linking shows everyone the wallet is yours, including its balance. It lets you post, sell, swap and receive tips.": "关联后会向所有人展示此钱包归你所有（包括余额），同时解锁发帖、出售商品、兑换和接收打赏功能。",
+  "Linking…": "正在关联…",
+  "Linking… usually within a minute": "正在关联…通常在 1 分钟内完成",
   "Version": "版本",
   "Videos about Orien": "关于 Orien 的视频",
   "View": "查看",
@@ -966,8 +967,8 @@
   "You have 24 themes, as many as there's room for. Delete one in Appearance first.": "你已有 24 个主题，达到数量上限。请先在外观中删除一个。",
   "You haven't blocked anyone.": "你还没有屏蔽任何人。",
   "You need": "你需要",
-  "You need to be signed in to Orien Network with a verified wallet.": "你需要使用已验证钱包登录 Orien Network。",
-  "You need to be signed in to Orien Network. Verifying a wallet isn't needed.": "你需要登录 Orien Network，无需验证钱包。",
+  "You need to be signed in to Orien Network with a linked wallet.": "你需要使用已关联钱包登录 Orien Network。",
+  "You need to be signed in to Orien Network. Linking a wallet isn't needed.": "你需要登录 Orien Network，无需关联钱包。",
   "You pay": "你支付",
   "You sell": "你出售",
   "You send the buyer the offer code, and paste in the reply code they send back": "你将报价码发给买家，然后粘贴对方发回的回复码",
@@ -1440,8 +1441,8 @@
       "质押者 {0}"
     ],
     [
-      "^(\\d+) verified wallets?$",
-      "{0} 个已验证钱包"
+      "^(\\d+) linked wallets?$",
+      "{0} 个已关联钱包"
     ],
     [
       "^(\\d+) more offers? paused while .*$",
@@ -1704,8 +1705,8 @@
       "使用 {0} 发布"
     ],
     [
-      "^Verify with (.+)$",
-      "使用 {0} 验证"
+      "^Link with (.+)$",
+      "使用 {0} 关联"
     ],
     [
       "^Turn on with (.+)$",
@@ -1736,16 +1737,16 @@
       "使用 {0} 确认"
     ],
     [
-      "^Verify (.+)$",
-      "验证 {0}"
+      "^Link (.+)$",
+      "关联 {0}"
     ],
     [
-      "^Verifying (.+)$",
-      "正在验证 {0}"
+      "^Linking (.+)$",
+      "正在关联 {0}"
     ],
     [
-      "^Send ([0-9.,]+) ORN and verify$",
-      "发送 {0} ORN 并验证"
+      "^Send ([0-9.,]+) ORN and link$",
+      "发送 {0} ORN 并关联"
     ],
     [
       "^Orien Wallet ([0-9.]+) is the newest version\\.$",
@@ -1968,22 +1969,22 @@
       "note": "你的账号用于社区、市场和兑换，你的钱包始终保存在本应用中。"
     },
     "verify": {
-      "title": "验证钱包",
+      "title": "关联钱包",
       "steps": [
-        "登录并打开你要验证的钱包。",
-        "在主页余额下方的<b>验证</b>卡片上点击<b>验证</b>。（或者点击右上角头像，选择<b>编辑资料</b>，然后点击该钱包旁的<b>验证</b>。）",
-        "点击<b>验证</b>以确认。此操作会从该钱包发送不到 0.001 ORN（含手续费）。",
-        "1 分钟内即可显示<b>已验证</b>。"
+        "登录并打开你要关联的钱包。",
+        "在主页余额下方的<b>关联</b>卡片上点击<b>关联</b>。（或者点击右上角头像，选择<b>编辑资料</b>，然后点击该钱包旁的<b>关联</b>。）",
+        "点击<b>关联</b>以确认。此操作会从该钱包发送不到 0.001 ORN（含手续费）。",
+        "1 分钟内即可显示<b>已关联</b>。"
       ],
-      "note": "验证后会向所有人展示此钱包归你所有（包括余额），同时解锁发帖、出售商品、兑换和接收打赏功能。"
+      "note": "关联后会向所有人展示此钱包归你所有（包括余额），同时解锁发帖、出售商品、兑换和接收打赏功能。"
     },
     "verify-more": {
-      "title": "验证更多钱包，并选择收款钱包",
+      "title": "关联更多钱包，并选择收款钱包",
       "steps": [
         "切换到另一个钱包：在主页点击钱包名称并选择它。",
-        "点击你的头像，选择<b>编辑资料</b>，然后点击该钱包旁的<b>验证</b>。",
+        "点击你的头像，选择<b>编辑资料</b>，然后点击该钱包旁的<b>关联</b>。",
         "对每个想展示在个人资料中的钱包重复此操作。",
-        "买家和打赏者付款的钱包会显示<b>在此收款</b>。如需更改，请在另一个已验证钱包上点击<b>在此收款</b>。",
+        "买家和打赏者付款的钱包会显示<b>在此收款</b>。如需更改，请在另一个已关联钱包上点击<b>在此收款</b>。",
         "如需将某个钱包从个人资料中移除，请点击它旁边的 <b>⋯</b>，然后点击<b>从个人资料移除</b>。"
       ]
     },
@@ -2001,7 +2002,7 @@
       "title": "和大家聊天",
       "steps": [
         "在主页点击<b>消息</b>（带对话气泡图标的圆形按钮）。<b>Orien 群聊</b>置顶在最上方。",
-        "所有人都可以浏览内容。如需发言、回复或表态，请登录并验证一个钱包。",
+        "所有人都可以浏览内容。如需发言、回复或表态，请登录并关联一个钱包。",
         "将鼠标悬停在消息上即可回复、表态或举报。",
         "有新消息时，消息图标上会出现小红点。如需关闭提醒，请点击聊天顶部的铃铛图标。"
       ],
@@ -2011,7 +2012,7 @@
       "title": "咨询 Orien AI 客服",
       "steps": [
         "在主页点击<b>消息</b>（带对话气泡图标的圆形按钮）。<b>Orien AI 客服</b>置顶在群聊下方。在宽屏窗口中，点击铃铛旁的救生圈图标也可以打开。",
-        "你需要登录 Orien Network，无需验证钱包。",
+        "你需要登录 Orien Network，无需关联钱包。",
         "用你自己的话提问，任何关于钱包、挖矿、兑换或网络的问题都可以。",
         "点击聊天顶部的<b>重新开始</b>可清空对话。"
       ],
@@ -2057,7 +2058,7 @@
     "sell": {
       "title": "卖出 ORN",
       "steps": [
-        "请先登录并验证此钱包。",
+        "请先登录并关联此钱包。",
         "在主页点击<b>兑换</b>（带双向箭头图标的圆形按钮），然后点击<b>发布报价</b>。",
         "选择 SOL 或 Bitcoin，然后输入要卖出的 ORN 数量、期望收到的金额以及收款地址。",
         "点击<b>发布报价</b>，并保持 Orien Wallet 运行直到有人接单。在设置中的<b>此电脑</b>开启<b>保持电脑唤醒</b>，可在你离开时保持运行。"
@@ -2104,7 +2105,7 @@
     "theme-share": {
       "title": "在主题商店分享主题",
       "steps": [
-        "你需要使用已验证钱包登录 Orien Network。",
+        "你需要使用已关联钱包登录 Orien Network。",
         "打开<b>设置</b>（主页上带齿轮的圆形按钮），然后进入<b>外观</b>。",
         "在你自己的主题上点击分享按钮（带箭头的方框），然后点击<b>分享主题</b>。",
         "审核通过后会附带你的用户名展示在商店中，任何人都可以试用、使用并向你打赏。",
@@ -2125,8 +2126,8 @@
   "Invite users": "邀请好友",
   "Enter code": "输入邀请码",
   "Invite a friend to mine - you'll both get 7 free ORN": "邀请好友挖矿，双方各得 7 ORN 免费奖励",
-  "Verify a wallet to get your invite code.": "验证钱包即可获取邀请码。",
-  "Verify wallet": "验证钱包",
+  "Link a wallet to get your invite code.": "关联钱包即可获取邀请码。",
+  "Link wallet": "关联钱包",
   "Your invite code": "你的邀请码",
   "Copy invite code": "复制邀请码",
   "Copy invite link": "复制邀请链接",
@@ -2135,7 +2136,7 @@
   "ORN paid": "已支付的 ORN",
   "Share your invite link or code with a friend.": "将邀请链接或邀请码分享给好友。",
   "Have your friend download Orien and apply your code within 12 hours of creating their account.": "请好友下载 Orien，并在创建账户后的 12 小时内使用你的邀请码。",
-  "Your friend just needs to verify their wallet and earn mining rewards with it in 10 separate hours.": "好友只需验证钱包，并在 10 个不同的小时内用该钱包获得挖矿奖励。",
+  "Your friend just needs to link their wallet and earn mining rewards with it in 10 separate hours.": "好友只需关联钱包，并在 10 个不同的小时内用该钱包获得挖矿奖励。",
   "You each earn 7 ORN. You can invite up to 5 friends (Referrals may refresh in the future)": "双方各得 7 ORN。你最多可邀请 5 位好友（邀请名额将来可能会重置）。",
   "Your referral window has closed": "邀请码填写期限已过",
   "You can only enter a friend’s code during the first 12 hours after you create your Orien Network account. That time has passed for this account.": "只能在创建 Orien Network 账户后的 12 小时内输入好友的邀请码。此账户已超过该期限。",
@@ -2146,7 +2147,7 @@
   "Open Mining": "打开挖矿页面",
   "Sign in to your Orien Network account.": "登录你的 Orien Network 账户。",
   "Enter your friend’s code within 12 hours of creating your account.": "在创建账户后的 12 小时内输入好友的邀请码。",
-  "Verify the wallet you’ll use for mining.": "验证你将用于挖矿的钱包。",
+  "Link the wallet you’ll use for mining.": "关联你将用于挖矿的钱包。",
   "Earn mining rewards in 10 hourly checkpoints with that wallet.": "使用该钱包在 10 个不同的整点检查点获得挖矿奖励。",
   "You and the friend who invited you each earn 7 ORN.": "你和邀请你的好友各得 7 ORN。",
   "Your referral progress": "你的邀请奖励进度",
@@ -2158,10 +2159,10 @@
   "Your 7 ORN reward has been paid.": "你的 7 ORN 奖励已发放。",
   "You’ve qualified. Your 7 ORN reward is awaiting payout.": "你已达标，7 ORN 奖励待发放。",
   "This referral closed before a reward was reserved.": "此邀请在奖励预留前已结束。",
-  "Code accepted. Verify a wallet to start counting your mining hours.": "邀请码已接受。请验证钱包，以便开始累计挖矿时数。",
+  "Code accepted. Link a wallet to start counting your mining hours.": "邀请码已接受。请关联钱包，以便开始累计挖矿时数。",
   "Mining requirement met. Reward reservation is pending.": "已满足挖矿要求，正在等待预留奖励。",
-  "Code accepted. Mine with your verified wallet to make progress.": "邀请码已接受。请用已验证的钱包挖矿以累计进度。",
-  "Code accepted. Mine with your verified wallet in Orien Wallet on a computer.": "邀请码已接受。请在电脑上打开 Orien Wallet，用已验证的钱包挖矿。",
+  "Code accepted. Mine with your linked wallet to make progress.": "邀请码已接受。请用已关联的钱包挖矿以累计进度。",
+  "Code accepted. Mine with your linked wallet in Orien Wallet on a computer.": "邀请码已接受。请在电脑上打开 Orien Wallet，用已关联的钱包挖矿。",
   "Code copied": "邀请码已复制",
   "Link copied": "链接已复制",
   "Couldn’t copy. Try again.": "复制失败，请重试。",
@@ -2189,5 +2190,6 @@
   "Some activity could not be refreshed.": "部分活动未能刷新。",
   "Couldn’t load Solana activity.": "无法加载 Solana 活动。",
   "Unlock Solana to view activity.": "解锁 Solana 以查看活动。",
-  "No Solana transactions yet": "暂无 Solana 交易"
+  "No Solana transactions yet": "暂无 Solana 交易",
+  "Unlink": "取消关联"
 }
