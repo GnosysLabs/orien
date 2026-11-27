@@ -2972,6 +2972,7 @@
     body.pop:not(.phone) #receive .receive-card .fineprint { border-top: 0; padding-top: 0; margin-top: 12px; }
   }
   @keyframes pop-fade { from { opacity: 0; } to { opacity: 1; } }
+  body.veil-kept :is(#pop-shade, #ex-veil) { animation: none !important; }
   @keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
   /* A pop-up closes with ✕ at the top right; Back stays only where it leads
      back inside the pop-up (a contact, to the list). */
@@ -5544,6 +5545,9 @@
       if (at >= 0) trail.length = at + 1; else trail.push(id);
     }
     if (!pop) lastBase = id;
+    // One pop-up opening from another (or from Place order): the dimming
+    // behind them carries straight over instead of fading in again.
+    if (pop) document.body.classList.toggle("veil-kept", document.body.classList.contains("pop") || document.body.classList.contains("ex-order"));
     document.body.classList.toggle("pop", pop);
     if (id === "community" && typeof cmFitRail === "function") cmFitRail();
     // A big window shows recent swaps beside the offers: fetched as it opens.
@@ -11007,8 +11011,8 @@
         pendingTake = { id: "placing-order", pending: true, funded_order: true, role: "buy", coin: "sol", stage: "pay",
           orn, sol, pay_amount: sol, refund: devnetAssets.address, created: Date.now() / 1000,
           status: "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds." };
-        exOrder(false);
         openSwap(pendingTake.id);
+        exOrder(false);
         try {
           $("ex-addr").value = await ensureOwnSol(password);
           pendingTake.refund = $("ex-addr").value;
@@ -11024,7 +11028,7 @@
           return;
         } catch (e) {
           // Not placed: back to the form, as it was, with the reason under it.
-          if (current === "placing-order") { pendingTake = null; current = null; show("swaps"); if (!handset && wide.matches) exOrder(true); else swapTab("trade"); }
+          if (current === "placing-order") { pendingTake = null; current = null; if (!handset && wide.matches) { exOrder(true); show("swaps"); } else { show("swaps"); swapTab("trade"); } }
           throw e;
         }
       } else {
@@ -13777,6 +13781,8 @@
   // Place order: the form opens as a card over the Exchange, and closes on
   // its ✕, a click beside it, Escape, or leaving the page.
   function exOrder(open) {
+    // From another pop-up: the dimming carries straight over, no fade.
+    if (open) document.body.classList.toggle("veil-kept", document.body.classList.contains("pop"));
     document.body.classList.toggle("ex-order", open);
     $("ex-veil").hidden = !open;
     if (open) { const f = document.querySelector("#ex-pane-ticket input"); if (f) setTimeout(() => f.focus(), 50); }
