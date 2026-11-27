@@ -7361,7 +7361,9 @@
   document.addEventListener("click", (e) => { if (!$("help-menu").hidden && !e.target.closest("#help-menu, #go-help")) helpClose(); }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("help-menu").hidden) helpClose(); });
   window.addEventListener("resize", () => { if (!$("help-menu").hidden) helpClose(); });
-  $("help-ai").onclick = async () => { helpClose(); await openInbox(); openAi("inbox"); };
+  // Big windows: Messages beside the chat. Smaller ones: straight to the
+  // chat, with no flash of Messages first, and Back returns to where it was opened.
+  $("help-ai").onclick = async () => { helpClose(); if (!handset && wide.matches) { await openInbox(); openAi("inbox"); } else openAi("help"); };
   // From the Help menu: Back returns to where it was opened.
   $("help-guide").onclick = () => { helpClose(); openSettings(); settingsPage("guide"); settingsDirect = "guide"; };
   $("help-report").onclick = () => { helpClose(); openSettings(); settingsPage("report"); settingsDirect = "report"; };
@@ -13506,7 +13508,7 @@
     const pw = document.getElementById("ch-pay-pw");
     if (pw) pw.focus();
   }
-  $("ch-back").onclick = () => { const wasRoom = chat.room || chat.ai; leaveRoom(); chat.id = null; chat.direct = null; if (wasRoom && chat.from === "inbox") return openInbox(); chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? (phone ? openNotices() : home()) : chat.from === "member" ? show("member") : openInbox(); };
+  $("ch-back").onclick = () => { const wasRoom = chat.room || chat.ai; leaveRoom(); chat.id = null; chat.direct = null; if (wasRoom && chat.from === "inbox") return openInbox(); chat.from === "listing" ? show("listing") : chat.from === "profile" ? show("seller") : chat.from === "contact" ? show("contact") : chat.from === "notices" ? (phone ? openNotices() : home()) : chat.from === "help" ? goBack("chat") : chat.from === "member" ? show("member") : openInbox(); };
   $("ch-who").onclick = () => { if (chat.conv && chat.conv.with) { market.sellerFrom = "chat"; openSeller(chat.conv.with); } };
   $("ch-about").onclick = () => chat.conv && chat.conv.listing && openListing(chat.conv.listing, "chat");
   // Delete conversation: gone from your Messages (theirs stays); asks twice.
