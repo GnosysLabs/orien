@@ -151,25 +151,15 @@ export default function GetStartedPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-bold tracking-tight text-ink">Run a validator</h3>
             <p>
-              Validators check payments and earn the network&apos;s fees, shared by stake. You need at least{' '}
-              <strong>10,000 ORN</strong> to stake, and a server that stays on, ideally running Linux, with your wallet
-              on it.
+              Validators check payments and earn the network&apos;s fees, shared by stake. It takes at least{' '}
+              <strong>10,000 ORN</strong> and a server that stays on.
             </p>
-            <CopyText label="Make the validator’s key, on the server" text="orien keygen ~/.orien/validator.key" />
-            <CopyText
-              label="Start it, at an address other validators can reach"
-              text="orien node -k ~/.orien/validator.key -d ~/.orien/validator --listen 0.0.0.0:7101"
-            />
-            <CopyText
-              label="Stake behind it, on the same server"
-              text="orien stake --amount 10000 --validator-key ~/.orien/validator.key --address YOUR_SERVER_IP:7101"
-            />
-            <p className="text-sm">
-              It keeps itself up to date with each signed release, restarting at a calm moment. To update it yourself
-              instead, add <code className={code}>--no-auto-update</code>. At the next hourly checkpoint, if its stake is
-              among the largest, it joins the validators. To stop, run{' '}
-              <code className={code}>orien unstake --amount 10000</code>: the ORN come back after a week.
-            </p>
+            <Link
+              href="/developers/validators/"
+              className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-bg px-5 text-sm font-semibold text-ink transition hover:border-pearl"
+            >
+              Run a validator <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
           </div>
         </div>
       </details>
