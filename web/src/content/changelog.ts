@@ -28,6 +28,18 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-28',
     products: ['wallet'],
+    version: '1.9.38',
+    title: 'Solana addresses in Contacts',
+    changes: [
+      'Save a Solana address in Contacts under a name you choose, such as an exchange\u2019s SOL deposit address. Send SOL offers it by name, among the people at the top and as you type.',
+      'A finished SOL send to an address with no name offers to save it as a contact.',
+      'Buying and selling ORN for SOL works where Solana\u2019s public services can\u2019t be reached, going by orien.network\u2019s own when they give no answer.',
+      'The people at the top of Send show their whole name.',
+    ],
+  },
+  {
+    date: '2026-11-28',
+    products: ['wallet'],
     version: '1.9.37',
     title: 'Sending SOL where Solana is hard to reach',
     changes: [
