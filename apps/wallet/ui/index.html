@@ -11223,7 +11223,7 @@
   // A share of what this wallet has: SOL to spend on a buy, ORN to sell.
   let exPct = null;
   function exPctPaint() {
-    for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.classList.toggle("on", exPct !== null && Number(b.dataset.pct) <= exPct);
+    for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.classList.toggle("on", Number(b.dataset.pct) <= (exPct || 0));
     $("ex-pct-fill").style.width = `${exPct || 0}%`;
     const buy = exSide === "buy";
     const sol = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
