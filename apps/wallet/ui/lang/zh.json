@@ -2634,5 +2634,9 @@
   "A part is settling (~1 min)": "部分结算中（约 1 分钟）",
   "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "你的买单已在订单簿上线，卖家可以成交其中任意部分。你可以关闭 Orien Wallet：每成交一部分，ORN 就会存入你的钱包。",
   "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "有卖家正在成交你订单的一部分：这些 ORN 会在 1 分钟左右存入你的钱包。",
-  "Waiting for their wallet to lock the ORN": "等待对方钱包锁定 ORN"
+  "Waiting for their wallet to lock the ORN": "等待对方钱包锁定 ORN",
+  "✓ Valid Solana address": "✓ Solana 地址有效",
+  "Not an Orien or Solana address": "不是有效的 Orien 或 Solana 地址",
+  "Their Orien or Solana address": "对方的 Orien 或 Solana 地址",
+  "That is not an Orien or Solana address.": "这不是有效的 Orien 或 Solana 地址。"
 }

@@ -2634,5 +2634,9 @@
   "A part is settling (~1 min)": "एक हिस्से का निपटान हो रहा है (~1 मिनट)",
   "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "आपका खरीद ऑर्डर ऑर्डर बुक पर लाइव है, और विक्रेता इसका कोई भी हिस्सा पूरा कर सकते हैं। आप Orien Wallet बंद कर सकते हैं: हर हिस्सा पूरा होते ही ORN आपके वॉलेट में पहुँच जाते हैं।",
   "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "एक विक्रेता आपके ऑर्डर का एक हिस्सा पूरा कर रहा है: वे ORN लगभग एक मिनट में आपके वॉलेट में पहुँच जाते हैं।",
-  "Waiting for their wallet to lock the ORN": "उनके वॉलेट द्वारा ORN लॉक किए जाने की प्रतीक्षा"
+  "Waiting for their wallet to lock the ORN": "उनके वॉलेट द्वारा ORN लॉक किए जाने की प्रतीक्षा",
+  "✓ Valid Solana address": "✓ मान्य Solana पता",
+  "Not an Orien or Solana address": "यह Orien या Solana पता नहीं है",
+  "Their Orien or Solana address": "उनका Orien या Solana पता",
+  "That is not an Orien or Solana address.": "यह Orien या Solana पता नहीं है।"
 }

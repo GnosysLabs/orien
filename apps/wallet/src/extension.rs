@@ -217,7 +217,9 @@ fn people(app: &AppHandle) -> serde_json::Value {
     let current = crate::wallet_file(&dir);
     let icons = crate::contacts::icons(&dir);
     let contacts: Vec<_> =
-        crate::contacts::list(&dir).into_iter().map(|c| serde_json::json!({ "name": c.name, "address": c.address })).collect();
+        // Orien addresses only: the extension sends ORN, and a saved Solana
+        // address isn't somewhere ORN can go.
+        crate::contacts::list(&dir).into_iter().filter(|c| crate::contacts::is_orien(&c.address)).map(|c| serde_json::json!({ "name": c.name, "address": c.address })).collect();
     let wallets: Vec<_> = crate::known_wallets(&dir)
         .into_iter()
         .filter(|w| Some(&w.path) != current.as_ref())

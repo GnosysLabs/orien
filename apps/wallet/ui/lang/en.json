@@ -1515,5 +1515,9 @@
   "Candle length": "Candle length",
   "Your orders": "Your orders",
   "The Exchange's price chart:": "The Exchange's price chart:",
-  "Checking fee…": "Checking fee…"
+  "Checking fee…": "Checking fee…",
+  "✓ Valid Solana address": "✓ Valid Solana address",
+  "Not an Orien or Solana address": "Not an Orien or Solana address",
+  "Their Orien or Solana address": "Their Orien or Solana address",
+  "That is not an Orien or Solana address.": "That is not an Orien or Solana address."
 }

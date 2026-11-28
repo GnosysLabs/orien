@@ -9,7 +9,8 @@ use std::path::Path;
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Contact {
     pub name: String,
-    /// 64 lowercase hex characters.
+    /// An Orien address (64 lowercase hex characters) or a Solana address
+    /// (base58, as given: capitals matter there).
     pub address: String,
     /// When it was last added or changed, in seconds since 1970: across
     /// devices, the newest version of a contact wins.
@@ -248,19 +249,25 @@ fn store(dir: &Path, contacts: &[Contact]) -> Result<(), String> {
     fs::rename(temporary, dir.join("contacts.json")).map_err(|error| error.to_string())
 }
 
+/// Whether `address` is an Orien address: 64 letters and digits, 0-9 and a-f.
+pub fn is_orien(address: &str) -> bool {
+    address.len() == 64 && address.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
 /// Adds a contact, or renames the one with this address. `previous` is the
-/// address being edited, when the edit changes it.
+/// address being edited, when the edit changes it. The address is an Orien
+/// one or a Solana one, such as an exchange's SOL deposit address.
 pub fn save(dir: &Path, name: &str, address: &str, previous: Option<&str>) -> Result<(), String> {
     let name = name.trim();
-    let address = address.trim().to_lowercase();
+    let address = if is_orien(address.trim()) { address.trim().to_lowercase() } else { address.trim().to_owned() };
     if name.is_empty() {
         return Err("Give the contact a name.".into());
     }
     if name.chars().count() > 40 {
         return Err("Keep the name under 40 characters.".into());
     }
-    if address.len() != 64 || !address.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-        return Err("That is not an Orien address. An address is 64 letters and digits.".into());
+    if !is_orien(&address) && orien_swap::solana::address(&address).is_err() {
+        return Err("That is not an Orien or Solana address.".into());
     }
     let mut contacts = list(dir);
     if let Some(previous) = previous {
@@ -322,6 +329,25 @@ mod tests {
 
         delete(&dir, bob).unwrap();
         assert_eq!(list(&dir).len(), 1);
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn a_solana_address_is_saved_as_given() {
+        let dir = std::env::temp_dir().join(format!("orien-contacts-sol-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let exchange = "DAeXj31NAoSgno7SiFX7t4tWoMDBtpN9rn8c2X7WNtYE";
+        save(&dir, "My exchange", &format!("  {exchange} "), None).unwrap();
+        assert_eq!(list(&dir)[0].address, exchange, "capitals are part of a Solana address");
+        assert!(save(&dir, "Again", exchange, None).is_err(), "one address, one name");
+        // Not an address of either kind: too short, or letters base58 never uses.
+        assert!(save(&dir, "Short", &exchange[..30], None).is_err());
+        assert!(save(&dir, "Odd", "0OIl000000000000000000000000000000000000000", None).is_err());
+        save(&dir, "Exchange", exchange, Some(exchange)).unwrap(); // rename
+        assert_eq!(list(&dir)[0].name, "Exchange");
+        delete(&dir, exchange).unwrap();
+        assert!(list(&dir).is_empty());
         fs::remove_dir_all(&dir).unwrap();
     }
 

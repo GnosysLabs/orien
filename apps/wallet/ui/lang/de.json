@@ -2634,5 +2634,9 @@
   "A part is settling (~1 min)": "Ein Teil wird abgewickelt (~1 Min.)",
   "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "Deine Kauforder ist im Orderbuch aktiv, und Verkäufer können jeden Teil davon ausführen. Du kannst Orien Wallet schließen: Die ORN treffen in deiner Wallet ein, sobald ein Teil ausgeführt wird.",
   "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "Ein Verkäufer führt einen Teil deiner Order aus: Diese ORN treffen in etwa einer Minute in deiner Wallet ein.",
-  "Waiting for their wallet to lock the ORN": "Warte darauf, dass die andere Wallet die ORN sperrt"
+  "Waiting for their wallet to lock the ORN": "Warte darauf, dass die andere Wallet die ORN sperrt",
+  "✓ Valid Solana address": "✓ Gültige Solana-Adresse",
+  "Not an Orien or Solana address": "Keine Orien- oder Solana-Adresse",
+  "Their Orien or Solana address": "Orien- oder Solana-Adresse",
+  "That is not an Orien or Solana address.": "Das ist keine Orien- oder Solana-Adresse."
 }

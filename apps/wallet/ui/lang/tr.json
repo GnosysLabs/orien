@@ -2634,5 +2634,9 @@
   "A part is settling (~1 min)": "Bir kısmı sonuçlanıyor (~1 dk)",
   "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "Alış emriniz emir defterinde yayında ve satıcılar herhangi bir kısmını karşılayabilir. Orien Wallet'ı kapatabilirsiniz: her kısım karşılandıkça ORN'ler cüzdanınıza ulaşır.",
   "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "Bir satıcı emrinizin bir kısmını karşılıyor: bu ORN'ler yaklaşık bir dakika içinde cüzdanınıza ulaşır.",
-  "Waiting for their wallet to lock the ORN": "Karşı tarafın cüzdanının ORN'leri kilitlemesi bekleniyor"
+  "Waiting for their wallet to lock the ORN": "Karşı tarafın cüzdanının ORN'leri kilitlemesi bekleniyor",
+  "✓ Valid Solana address": "✓ Geçerli Solana adresi",
+  "Not an Orien or Solana address": "Orien veya Solana adresi değil",
+  "Their Orien or Solana address": "Orien veya Solana adresi",
+  "That is not an Orien or Solana address.": "Bu bir Orien veya Solana adresi değil."
 }

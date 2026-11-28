@@ -2634,5 +2634,9 @@
   "A part is settling (~1 min)": "일부 정산 중 (약 1분)",
   "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "매수 주문이 호가창에 등록되었으며, 판매자는 그 일부만 체결할 수도 있습니다. Orien Wallet을 닫아도 됩니다. 체결되는 만큼 ORN이 지갑으로 들어옵니다.",
   "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "판매자가 주문의 일부를 체결하는 중입니다. 해당 ORN은 1분 정도 안에 지갑으로 들어옵니다.",
-  "Waiting for their wallet to lock the ORN": "상대방 지갑이 ORN을 잠그기를 기다리는 중"
+  "Waiting for their wallet to lock the ORN": "상대방 지갑이 ORN을 잠그기를 기다리는 중",
+  "✓ Valid Solana address": "✓ 유효한 Solana 주소",
+  "Not an Orien or Solana address": "Orien 또는 Solana 주소가 아닙니다",
+  "Their Orien or Solana address": "상대방의 Orien 또는 Solana 주소",
+  "That is not an Orien or Solana address.": "Orien 또는 Solana 주소가 아닙니다."
 }

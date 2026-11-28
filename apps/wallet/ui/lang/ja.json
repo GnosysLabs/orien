@@ -2634,5 +2634,9 @@
   "A part is settling (~1 min)": "一部を決済中（約1分）",
   "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "買い注文がオーダーブックに掲載されました。売り手は一部だけでも約定できます。Orien Wallet を閉じても大丈夫です。約定した分から ORN がウォレットに届きます。",
   "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "売り手があなたの注文の一部を約定しています。その分の ORN は1分ほどでウォレットに届きます。",
-  "Waiting for their wallet to lock the ORN": "相手のウォレットが ORN をロックするのを待っています"
+  "Waiting for their wallet to lock the ORN": "相手のウォレットが ORN をロックするのを待っています",
+  "✓ Valid Solana address": "✓ 有効な Solana アドレス",
+  "Not an Orien or Solana address": "Orien または Solana のアドレスではありません",
+  "Their Orien or Solana address": "相手の Orien または Solana アドレス",
+  "That is not an Orien or Solana address.": "Orien または Solana のアドレスではありません。"
 }

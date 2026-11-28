@@ -2634,5 +2634,9 @@
   "A part is settling (~1 min)": "Một phần đang tất toán (~1 phút)",
   "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "Lệnh mua của bạn đang mở trên sổ lệnh, và người bán có thể khớp bất kỳ phần nào. Bạn có thể đóng Orien Wallet: ORN sẽ về ví của bạn mỗi khi một phần được khớp.",
   "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "Một người bán đang khớp một phần lệnh của bạn: số ORN đó sẽ về ví của bạn trong khoảng một phút.",
-  "Waiting for their wallet to lock the ORN": "Đang chờ ví của họ khóa ORN"
+  "Waiting for their wallet to lock the ORN": "Đang chờ ví của họ khóa ORN",
+  "✓ Valid Solana address": "✓ Địa chỉ Solana hợp lệ",
+  "Not an Orien or Solana address": "Không phải địa chỉ Orien hay Solana",
+  "Their Orien or Solana address": "Địa chỉ Orien hoặc Solana của họ",
+  "That is not an Orien or Solana address.": "Đó không phải địa chỉ Orien hay Solana."
 }

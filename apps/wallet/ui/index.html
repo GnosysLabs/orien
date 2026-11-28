@@ -748,6 +748,7 @@
   #solana-send .summary .mono { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-align: right; }
   #solana-send .sol-send-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   #solana-send .sol-send-actions :is(.primary, .secondary) { flex: 1; min-width: min(100%, 140px); padding: 0 12px; }
+  #solana-send .sol-send-actions #sol-receipt-save { flex-basis: 100%; }
   #sol-send-form { display: contents; }
   #sol-send-form > * { flex-shrink: 0; }
   #sol-send-status { font-size: 16px; font-weight: 600; margin: 12px 0 4px; }
@@ -4534,8 +4535,8 @@
       <div class="topline">
         <button class="back" id="contact-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <h2 id="contact-title">New contact</h2>
-        <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
         <button class="pill icon tl-bin" id="c-delete" hidden aria-label="Delete contact" title="Delete contact"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+        <button class="pop-x" data-pop-close aria-label="Close" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <!-- A saved contact: who they are, their address, and paying them. -->
       <div class="ct-hero" id="ct-hero" hidden>
@@ -4549,7 +4550,7 @@
       </div>
       <div class="field" id="c-address-field">
         <label for="c-address">Address</label>
-        <textarea id="c-address" placeholder="Their 64-character address" spellcheck="false"></textarea>
+        <textarea id="c-address" placeholder="Their Orien or Solana address" spellcheck="false"></textarea>
         <div class="check" id="c-check"></div>
       </div>
       <div class="field">
@@ -4685,6 +4686,7 @@
           <div class="row"><span>To</span><span class="mono" id="sol-receipt-to"></span></div>
         </div>
         <div class="sol-send-actions">
+          <button class="secondary" id="sol-receipt-save" type="button" hidden>Save as contact</button>
           <button class="secondary" id="sol-send-explorer" type="button">View in Explorer</button>
           <button class="primary pearl" id="sol-send-done" type="button">Done</button>
         </div>
@@ -5530,6 +5532,22 @@
 
   let book = [];           // saved contacts, sorted by name
   const named = (address) => book.find((c) => c.address === address);
+  // Saved Solana addresses (an exchange's deposit address, say): contacts
+  // too, kept apart from the Orien ones since ORN can't be sent to them.
+  let solBook = [];
+  const solNamed = (address) => solBook.find((c) => c.address === address);
+  // A whole Solana address: base58 for exactly 32 bytes.
+  function isSolAddress(text) {
+    const t = text.trim();
+    if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(t)) return false;
+    const digits = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    let n = 0n;
+    for (const ch of t) n = n * 58n + BigInt(digits.indexOf(ch));
+    let bytes = 0;
+    for (; n > 0n; n >>= 8n) bytes++;
+    for (const ch of t) { if (ch !== "1") break; bytes++; }
+    return bytes === 32;
+  }
   // Marketplace pictures, kept by the app on disk and here in memory, so a
   // picture never reloads (and never blinks) as screens are drawn again.
   const pics = new Map();     // name -> data: URL
@@ -5644,7 +5662,12 @@
   // theirs: the shape of an address-poisoning scam.
   const lookalike = (address) => book.find((c) => c.address !== address &&
     c.address.slice(0, 4) === address.slice(0, 4) && c.address.slice(-4) === address.slice(-4));
-  async function loadBook() { try { book = await invoke("contacts"); } catch { book = []; } }
+  async function loadBook() {
+    let all = [];
+    try { all = await invoke("contacts"); } catch {}
+    book = all.filter((c) => isAddress(c.address));
+    solBook = all.filter((c) => !isAddress(c.address));
+  }
   // Contacts follow the wallet across devices: bring them into step with
   // its vault, then show what changed.
   // Syncing needs the wallet unlocked once on each device. Where that
@@ -9055,6 +9078,7 @@
       $("sol-receipt-amount").textContent = `${receipt.amount} ${asset}`;
       $("sol-receipt-to").textContent = receipt.recipient;
       $("sol-receipt-to").title = receipt.recipient;
+      $("sol-receipt-save").hidden = !!solNameOf(receipt.recipient) || !isSolAddress(receipt.recipient);
       fitLine($("sol-receipt-to"));
       const note = receipt.state === "expired" ? "This transfer can no longer land. You can start a new transfer."
         : receipt.state === "pending" && !receipt.acknowledged ? "Solana hasn’t acknowledged the submission. This screen will keep checking." : "";
@@ -9122,9 +9146,11 @@
     $("sol-send-form").reset();
     $("sol-send-to").readOnly = $("sol-send-amount").readOnly = false;
     $("sol-send-problem").hidden = true;
-    const recipients = (devnetAssets.history?.rows || []).filter(row => row.sent && !row.failed && row.asset === "SOL" && solAddressPattern.test(row.peer || "")).map(row => row.peer);
-    // Only people with a name: your own wallets, and wallets linked to a
-    // profile. A one-off address stays out, as on Send ORN.
+    // Those sent to before, then the Solana addresses saved in Contacts.
+    const recipients = [...(devnetAssets.history?.rows || []).filter(row => row.sent && !row.failed && row.asset === "SOL" && solAddressPattern.test(row.peer || "")).map(row => row.peer),
+      ...solBook.map((c) => c.address).filter((a) => a !== devnetAssets.address)];
+    // Only people with a name: your own wallets, saved contacts, and wallets
+    // linked to a profile. A one-off address stays out, as on Send ORN.
     const paintRecents = () => {
       const recent = [...new Set(recipients)].filter((a) => solNameOf(a)).slice(0, 8);
       $("sol-send-recent-row").innerHTML = recent.map((a) => { const name = solNameOf(a); return `<button class="rt" type="button" data-address="${a}" title="${esc(name)}">${face(a, name)}<span class="rt-name">${esc(name.split(/\s+/)[0])}</span></button>`; }).join("");
@@ -9176,8 +9202,9 @@
     }, 350);
   }
   $("sol-send-to").oninput = () => { solSuggest($("sol-send-to").value); updateSolQuote(); };
-  // A Solana address's name: one of your own wallets, or a profile's.
-  const solNameOf = (address) => (walletList.find((w) => w.solana_address === address) || {}).name || profileLabel(profileOf(address));
+  // A Solana address's name: one of your own wallets, a contact you saved,
+  // or a profile's.
+  const solNameOf = (address) => (walletList.find((w) => w.solana_address === address) || {}).name || (solNamed(address) || {}).name || profileLabel(profileOf(address));
   // As a name is typed: your other wallets and people whose linked wallets
   // have a Solana address, by name, as on Send ORN.
   function solSuggest(text) {
@@ -9187,9 +9214,11 @@
     const words = (name) => name.toLowerCase().split(/[\s\-–—_.]+/).filter(Boolean);
     const score = (p) => p.name.toLowerCase().startsWith(q) ? 0 : words(p.name).some((w) => w.startsWith(q)) ? 1 : 3;
     const mine = walletList.filter((w) => !w.current && w.solana_address).map((w) => ({ name: w.name, address: w.solana_address, sub: "Your wallet", mine: true }));
+    const saved = solBook.filter((c) => c.address !== devnetAssets.address).map((c) => ({ name: c.name, address: c.address, sub: short(c.address), mine: false }));
     const people = (marketHits.q === q ? marketHits.rows : []).filter((r) => r.sol && r.sol !== devnetAssets.address).map((r) => ({ name: r.label, address: r.sol, sub: short(r.sol), mine: false }));
     if (q.length >= 2 && marketHits.q !== q) searchMarket(q);
-    const found = [...mine.filter((p) => score(p) < 3).sort((a, b) => score(a) - score(b)), ...people.filter((p) => !mine.some((m) => m.address === p.address))].slice(0, 6);
+    const first = [...mine, ...saved].filter((p) => score(p) < 3).sort((a, b) => score(a) - score(b));
+    const found = [...first, ...people.filter((p) => !first.some((m) => m.address === p.address))].slice(0, 6);
     list.hidden = !found.length;
     list.innerHTML = found.map((p) => `<button class="tx" type="button" data-address="${p.address}">
       ${p.mine ? `<span class="face${iconOf(p.address) ? " emoji" : ""}">${esc(p.name.slice(0, 1).toUpperCase())}</span>` : face(p.address, p.name)}
@@ -9286,6 +9315,7 @@
     openSolanaExplorer("tx", signature);
   };
   $("sol-send-done").onclick = closePop;
+  $("sol-receipt-save").onclick = () => { const to = devnetSend?.receipt?.recipient; if (to) openContact(to, "home"); };
 
   let receiveTarget = null;
   function openAssetReceive(asset, address) {
@@ -9925,6 +9955,9 @@
       ...loose.map((c) => ({ key: c.name.toLowerCase(), html: `<div class="tx contact" data-address="${c.address}">
           ${face(c.address, c.name)}
           <div class="tx-main"><div class="title">${esc(profileLabel(profileOf(c.address)) || c.name)}</div><div class="sub">${short(c.address)}</div></div>${CHEVRON}</div>` })),
+      ...solBook.filter((c) => !blockedName(c.name)).map((c) => ({ key: c.name.toLowerCase(), html: `<div class="tx contact" data-address="${c.address}">
+          <span class="face">${esc(c.name.slice(0, 1).toUpperCase())}</span>
+          <div class="tx-main"><div class="title">${walletLabel(c.name, "SOL")}</div><div class="sub">${short(c.address)}</div></div>${CHEVRON}</div>` })),
     ].sort((x, y) => x.key.localeCompare(y.key));
     $("contact-list").innerHTML = rows.length
       ? `<div class="list ct-list">${rows.map((r) => r.html).join("")}</div>`
@@ -9953,7 +9986,9 @@
 
   function openContact(address, from) {
     returnTo = from;
-    const contact = address && named(address);
+    const contact = address && (named(address) || solNamed(address));
+    // A saved Solana address: no profile to look up, and it's sent SOL.
+    const sol = !!contact && !isAddress(contact.address);
     editing = contact ? contact.address : null;
     $("contact-title").textContent = contact ? contact.name : "New contact";
     $("c-name").value = contact ? contact.name : "";
@@ -9973,7 +10008,16 @@
     $("c-send").hidden = true;
     $("c-saved").textContent = "";
     $("c-delete").classList.remove("armed");
-    if (known) {
+    $("c-name").disabled = false;
+    $("ct-copy").hidden = sol;
+    $("ct-send").textContent = sol ? "Send SOL" : "Send ORN";
+    if (sol) {
+      contactSol = contact.address;
+      $("ct-face").outerHTML = `<span class="face ct-face" id="ct-face">${esc(contact.name.slice(0, 1).toUpperCase())}</span>`;
+      $("ct-sol-copy").hidden = false;
+      $("ct-sol-glyph").innerHTML = walletGlyph("SOL");
+      $("ct-sol-addr").textContent = short(contactSol);
+    } else if (known) {
       const paint = () => {
         const p = profileOf(contact.address);
         if (p) {
@@ -10005,15 +10049,20 @@
   function checkContact() {
     const a = $("c-address").value.trim();
     let text = "", cls = "check";
-    if (a && !isAddress(a)) text = a.length < 64 ? `${64 - a.length} more characters` : "Not an Orien address";
+    // An Orien address, or a Solana one (an exchange's deposit address, say).
+    const solana = !isAddress(a) && isSolAddress(a);
+    if (solana) {
+      if (!editing && solNamed(a)) text = `Already saved as ${solNamed(a).name}`;
+      else { text = "✓ Valid Solana address"; cls += " ok"; }
+    } else if (a && !isAddress(a)) text = /^[0-9a-f]+$/i.test(a) && a.length < 64 ? `${64 - a.length} more characters` : "Not an Orien or Solana address";
     else if (a && !editing && named(a.toLowerCase())) text = `Already saved as ${named(a.toLowerCase()).name}`;
     else if (a) { text = "✓ Valid address"; cls += " ok"; }
     $("c-check").textContent = text; $("c-check").className = cls;
-    $("c-save").disabled = !($("c-name").value.trim() && isAddress(a));
+    $("c-save").disabled = !($("c-name").value.trim() && (isAddress(a) || solana));
     // The name waits for a whole address. With one, a marketplace profile
     // shows its picture and offers its name.
-    $("c-name").disabled = !isAddress(a) || !!profileOf(a.toLowerCase());
-    if (!isAddress(a)) { $("c-face").hidden = true; return; }
+    $("c-name").disabled = solana ? false : !isAddress(a) || !!profileOf(a.toLowerCase());
+    if (!isAddress(a)) { $("c-face").hidden = true; if ($("c-saved").textContent.startsWith("From their")) $("c-saved").textContent = ""; return; }
     const address = a.toLowerCase();
     const showFace = () => {
       if ($("c-address").value.trim().toLowerCase() !== address) return;
@@ -10038,7 +10087,7 @@
   async function saveContactName() {
     clearTimeout(contactTimer);
     const name = $("c-name").value.trim();
-    const current = named(editing);
+    const current = named(editing) || solNamed(editing);
     if (!editing || !name || (current && current.name === name)) return;
     try {
       await invoke("save_contact", { name, address: editing, previous: editing });
@@ -10048,7 +10097,7 @@
       setTimeout(() => { if ($("c-saved").textContent === "Saved") $("c-saved").textContent = ""; }, 1400);
     } catch (error) { problem("contact-problem", error); }
   }
-  $("ct-send").onclick = () => { $("c-send").onclick(); };
+  $("ct-send").onclick = () => { if (editing && !isAddress(editing)) sendSolTo(editing, "contact"); else $("c-send").onclick(); };
   let contactSol = null;
   $("ct-sol-copy").onclick = async () => {
     if (!contactSol) return;
