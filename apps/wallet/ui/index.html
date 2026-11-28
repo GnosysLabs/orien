@@ -11239,11 +11239,11 @@
   }
   // The three boxes agree: Total is Price × Amount. Whichever box was typed
   // in last stays as typed, Amount or Total moving to match.
+  // Typing a price never changes the amount: Total is Price × Amount, and
+  // only what you typed goes in the boxes.
   function exFromPrice() {
-    const price = parseFloat($("ex-price").value), orn = parseFloat($("ex-orn").value), sol = parseFloat($("ex-sol").value);
-    if (!(price > 0)) return;
-    if (orn > 0) $("ex-sol").value = exPlain(price * orn);
-    else if (sol > 0) $("ex-orn").value = exPlain(sol / price, 4);
+    const price = parseFloat($("ex-price").value), orn = parseFloat($("ex-orn").value);
+    $("ex-sol").value = price > 0 && orn > 0 ? exPlain(price * orn) : "";
   }
   // A share of what this wallet has: SOL to spend on a buy, ORN to sell.
   let exPct = null;
