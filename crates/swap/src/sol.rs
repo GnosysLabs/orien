@@ -9,7 +9,7 @@
 //! to pay the claim's network fee: nobody funds anything by hand.
 
 use crate::solana::{self, Keypair, LOCK_LEN, Landed, Lock, Pubkey, Solana};
-use crate::swap::{LockRef, Orien, Role, decode_code, encode_code};
+use crate::swap::{LockRef, LockState, Orien, Role, decode_code, encode_code};
 use anyhow::{Context, Result, anyhow, bail};
 use orien_crypto::Hash32;
 use serde::{Deserialize, Serialize};
@@ -464,12 +464,20 @@ impl SolSwap {
     /// Bitcoin swap does: a lock made just before a crash is found again.
     fn seller_lock(&mut self, sol: &dyn Sol, orien: &dyn Orien) -> Result<()> {
         let lock = LockRef { from: orien.me(), seq: self.lock_from };
-        if let Ok(state) = orien.proven(&lock)
-            && state.waiting.is_some_and(|w| w.hash == self.hash && w.to == self.buyer && w.amount == self.orn)
-        {
-            self.lock = Some(lock);
-            self.stage = SolStage::WaitingForReply;
-            return Ok(());
+        if let Ok(state) = orien.proven(&lock) {
+            if state.waiting.as_ref().is_some_and(|w| w.hash == self.hash && w.to == self.buyer && w.amount == self.orn) {
+                self.lock = Some(lock);
+                self.stage = SolStage::WaitingForReply;
+                return Ok(());
+            }
+            // That number went to another of this wallet's locks (two swaps
+            // started at once): never this swap's, so a new number. Only a
+            // lock proven to be another's moves it, so this swap's own lock
+            // can never be made twice.
+            if taken_by_another(&state, &self.hash) {
+                self.lock_from = orien.next_seq()?;
+                return Ok(());
+            }
         }
         // A payout address that can't be paid would make the SOL unclaimable:
         // stop before any ORN are locked.
@@ -736,4 +744,11 @@ impl SolSwap {
         let tx = solana::transaction(&one_time, &[], &[solana::transfer(&one_time.pubkey(), &refund, balance - FEE)], sol.blockhash()?)?;
         sol.send(&tx).map(|_| ()).context("could not send the leftovers back; tried again on the next step")
     }
+}
+
+/// Whether the lock proven at a sequence number is another lock than the
+/// one with `hash`: waiting under another hash, or claimed with a secret
+/// that isn't this one's.
+pub fn taken_by_another(state: &LockState, hash: &[u8; 32]) -> bool {
+    state.waiting.as_ref().is_some_and(|w| &w.hash != hash) || state.secret.is_some_and(|secret| &orien_ledger::types::lock_hash(&secret) != hash)
 }

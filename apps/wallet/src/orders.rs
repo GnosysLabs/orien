@@ -886,13 +886,20 @@ fn step_book(orien: &AppOrien, dir: &Path, order: &mut KeptOrder) -> Result<(), 
             let index = order.index.ok_or("missing part number")?;
             // Crash recovery: the ORN already locked at lock_from.
             let lock_ref = LockRef { from: orien.me(), seq: order.lock_from };
-            if let Ok(state) = orien.proven(&lock_ref)
-                && (state.secret.is_some()
-                    || state.waiting.is_some_and(|w| w.hash == order.hash && w.to == buyer_orien && w.amount == order.orn))
-            {
-                order.lock_seq = Some(order.lock_from);
-                order.stage = OrderStage::ReportingFill;
-                return Ok(());
+            if let Ok(state) = orien.proven(&lock_ref) {
+                let ours = state.secret.is_some_and(|secret| orien_ledger::types::lock_hash(&secret) == order.hash)
+                    || state.waiting.as_ref().is_some_and(|w| w.hash == order.hash && w.to == buyer_orien && w.amount == order.orn);
+                if ours {
+                    order.lock_seq = Some(order.lock_from);
+                    order.stage = OrderStage::ReportingFill;
+                    return Ok(());
+                }
+                // That number went to another of this wallet's locks (two
+                // sales started at once): a new one, never this sale's own.
+                if orien_swap::sol::taken_by_another(&state, &order.hash) {
+                    order.lock_from = orien.next_seq().map_err(|e| e.to_string())?;
+                    return Ok(());
+                }
             }
             let Some(acct) = sol.book(&program, &order_pk).map_err(|e| e.to_string())? else {
                 order.stage = OrderStage::Cancelled { why: "that buy order closed before your ORN were locked".into() };
@@ -1165,13 +1172,20 @@ fn step_one(orien: &AppOrien, dir: &Path, order: &mut KeptOrder) -> Result<(), S
             let buyer_orien = Hash32::from_str(&order.buyer_orien).map_err(|_| "bad buyer_orien".to_string())?;
             // Crash recovery: did we already lock ORN at lock_from?
             let lock_ref = LockRef { from: orien.me(), seq: order.lock_from };
-            if let Ok(state) = orien.proven(&lock_ref)
-                && (state.secret.is_some()
-                    || state.waiting.is_some_and(|w| w.hash == order.hash && w.to == buyer_orien && w.amount == order.orn))
-            {
-                order.lock_seq = Some(order.lock_from);
-                order.stage = OrderStage::ReportingFill;
-                return Ok(());
+            if let Ok(state) = orien.proven(&lock_ref) {
+                let ours = state.secret.is_some_and(|secret| orien_ledger::types::lock_hash(&secret) == order.hash)
+                    || state.waiting.as_ref().is_some_and(|w| w.hash == order.hash && w.to == buyer_orien && w.amount == order.orn);
+                if ours {
+                    order.lock_seq = Some(order.lock_from);
+                    order.stage = OrderStage::ReportingFill;
+                    return Ok(());
+                }
+                // That number went to another of this wallet's locks (two
+                // sales started at once): a new one, never this sale's own.
+                if orien_swap::sol::taken_by_another(&state, &order.hash) {
+                    order.lock_from = orien.next_seq().map_err(|e| e.to_string())?;
+                    return Ok(());
+                }
             }
             // Re-verify finalized Solana fill immediately before locking a single ORN!
             let Some(acct) = sol.order(&program, &order_pk).map_err(|e| e.to_string())? else {
