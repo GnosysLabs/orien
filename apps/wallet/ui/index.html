@@ -10749,6 +10749,23 @@
     paintHistory();
   }
   $("hist-more").onclick = () => loadHistory(true);
+  // While the Exchange is on screen, new trades join the chart and Recent
+  // trades by themselves: the latest are asked for, and any not yet shown
+  // go on top (older ones already loaded stay).
+  async function refreshHistory() {
+    try {
+      const page = await mk("GET", "/swaps/history");
+      const priced = (page.swaps || []).filter((x) => x.usd != null);
+      const key = (x) => `${x.at}:${x.orn}:${x.lamports || x.sats || 0}`;
+      const have = new Set(hist.swaps.map(key));
+      const fresh = priced.filter((x) => !have.has(key(x)));
+      if (!fresh.length) return;
+      hist.swaps = fresh.concat(hist.swaps).sort((a, b) => b.at - a.at);
+      hist.last = page.last && page.last.usd != null ? page.last : hist.swaps[0] || null;
+      paintHistory();
+    } catch { /* offline: what's shown stays */ }
+  }
+  setInterval(() => { if (!$("swaps").hidden && !document.hidden) refreshHistory(); }, 20000);
 
   function renderSwaps() {
     const list = $("swap-list");
