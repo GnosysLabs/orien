@@ -10857,10 +10857,28 @@
     // This wallet couldn't start its side: say why, rather than "waiting".
     const held = (board.waiting || []).find((w) => w.offer && w.offer.id === item.key);
     if (held && held.problem) return { swap: null, state: "now", line: `Couldn't start yet, trying again: ${held.problem}` };
+    // What the Market knows of it, asked every few seconds: ahead of this
+    // wallet's own steps, which take turns.
+    const seen = g.seen && g.seen.get(item.key);
+    if (seen && seen.offer_code) return { swap: null, state: "now", line: "Their ORN are locked for you · your wallet is paying" };
+    if (seen && seen.runner) return { swap: null, state: "now", line: "Their wallet is locking the ORN" };
     // Buying: the seller's wallet locks the ORN first, by itself.
     const waited = Date.now() / 1000 - g.created;
     if (waited > 600) return { swap: null, state: "stopped", line: "Their wallet didn't answer · nothing was paid" };
     return { swap: null, state: "now", line: "Waiting for their wallet to lock the ORN" };
+  }
+  // The Market's own word on each of a market buy's swaps, so the pop-up
+  // keeps up while this wallet works through them one at a time.
+  let groupPolling = false;
+  async function groupPoll() {
+    const g = swapGroup;
+    if (groupPolling || !g || g.side !== "buy") return;
+    groupPolling = true;
+    try {
+      const got = await mk("GET", "/swaps/mine");
+      g.seen = new Map((got.swaps || []).map((x) => [x.offer.id, x]));
+      if (current === "group" && swapGroup === g && !$("swap-detail").hidden) renderGroup();
+    } catch { /* offline: the wallet's own steps still show */ } finally { groupPolling = false; }
   }
   function renderGroup() {
     const g = swapGroup, buy = g.side === "buy";
@@ -15991,7 +16009,7 @@
   setInterval(() => {
     if ($("swap-detail").hidden || !current) return;
     // A market order's pop-up: while any of its swaps is still going.
-    if (current === "group" && swapGroup) { if (swapGroup.items.some((i) => groupLine(i).state === "now")) stepSwaps(); else renderGroup(); return; }
+    if (current === "group" && swapGroup) { if (swapGroup.items.some((i) => groupLine(i).state === "now")) { stepSwaps(); groupPoll(); } else renderGroup(); return; }
     const s = swapList.find((x) => x.id === current);
     if (s && !["done", "cancelled", "open"].includes(s.stage) && !(s.problem && s.problem.startsWith("password:"))) stepSwaps();
   }, 3000);
