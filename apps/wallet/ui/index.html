@@ -10924,7 +10924,9 @@
       $("sd-claim").dataset.shownFor = String(s.id);
       setTimeout(() => $("sd-claim").scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
     }
-    $("sd-cancel-order").hidden = !(s.funded_order && s.can_cancel);
+    // Cancel arrives with "Back to Exchange", once the order is live (or
+    // when paying it ran into a problem), not while it's being set up.
+    $("sd-cancel-order").hidden = !(s.funded_order && s.can_cancel && (s.stage === "open" || (s.stage === "pay" && s.problem)));
     paintCancelOrder(s);
     if (s.problem && !needsPassword) problem("detail-problem", s.problem); else $("detail-problem").hidden = true;
     // As a pop-up, the checklist says how it's going: the status line only
