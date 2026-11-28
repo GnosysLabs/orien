@@ -14805,7 +14805,8 @@
   function openCurMenu(anchor) {
     const menu = $("ex-cur-menu");
     if (!menu.hidden) { menu.hidden = true; return; }
-    const have = EX_CURS.filter((c) => c === "usd" || (board.solRates || {})[c]).concat(["sol"]);
+    // US dollars and SOL first: the two most used here. Then the rest.
+    const have = ["usd", "sol"].concat(EX_CURS.filter((c) => c !== "usd" && (board.solRates || {})[c]));
     menu.innerHTML = have.map((c) => `<button class="menu-row${c === exCur() ? " on" : ""}" data-cur="${c}" role="menuitem"><span>${EX_NAMES[c] || c.toUpperCase()}</span><b>${c.toUpperCase()}</b></button>`).join("");
     const b = anchor.getBoundingClientRect();
     menu.style.top = `${Math.round(b.bottom + 8)}px`;
