@@ -1430,3 +1430,160 @@ async fn solana_devnet_profile_link_round_trip() {
     assert!(data["wallets"][0].get("solana_devnet").is_none());
     assert_eq!(data["wallets"][0]["address"], orn);
 }
+
+#[tokio::test]
+async fn book_orders_fill_in_parts_settle_each_part_and_never_leak_secrets() {
+    use orien_market::books::{FakeBookChain, settle_once};
+    use orien_swap::book::{BookAccount, BookTerms, MIN_PART, Secrets};
+    use orien_swap::solana;
+
+    const ORN: u64 = 1_000_000_000;
+    const SOL: u64 = 1_000_000_000;
+    let now_unix = 1_800_000_000i64;
+    let payments = Arc::new(Fake::default());
+    *payments.epoch.lock().unwrap() = 300;
+    let filler = [0x99u8; 32];
+    let chain = Arc::new(FakeBookChain::new(now_unix, filler));
+    let app = App::new(Store::in_memory().unwrap(), folder(), "https://orien.network", true, Mailer::log_only(), Screener::off(), payments.clone(), MARKET)
+        .unwrap()
+        .with_prices(Prices::fixed_for_tests(65_000.0))
+        .with_book_chain(chain.clone())
+        .with_max_order_lamports(5 * SOL);
+    let market = Market { app: Arc::new(app) };
+    let sam = sign_in_for_tests(&market.app, "Sam"); // buyer
+    let maya = sign_in_for_tests(&market.app, "Maya"); // seller
+    let ivy = sign_in_for_tests(&market.app, "Ivy"); // a seller who never locks
+
+    let secrets: Vec<[u8; 32]> = (0..64u8).map(|i| [i ^ 0x5a; 32]).collect();
+    let secret_hex: Vec<String> = secrets.iter().map(hex::encode).collect();
+    let tree = Secrets::from_secrets(&secrets).unwrap();
+    let buyer_orien = [0xabu8; 32];
+    let buyer_orien_id = orien_crypto::Hash32(buyer_orien);
+    let seller_orien = [0xcdu8; 32];
+    let seller_orien_id = orien_crypto::Hash32(seller_orien);
+    let (order_pk, buyer_sol, seller_sol, ivy_sol) = ([0x11u8; 32], [0x22u8; 32], [0x33u8; 32], [0x44u8; 32]);
+    let order_pubkey = solana::text(&order_pk);
+    let leaked = |body: &Value| secret_hex.iter().any(|s| body.to_string().contains(s.as_str()));
+
+    // 1,000 ORN for 0.5 SOL.
+    let acct = BookAccount {
+        terms: BookTerms {
+            root: tree.root(),
+            buyer: buyer_sol,
+            authority: buyer_sol,
+            filler,
+            buyer_orien,
+            orn_total: 1000 * ORN,
+            lamports_total: SOL / 2,
+            expiry: now_unix + 7 * 24 * 3600,
+            max_fill_window: 4 * 3600,
+            min_part: MIN_PART,
+        },
+        orn_left: 1000 * ORN,
+        lamports_left: SOL / 2,
+        used: 0,
+        parts: Vec::new(),
+    };
+    chain.orders.lock().unwrap().insert(order_pk, acct.clone());
+
+    // Someone else's secrets, or an order another server fills: refused.
+    let wrong: Vec<String> = (0..64u8).map(|i| hex::encode([i; 32])).collect();
+    let (status, _) = market.ask("POST", "/api/market/books", Some(&sam), Some(json!({ "order_pubkey": order_pubkey, "secrets": wrong }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "wrong secrets refused");
+    let other_pk = [0x55u8; 32];
+    let mut other = acct.clone();
+    other.terms.filler = [0x01u8; 32];
+    chain.orders.lock().unwrap().insert(other_pk, other);
+    let (status, _) = market.ask("POST", "/api/market/books", Some(&sam), Some(json!({ "order_pubkey": solana::text(&other_pk), "secrets": secret_hex }))).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "another filler refused");
+
+    let (status, created) = market.ask("POST", "/api/market/books", Some(&sam), Some(json!({ "order_pubkey": order_pubkey, "secrets": secret_hex }))).await;
+    assert_eq!(status, StatusCode::CREATED, "{created}");
+    assert!(!leaked(&created));
+    let order_id = created["order"]["id"].as_i64().unwrap();
+
+    let (_, board) = market.ask("GET", "/api/market/swaps?coins=sol&sides=sell,buy", None, None).await;
+    assert!(!leaked(&board));
+    assert_eq!(board["book_filler"], solana::text(&filler));
+    let bid = &board["offers"][0];
+    assert_eq!((bid["id"].as_i64(), bid["book"].as_bool(), bid["orn"].as_u64()), (Some(order_id), Some(true), Some(1000 * ORN)));
+
+    // Maya sells 400 of the 1,000.
+    let (status, res) = market
+        .ask("POST", &format!("/api/market/books/{order_id}/reserve"), Some(&maya), Some(json!({ "seller_sol": solana::text(&seller_sol), "wallet": hex::encode(seller_orien), "orn": 400 * ORN })))
+        .await;
+    assert_eq!(status, StatusCode::OK, "{res}");
+    assert!(!leaked(&res));
+    let part = res["part"]["id"].as_i64().unwrap();
+    let hash: [u8; 32] = hex::decode(res["part"]["hash"].as_str().unwrap()).unwrap().try_into().unwrap();
+    assert_eq!(res["part"]["lamports"].as_u64(), Some(SOL / 5));
+    assert_eq!(chain.orders.lock().unwrap()[&order_pk].orn_left, 600 * ORN);
+
+    // Reported before any ORN are locked, or locked short: refused, no secret used.
+    let fill = json!({ "lock_from": hex::encode(seller_orien), "lock_seq": 7 });
+    let (status, _) = market.ask("POST", &format!("/api/market/books/parts/{part}/fill"), Some(&maya), Some(fill.clone())).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    payments.locks.lock().unwrap().push((seller_orien_id, 7, orien_ledger::Escrow { to: buyer_orien_id, amount: 300 * ORN, hash, until: 305 }));
+    let (status, _) = market.ask("POST", &format!("/api/market/books/parts/{part}/fill"), Some(&maya), Some(fill)).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "short lock refused");
+    let _ = settle_once(&market.app).unwrap();
+    assert!(chain.paid.lock().unwrap().is_empty() && payments.claimed_locks.lock().unwrap().is_empty());
+    // Someone else can't report Maya's part.
+    let fill = json!({ "lock_from": hex::encode(seller_orien), "lock_seq": 8 });
+    let (status, _) = market.ask("POST", &format!("/api/market/books/parts/{part}/fill"), Some(&ivy), Some(fill.clone())).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    // The exact lock: the buyer gets the ORN, Maya the SOL.
+    payments.locks.lock().unwrap().push((seller_orien_id, 8, orien_ledger::Escrow { to: buyer_orien_id, amount: 400 * ORN, hash, until: 305 }));
+    let (status, body) = market.ask("POST", &format!("/api/market/books/parts/{part}/fill"), Some(&maya), Some(fill)).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let _ = settle_once(&market.app).unwrap();
+    assert_eq!(payments.claimed_locks.lock().unwrap().len(), 1);
+    assert_eq!(chain.paid.lock().unwrap().as_slice(), &[(order_pk, seller_sol, SOL / 5)]);
+
+    // Ivy takes 200 and never locks: after the part's time it goes back.
+    let (status, res) = market
+        .ask("POST", &format!("/api/market/books/{order_id}/reserve"), Some(&ivy), Some(json!({ "seller_sol": solana::text(&ivy_sol), "wallet": hex::encode([0xeeu8; 32]), "orn": 200 * ORN })))
+        .await;
+    assert_eq!(status, StatusCode::OK, "{res}");
+    let ivy_part = res["part"]["id"].as_i64().unwrap();
+    *chain.clock.lock().unwrap() = now_unix + 4 * 3600 + 1;
+    let _ = settle_once(&market.app).unwrap();
+    let _ = settle_once(&market.app).unwrap();
+    assert_eq!(chain.released.lock().unwrap().len(), 1);
+    assert_eq!(store_for_tests(&market.app, |s| s.book_part(ivy_part).unwrap().unwrap().state), "released");
+    let (_, board) = market.ask("GET", "/api/market/swaps?coins=sol&sides=buy", None, None).await;
+    assert_eq!(board["offers"][0]["orn"].as_u64(), Some(600 * ORN));
+
+    // Maya sells the rest: a new secret, and the order closes.
+    let (status, res) = market
+        .ask("POST", &format!("/api/market/books/{order_id}/reserve"), Some(&maya), Some(json!({ "seller_sol": solana::text(&seller_sol), "wallet": hex::encode(seller_orien), "orn": 600 * ORN })))
+        .await;
+    assert_eq!(status, StatusCode::OK, "{res}");
+    let last = res["part"]["id"].as_i64().unwrap();
+    let hash2: [u8; 32] = hex::decode(res["part"]["hash"].as_str().unwrap()).unwrap().try_into().unwrap();
+    assert_ne!(hash2, hash, "a new secret for each part");
+    payments.locks.lock().unwrap().push((seller_orien_id, 9, orien_ledger::Escrow { to: buyer_orien_id, amount: 600 * ORN, hash: hash2, until: 305 }));
+    let (status, _) = market.ask("POST", &format!("/api/market/books/parts/{last}/fill"), Some(&maya), Some(json!({ "lock_from": hex::encode(seller_orien), "lock_seq": 9 }))).await;
+    assert_eq!(status, StatusCode::OK);
+    let _ = settle_once(&market.app).unwrap();
+    let _ = settle_once(&market.app).unwrap();
+    let paid: u64 = chain.paid.lock().unwrap().iter().map(|p| p.2).sum();
+    assert_eq!(paid, SOL / 2, "the parts add up to the order");
+    assert!(!chain.orders.lock().unwrap().contains_key(&order_pk));
+
+    let (_, mine) = market.ask("GET", "/api/market/books/mine", Some(&sam), None).await;
+    assert!(!leaked(&mine));
+    assert_eq!(mine["orders"][0]["state"], "done");
+    let (_, theirs) = market.ask("GET", "/api/market/books/mine", Some(&maya), None).await;
+    assert!(theirs["parts"].as_array().unwrap().iter().all(|p| p["state"] == "done"));
+
+    // Each finished part is a trade in the history.
+    store_for_tests(&market.app, |s| {
+        for id in [part, last] {
+            s.price_book_part(id, 10.0).unwrap();
+        }
+    });
+    let (_, history) = market.ask("GET", "/api/market/swaps/history", None, None).await;
+    assert_eq!(history["swaps"].as_array().unwrap().len(), 2);
+}

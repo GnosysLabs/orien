@@ -99,6 +99,9 @@ struct Args {
     /// Solana `orien-order` program ID for funded buy orders.
     #[arg(long)]
     order_program: Option<String>,
+    /// Solana `orien-book` program ID for buy orders that fill in parts.
+    #[arg(long)]
+    book_program: Option<String>,
     /// Solana RPC endpoints for funded buy orders (comma-separated).
     #[arg(long, value_delimiter = ',')]
     solana_rpc: Vec<String>,
@@ -326,6 +329,24 @@ async fn main() -> Result<()> {
         }
         None => app,
     };
+    let app = match &args.book_program {
+        Some(program_id) => {
+            let rpc_owned: Vec<String> = if args.solana_rpc.is_empty() {
+                vec!["https://api.mainnet-beta.solana.com".into(), "https://solana-rpc.publicnode.com".into()]
+            } else {
+                args.solana_rpc.clone()
+            };
+            let rpc_refs: Vec<&str> = rpc_owned.iter().map(String::as_str).collect();
+            let relayer = match &args.solana_relayer_key {
+                Some(path) => Some(orien_market::orders::load_relayer_keypair(path)?),
+                None => anyhow::bail!("--book-program needs --solana-relayer-key: it fills the parts"),
+            };
+            let chain = Arc::new(orien_market::books::LiveBookChain::new(&rpc_refs, program_id, relayer)?);
+            println!("part-filling buy orders enabled for program {program_id}");
+            app.with_book_chain(chain)
+        }
+        None => app,
+    };
     let app = Arc::new(match (&args.review_email, &args.review_code_file) {
         (Some(email), Some(file)) => {
             let code = std::fs::read_to_string(file).with_context(|| format!("cannot read {}", file.display()))?;
@@ -344,6 +365,7 @@ async fn main() -> Result<()> {
     orien_market::community::watch(app.clone());
     orien_market::proofs::watch(app.clone());
     orien_market::orders::watch(app.clone());
+    orien_market::books::watch(app.clone());
     let openrouter = match &args.openrouter_key {
         Some(path) => Some(std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?.trim().to_string()),
         None => None,

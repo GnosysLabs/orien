@@ -79,6 +79,8 @@ pub struct App {
     support: Option<String>,
     /// Solana `orien-order` reader & relayer for funded buy orders.
     order_chain: Option<Arc<dyn crate::orders::OrderChain>>,
+    /// Solana `orien-book` reader & filler for buy orders that fill in parts.
+    book_chain: Option<Arc<dyn crate::books::BookChain>>,
     /// Per-order SOL limit (in lamports) for funded buy orders.
     max_order_lamports: u64,
 }
@@ -138,6 +140,7 @@ impl App {
             alerts: crate::alerts::Alerts::default(),
             support: None,
             order_chain: None,
+            book_chain: None,
             max_order_lamports: crate::orders::DEFAULT_MAX_ORDER_LAMPORTS,
         })
     }
@@ -227,6 +230,15 @@ impl App {
     pub fn with_max_order_lamports(mut self, lamports: u64) -> App {
         self.max_order_lamports = lamports;
         self
+    }
+
+    pub fn with_book_chain(mut self, chain: Arc<dyn crate::books::BookChain>) -> App {
+        self.book_chain = Some(chain);
+        self
+    }
+
+    pub(crate) fn book_chain(&self) -> Option<Arc<dyn crate::books::BookChain>> {
+        self.book_chain.clone()
     }
 
     pub(crate) fn order_chain(&self) -> Option<Arc<dyn crate::orders::OrderChain>> {
@@ -494,6 +506,10 @@ pub fn router(app: Arc<App>) -> Router {
         .route("/api/market/orders/{id}/reserve", post(reserve_funded_order))
         .route("/api/market/orders/{id}/fill", post(fill_funded_order))
         .route("/api/market/orders/{id}/sync", post(sync_funded_order))
+        .route("/api/market/books", post(post_book_order))
+        .route("/api/market/books/mine", get(my_book_orders))
+        .route("/api/market/books/{id}/reserve", post(reserve_book_part))
+        .route("/api/market/books/parts/{id}/fill", post(fill_book_part))
         .route("/api/market/reports", post(report))
         .route("/api/market/contact", post(contact))
         .route("/api/market/t", post(ping))
@@ -1116,12 +1132,47 @@ async fn open_swaps(State(app): State<Arc<App>>, Query(board): Query<Board>) -> 
             sol[code] = json!(rate);
         }
     }
+    if want_buys && let Some(chain) = app.book_chain.as_ref() {
+        let books = app.store.lock().unwrap().open_book_orders()?;
+        let filler = chain.filler().map(|f| orien_swap::solana::text(&f));
+        for o in books {
+            offers.push(json!({
+                "id": o.id,
+                "seller": o.buyer,
+                "seller_name": o.buyer_name,
+                "seller_picture": o.buyer_picture,
+                "seller_done": o.buyer_done,
+                // What's still to fill: any part of it may be sold.
+                "orn": o.orn_left,
+                "lamports": o.lamports_left,
+                "orn_total": o.orn_total,
+                "lamports_total": o.lamports_total,
+                "coin": "sol",
+                "sats": 0,
+                "state": o.state,
+                "created": o.created,
+                "seller_online": true,
+                "side": "buy",
+                "funded": true,
+                "book": true,
+                "parts": true,
+                "order_pubkey": o.order_pubkey,
+                "buyer_orien": o.buyer_orien,
+                "expiry": o.expiry,
+                "filler": filler,
+            }));
+        }
+    }
     let order_program = app.order_chain.as_ref().map(|c| c.program_id());
+    let book_program = app.book_chain.as_ref().map(|c| orien_swap::solana::text(&c.program()));
+    let book_filler = app.book_chain.as_ref().and_then(|c| c.filler()).map(|f| orien_swap::solana::text(&f));
     Ok(Json(json!({
         "offers": offers,
         "bitcoin": usd(bitcoin),
         "solana": solana,
         "order_program": order_program,
+        "book_program": book_program,
+        "book_filler": book_filler,
         "max_order_lamports": app.max_order_lamports,
     }))
     .into_response())
@@ -1441,7 +1492,8 @@ async fn price_finished_swaps(app: &Arc<App>) {
 /// Keeps the dollar value of finished funded buy orders, at SOL's price now.
 pub(crate) async fn price_finished_orders(app: &Arc<App>) {
     let Ok(unpriced) = app.store.lock().unwrap().unpriced_funded_orders() else { return };
-    if unpriced.is_empty() {
+    let parts = app.store.lock().unwrap().unpriced_book_parts().unwrap_or_default();
+    if unpriced.is_empty() && parts.is_empty() {
         return;
     }
     let app = app.clone();
@@ -1449,6 +1501,10 @@ pub(crate) async fn price_finished_orders(app: &Arc<App>) {
         let Some(price) = app.prices.solana() else { return };
         for (id, lamports) in unpriced {
             let _ = app.store.lock().unwrap().price_funded_order(id, lamports as f64 / 1e9 * price.usd);
+        }
+        let parts = app.store.lock().unwrap().unpriced_book_parts().unwrap_or_default();
+        for (id, lamports) in parts {
+            let _ = app.store.lock().unwrap().price_book_part(id, lamports as f64 / 1e9 * price.usd);
         }
     })
     .await;
@@ -1695,6 +1751,126 @@ async fn sync_funded_order(State(app): State<Arc<App>>, headers: HeaderMap, Path
 }
 
 #[derive(Deserialize)]
+struct NewBookOrder {
+    order_pubkey: String,
+    /// The order's 64 secrets, each 64 hex characters, in order. Kept only in
+    /// SQLite, never returned or logged; each used only after its part's
+    /// seller's ORN lock is checked on Orien.
+    secrets: Vec<String>,
+}
+
+async fn post_book_order(State(app): State<Arc<App>>, headers: HeaderMap, Json(request): Json<NewBookOrder>) -> Answer {
+    let buyer = app.signed_in(&headers)?;
+    let Some(chain) = app.book_chain.clone() else {
+        return Err(Failure::Refused("Buy orders that fill in parts are not enabled on this server yet.".into()));
+    };
+    let Some(filler) = chain.filler() else {
+        return Err(Failure::Refused("Buy orders that fill in parts are not enabled on this server yet.".into()));
+    };
+    let order_pk = orien_swap::solana::address(&request.order_pubkey).map_err(refused)?;
+    let order_pubkey = orien_swap::solana::text(&order_pk);
+    let secrets: Vec<[u8; 32]> = request
+        .secrets
+        .iter()
+        .map(|s| hex::decode(s.trim()).ok().and_then(|b| b.try_into().ok()))
+        .collect::<Option<_>>()
+        .ok_or_else(|| Failure::Refused("each secret is 64 hex characters".into()))?;
+    let (on_chain, chain_now) = tokio::task::spawn_blocking(move || -> anyhow::Result<_> { Ok((chain.read(&order_pk)?, chain.now()?)) })
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(refused)?;
+    let Some(on_chain) = on_chain else {
+        return Err(Failure::Refused("That Solana order isn't finalized yet. Try again in a moment.".into()));
+    };
+    if on_chain.terms.expiry <= chain_now + crate::orders::MIN_ORDER_LIFE_SECONDS {
+        return Err(Failure::Refused("That order expires too soon.".into()));
+    }
+    let order = app
+        .store
+        .lock()
+        .unwrap()
+        .post_book_order(buyer, &order_pubkey, &on_chain, &secrets, &filler, app.max_order_lamports)
+        .map_err(refused)?;
+    Ok((StatusCode::CREATED, Json(json!({ "order": order }))).into_response())
+}
+
+async fn my_book_orders(State(app): State<Arc<App>>, headers: HeaderMap) -> Answer {
+    let account = app.signed_in(&headers)?;
+    let (orders, parts) = app.store.lock().unwrap().my_books(account)?;
+    Ok(Json(json!({ "orders": orders, "parts": parts })).into_response())
+}
+
+#[derive(Deserialize)]
+struct ReserveBookPart {
+    /// Where the seller's SOL goes.
+    seller_sol: String,
+    /// The seller's Orien wallet holding the ORN.
+    wallet: String,
+    /// How many ORN (in units) the seller sells into the order.
+    orn: u64,
+}
+
+async fn reserve_book_part(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<ReserveBookPart>) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    let Some(chain) = app.book_chain.clone() else {
+        return Err(Failure::Refused("Buy orders that fill in parts are not enabled on this server yet.".into()));
+    };
+    let seller_sol = orien_swap::solana::address(request.seller_sol.trim()).map_err(|_| Failure::Refused("That is not a SOL address.".into()))?;
+    let wallet = store::orien_address(&request.wallet).map_err(refused)?;
+    let spendable = spendable_of(&app, vec![wallet.clone()], true).await;
+    if short_of(&spendable, &Some(wallet), request.orn) {
+        return Err(Failure::Refused("Your wallet doesn't hold that many ORN.".into()));
+    }
+    let worker = app.clone();
+    let part = tokio::task::spawn_blocking(move || crate::books::reserve(&worker, chain.as_ref(), id, seller, &seller_sol, request.orn))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(refused)?;
+    let order = app.store.lock().unwrap().book_order(id)?;
+    Ok(Json(json!({ "part": part, "order": order })).into_response())
+}
+
+#[derive(Deserialize)]
+struct FillBookPart {
+    /// The seller's Orien account that locked the ORN.
+    lock_from: String,
+    /// The lock's sequence number.
+    lock_seq: u64,
+}
+
+async fn fill_book_part(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Path<i64>, Json(request): Json<FillBookPart>) -> Answer {
+    let seller = app.signed_in(&headers)?;
+    let Some(chain) = app.book_chain.clone() else {
+        return Err(Failure::Refused("Buy orders that fill in parts are not enabled on this server yet.".into()));
+    };
+    let part = app.store.lock().unwrap().book_part(id)?.ok_or_else(|| Failure::Refused("there is no such part".into()))?;
+    if part.seller != seller {
+        return Err(Failure::Refused("that part is not yours".into()));
+    }
+    if !matches!(part.state.as_str(), "reserved" | "filled") {
+        return Err(Failure::Refused("that part is no longer waiting for your ORN".into()));
+    }
+    let lock_from = store::orien_address(&request.lock_from).map_err(refused)?;
+    let lock_id: orien_ledger::AccountId = lock_from.parse().map_err(|_| Failure::Refused("invalid Orien address".into()))?;
+    let lock_seq = request.lock_seq;
+    let worker = app.clone();
+    let checked = part.clone();
+    tokio::task::spawn_blocking(move || crate::books::check_lock(&worker, chain.as_ref(), &checked, &lock_id, lock_seq))
+        .await
+        .map_err(|e| Failure::Broken(e.into()))?
+        .map_err(refused)?;
+    let filled = app.store.lock().unwrap().book_part_locked(id, seller, &lock_from, lock_seq).map_err(refused)?;
+    // Settle at once rather than at the next tick.
+    let background = app.clone();
+    tokio::spawn(async move {
+        let inner = background.clone();
+        let _ = tokio::task::spawn_blocking(move || crate::books::settle_once(&inner)).await;
+        price_finished_orders(&background).await;
+    });
+    Ok(Json(json!({ "part": filled })).into_response())
+}
+
+#[derive(Deserialize)]
 struct HistoryPage {
     before: Option<u64>,
 }
@@ -1707,11 +1883,13 @@ async fn swap_history(State(app): State<Arc<App>>, Query(page): Query<HistoryPag
     let store = app.store.lock().unwrap();
     let mut combined = store.swap_history(page.before, 31)?;
     combined.extend(store.funded_order_history(page.before, 31)?);
+    combined.extend(store.book_history(page.before, 31)?);
     combined.sort_by_key(|v| std::cmp::Reverse(v["at"].as_u64().unwrap_or(0)));
     let more = combined.len() > 30;
     let swaps: Vec<_> = combined.into_iter().take(30).collect();
     let mut latest = store.swap_history(None, 1)?;
     latest.extend(store.funded_order_history(None, 1)?);
+    latest.extend(store.book_history(None, 1)?);
     latest.sort_by_key(|v| std::cmp::Reverse(v["at"].as_u64().unwrap_or(0)));
     let last = latest.into_iter().next();
     Ok(([(header::CACHE_CONTROL, "public, max-age=30")], Json(json!({ "last": last, "swaps": swaps, "more": more }))).into_response())

@@ -7,6 +7,7 @@ pub mod app_reports;
 pub mod alerts;
 pub mod admin;
 pub mod api;
+pub mod books;
 pub mod community;
 pub mod explorer;
 pub mod oidc;
