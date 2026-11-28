@@ -188,7 +188,7 @@ pub async fn solana_devnet_quote(app: AppHandle, wallet_address: String, to: Str
     let (dir, path, owner) = active_wallet(&app, &wallet_address)?;
     tauri::async_runtime::spawn_blocking(move || {
         let mut review = REVIEW.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        prepare(&mut review, &crate::solswaps::network(), &dir, &path, owner, &to, asset.unwrap_or(SendAsset::Sol), if maximum == Some(true) { None } else { Some(&amount) })
+        prepare(&mut review, &crate::solswaps::network().first_answer(), &dir, &path, owner, &to, asset.unwrap_or(SendAsset::Sol), if maximum == Some(true) { None } else { Some(&amount) })
     })
     .await
     .map_err(|error| error.to_string())?
@@ -244,7 +244,7 @@ pub async fn solana_devnet_send(app: AppHandle, wallet_address: String, quote_id
     let (dir, path, owner) = active_wallet(&app, &wallet_address)?;
     tauri::async_runtime::spawn_blocking(move || {
         let mut review = REVIEW.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        approve(&mut review, &crate::solswaps::network(), &dir, &path, &owner, quote_id, password.as_deref())
+        approve(&mut review, &crate::solswaps::network().first_answer(), &dir, &path, &owner, quote_id, password.as_deref())
     })
     .await
     .map_err(|error| error.to_string())?
@@ -255,7 +255,7 @@ pub async fn solana_devnet_receipt(app: AppHandle, wallet_address: String) -> Re
     let (dir, _, owner) = active_wallet(&app, &wallet_address)?;
     tauri::async_runtime::spawn_blocking(move || {
         let _review = REVIEW.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        refresh_receipt(&crate::solswaps::network(), &receipt_path(&dir, &owner))
+        refresh_receipt(&crate::solswaps::network().first_answer(), &receipt_path(&dir, &owner))
     })
     .await
     .map_err(|error| error.to_string())?

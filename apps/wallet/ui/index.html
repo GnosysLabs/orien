@@ -9033,7 +9033,9 @@
     $("sol-send-confirm").textContent = state.submitting ? "Sending…" : view?.biometric && !needsPassword ? `Send with ${bio}` : "Send";
     $("sol-send-pw-field").hidden = !quote || !needsPassword;
     const hasAmount = !!$("sol-send-amount").value.trim();
-    $("sol-send-summary").hidden = !hasAmount;
+    // Max has no amount to show until the fee is known: say it's being
+    // worked out, or the form looks as if nothing is happening.
+    $("sol-send-summary").hidden = !hasAmount && !state.checking;
     const feeNote = quote ? (asset === "SOL" ? `incl. ${quote.fee} fee` : "") : state.checking ? "Checking fee…" :
       hasAmount && !to ? "Enter a recipient" : "";
     $("sol-review-fee").textContent = feeNote;

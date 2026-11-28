@@ -94,7 +94,7 @@ pub struct Rpc {
 
 impl Rpc {
     pub fn at(base: &str) -> Rpc {
-        let agent = ureq::AgentBuilder::new().timeout(Duration::from_secs(20)).user_agent("orien-swap").build();
+        let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(6)).timeout(Duration::from_secs(20)).user_agent("orien-swap").build();
         Rpc { base: base.trim_end_matches('/').to_string(), agent }
     }
 
@@ -206,6 +206,9 @@ pub struct Solana {
     pub lock_program: Option<Pubkey>,
     /// Circle USDC's mint on this network.
     pub usdc: &'static str,
+    /// Take the first service's answer rather than comparing several: see
+    /// [`Solana::first_answer`].
+    one: bool,
 }
 
 impl Solana {
@@ -228,7 +231,20 @@ impl Solana {
     }
 
     pub fn with(bases: &[&str], lock_program: Option<Pubkey>) -> Solana {
-        Solana { rpcs: bases.iter().map(|base| Rpc::at(base)).collect(), lock_program, usdc: devnet_usdc::USDC }
+        Solana { rpcs: bases.iter().map(|base| Rpc::at(base)).collect(), lock_program, usdc: devnet_usdc::USDC, one: false }
+    }
+
+    /// For sending your own SOL or USDC: go by the first service that
+    /// answers, in order, rather than waiting on all of them and needing
+    /// most to agree. Where the public services can't be reached (some
+    /// countries block them, and they turn away many VPNs) a send would
+    /// otherwise never get its fee. A wrong answer here can only make the
+    /// send fail: the wallet signs the transfer itself. Swaps keep
+    /// comparing services, since they act on what Solana says another
+    /// person did.
+    pub fn first_answer(mut self) -> Solana {
+        self.one = true;
+        self
     }
 
     fn quorum(&self) -> usize {
@@ -237,6 +253,9 @@ impl Solana {
 
     /// What the services that answer say; an error only if none does.
     fn answers<T>(&self, ask: impl Fn(&Rpc) -> Result<T>) -> Result<Vec<T>> {
+        if self.one {
+            return self.first(ask).map(|answer| vec![answer]);
+        }
         let (mut answers, mut last) = (Vec::new(), None);
         for rpc in &self.rpcs {
             match ask(rpc) {
@@ -264,6 +283,9 @@ impl Solana {
 
     /// What most services say; an error if too few answer.
     fn most<T>(&self, ask: impl Fn(&Rpc) -> Result<T>) -> Result<Vec<T>> {
+        if self.one {
+            return self.first(ask).map(|answer| vec![answer]);
+        }
         let (mut answers, mut last) = (Vec::new(), None);
         for rpc in &self.rpcs {
             match ask(rpc) {
@@ -712,6 +734,57 @@ mod tests {
         assert_eq!(text(&SYSTEM_PROGRAM), "11111111111111111111111111111111");
         assert!(address("not an address").is_err());
         assert!(address("111").is_err());
+    }
+
+    /// A pretend Solana service on this computer: one that answers every
+    /// question with `value`, or (with none) one that takes the call and
+    /// never says a word, as a blocked service does.
+    fn service(value: Option<u64>) -> String {
+        use std::io::{Read, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let at = format!("http://{}", listener.local_addr().unwrap());
+        std::thread::spawn(move || {
+            let mut held = Vec::new();
+            for stream in listener.incoming() {
+                let Ok(mut stream) = stream else { continue };
+                let Some(value) = value else {
+                    held.push(stream);
+                    continue;
+                };
+                let (mut request, mut chunk) = (Vec::new(), [0u8; 2048]);
+                while !request.windows(2).any(|pair| pair == b"}]") && !request.ends_with(b"}") {
+                    match stream.read(&mut chunk) {
+                        Ok(0) | Err(_) => break,
+                        Ok(read) => request.extend_from_slice(&chunk[..read]),
+                    }
+                }
+                let body = format!(r#"{{"jsonrpc":"2.0","id":1,"result":{{"context":{{"slot":1}},"value":{value}}}}}"#);
+                let _ = write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len());
+            }
+        });
+        at
+    }
+
+    #[test]
+    fn a_send_goes_by_the_first_service_that_answers() {
+        // Two of three services never answer, as in a country that blocks
+        // them. A send's questions are settled by the one that does, at
+        // once, where comparing services would wait on the silent two and
+        // then refuse.
+        let (ours, silent_one, silent_two) = (service(Some(140_000_000)), service(None), service(None));
+        let network = Solana::with(&[&ours, &silent_one, &silent_two], None).first_answer();
+        let asked = std::time::Instant::now();
+        assert_eq!(network.balance(&[7; 32]).unwrap(), 140_000_000);
+        assert!(asked.elapsed() < Duration::from_secs(3), "waited on a service that wasn't needed");
+
+        // A service that can't be reached at all is passed over for the next.
+        let gone = {
+            let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+            format!("http://{}", listener.local_addr().unwrap())
+        };
+        let other = service(Some(5));
+        let network = Solana::with(&[&gone, &other], None).first_answer();
+        assert_eq!(network.balance(&[8; 32]).unwrap(), 5);
     }
 
     #[test]
