@@ -40,6 +40,17 @@ const FRESH: Duration = Duration::from_secs(10);
 /// Balances, though, are reused only briefly, so money that just arrived
 /// shows within seconds.
 const BALANCE_FRESH: Duration = Duration::from_secs(2);
+/// How long a service that couldn't be reached is left alone, while others
+/// answer: where one is blocked, it's tried again only this often.
+const UNREACHABLE_REST: Duration = Duration::from_secs(600);
+
+/// Whether asking a service failed on the way there (no connection, no
+/// answer in time) rather than by what it said.
+fn unreachable(error: &anyhow::Error) -> bool {
+    error.chain().any(|cause| {
+        matches!(cause.downcast_ref::<ureq::Error>(), Some(ureq::Error::Transport(_))) || cause.downcast_ref::<std::io::Error>().is_some()
+    })
+}
 
 pub type Pubkey = [u8; 32];
 
@@ -94,7 +105,7 @@ pub struct Rpc {
 
 impl Rpc {
     pub fn at(base: &str) -> Rpc {
-        let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(6)).timeout(Duration::from_secs(20)).user_agent("orien-swap").build();
+        let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(6)).timeout(Duration::from_secs(12)).user_agent("orien-swap").build();
         Rpc { base: base.trim_end_matches('/').to_string(), agent }
     }
 
@@ -209,6 +220,9 @@ pub struct Solana {
     /// Take the first service's answer rather than comparing several: see
     /// [`Solana::first_answer`].
     one: bool,
+    /// The first service's answer is enough when the others give none: see
+    /// [`Solana::ours_alone_will_do`].
+    ours_will_do: bool,
 }
 
 impl Solana {
@@ -222,7 +236,7 @@ impl Solana {
             Some(address(MAINNET_LOCK_PROGRAM).expect("a valid address")),
         );
         network.usdc = MAINNET_USDC;
-        network
+        network.ours_alone_will_do()
     }
 
     /// Solana's test network, with orien-lock.
@@ -231,7 +245,7 @@ impl Solana {
     }
 
     pub fn with(bases: &[&str], lock_program: Option<Pubkey>) -> Solana {
-        Solana { rpcs: bases.iter().map(|base| Rpc::at(base)).collect(), lock_program, usdc: devnet_usdc::USDC, one: false }
+        Solana { rpcs: bases.iter().map(|base| Rpc::at(base)).collect(), lock_program, usdc: devnet_usdc::USDC, one: false, ours_will_do: false }
     }
 
     /// For sending your own SOL or USDC: go by the first service that
@@ -247,18 +261,54 @@ impl Solana {
         self
     }
 
+    /// Where most services must agree, the first one's answer stands by
+    /// itself when the others give none. The first is orien.network's own
+    /// relay; the others are free public services, which some countries
+    /// block. Without this, nobody there could buy or sell ORN for SOL.
+    /// Answers are still compared whenever the others do answer, and a
+    /// public service's answer never stands alone.
+    pub fn ours_alone_will_do(mut self) -> Solana {
+        self.ours_will_do = true;
+        self
+    }
+
     fn quorum(&self) -> usize {
         self.rpcs.len() / 2 + 1
     }
 
+    /// Every service's answer, in their order, asked at the same time: a
+    /// service that can't be reached would otherwise hold up the rest for
+    /// as long as it takes to give up on it. One that couldn't be reached
+    /// while another answered is then left alone for a while.
+    fn all<T: Send>(&self, ask: impl Fn(&Rpc) -> Result<T> + Sync) -> Vec<Result<T>> {
+        let results: Vec<Result<T>> = match self.rpcs.as_slice() {
+            [only] => vec![ask(only)],
+            rpcs => {
+                let ask = &ask;
+                std::thread::scope(|scope| {
+                    let asked: Vec<_> = rpcs.iter().map(|rpc| scope.spawn(move || ask(rpc))).collect();
+                    asked.into_iter().map(|one| one.join().unwrap_or_else(|_| Err(anyhow!("a Solana request stopped short")))).collect()
+                })
+            }
+        };
+        if results.iter().any(Result::is_ok) {
+            for (rpc, result) in self.rpcs.iter().zip(&results) {
+                if result.as_ref().is_err_and(unreachable) {
+                    rest(&rpc.base, UNREACHABLE_REST);
+                }
+            }
+        }
+        results
+    }
+
     /// What the services that answer say; an error only if none does.
-    fn answers<T>(&self, ask: impl Fn(&Rpc) -> Result<T>) -> Result<Vec<T>> {
+    fn answers<T: Send>(&self, ask: impl Fn(&Rpc) -> Result<T> + Sync) -> Result<Vec<T>> {
         if self.one {
             return self.first(ask).map(|answer| vec![answer]);
         }
         let (mut answers, mut last) = (Vec::new(), None);
-        for rpc in &self.rpcs {
-            match ask(rpc) {
+        for result in self.all(ask) {
+            match result {
                 Ok(answer) => answers.push(answer),
                 Err(error) => last = Some(error),
             }
@@ -282,18 +332,20 @@ impl Solana {
     }
 
     /// What most services say; an error if too few answer.
-    fn most<T>(&self, ask: impl Fn(&Rpc) -> Result<T>) -> Result<Vec<T>> {
+    fn most<T: Send>(&self, ask: impl Fn(&Rpc) -> Result<T> + Sync) -> Result<Vec<T>> {
         if self.one {
             return self.first(ask).map(|answer| vec![answer]);
         }
+        let results = self.all(ask);
+        let ours_stands = self.ours_will_do && results.first().is_some_and(Result::is_ok);
         let (mut answers, mut last) = (Vec::new(), None);
-        for rpc in &self.rpcs {
-            match ask(rpc) {
+        for result in results {
+            match result {
                 Ok(answer) => answers.push(answer),
                 Err(error) => last = Some(error),
             }
         }
-        if answers.len() < self.quorum() {
+        if answers.len() < self.quorum() && !ours_stands {
             return Err(last
                 .unwrap_or_else(|| anyhow!("no Solana service is set"))
                 .context("too few Solana services answered; trying again shortly"));
@@ -785,6 +837,52 @@ mod tests {
         let other = service(Some(5));
         let network = Solana::with(&[&gone, &other], None).first_answer();
         assert_eq!(network.balance(&[8; 32]).unwrap(), 5);
+    }
+
+    /// The address of a service that isn't there: calls to it fail at once.
+    fn nowhere() -> String {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        format!("http://{}", listener.local_addr().unwrap())
+    }
+
+    #[test]
+    fn ours_alone_is_enough_where_the_public_services_cannot_be_reached() {
+        // A swap's questions need most services to agree. With the two
+        // public ones out of reach, ours is taken alone, if that's allowed.
+        let (ours, blocked_one, blocked_two) = (service(Some(7_000)), nowhere(), nowhere());
+        let strict = Solana::with(&[&ours, &blocked_one, &blocked_two], None);
+        assert!(strict.balance(&[1; 32]).is_err());
+        let network = Solana::with(&[&ours, &blocked_one, &blocked_two], None).ours_alone_will_do();
+        assert_eq!(network.balance(&[2; 32]).unwrap(), 7_000);
+        // The two that couldn't be reached are left alone for a while.
+        assert!(resting(&blocked_one).is_some() && resting(&blocked_two).is_some());
+        assert!(resting(&ours).is_none());
+
+        // A public service's answer never stands alone: with ours gone and
+        // one public service answering, there's no answer.
+        let (gone, public, blocked) = (nowhere(), service(Some(9)), nowhere());
+        let network = Solana::with(&[&gone, &public, &blocked], None).ours_alone_will_do();
+        assert!(network.balance(&[3; 32]).is_err());
+
+        // When they all answer they're compared as before: the least stands.
+        let (ours, low, high) = (service(Some(50)), service(Some(40)), service(Some(60)));
+        let network = Solana::with(&[&ours, &low, &high], None).ours_alone_will_do();
+        assert_eq!(network.balance(&[4; 32]).unwrap(), 40);
+    }
+
+    #[test]
+    fn services_are_asked_at_the_same_time() {
+        // Two services that take the call and never answer: the wait is one
+        // service's patience, not one after the other.
+        let (ours, silent_one, silent_two) = (service(Some(3)), service(None), service(None));
+        let network = Solana::with(&[&ours, &silent_one, &silent_two], None).ours_alone_will_do();
+        let asked = std::time::Instant::now();
+        assert_eq!(network.balance(&[5; 32]).unwrap(), 3);
+        assert!(asked.elapsed() < Duration::from_secs(18), "the silent services were waited on in turn: {:?}", asked.elapsed());
+        // And they're then left alone: the next question is answered at once.
+        let asked = std::time::Instant::now();
+        assert_eq!(network.balance(&[6; 32]).unwrap(), 3);
+        assert!(asked.elapsed() < Duration::from_secs(2));
     }
 
     #[test]
