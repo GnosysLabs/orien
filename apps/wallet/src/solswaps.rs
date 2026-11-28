@@ -73,6 +73,8 @@ pub struct View {
     pub problem: Option<String>,
     pub created: u64,
     pub board: bool,
+    /// The Market's number for the order (or part) this swap is for.
+    pub board_id: Option<i64>,
     pub finished: bool,
 }
 
@@ -333,6 +335,7 @@ pub fn view(kept: &Kept) -> View {
         problem: kept.problem.clone(),
         created: kept.created,
         board: kept.board.is_some(),
+        board_id: kept.board,
         finished: swap.finished(),
     }
 }

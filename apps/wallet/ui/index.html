@@ -1824,6 +1824,7 @@
      panel's own pair of tabs would only say it twice. */
   @media (max-width: 859px) { #swaps .ex-deck-head { display: none; } }
   body.phone #swaps .ex-deck-head { display: none; }
+  .sd-group-row { cursor: pointer; }
   .ex-deck-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
   .ex-deck-tabs { display: flex; gap: 6px; }
   .ex-deck-tab { height: 32px; padding: 0 13px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--dim);
@@ -10838,7 +10839,61 @@
     show("swap-detail");
   }
 
+  // A market order across several orders: one pop-up for all of it, a line
+  // for each seller (or buyer) with how its swap is going.
+  let swapGroup = null;
+  function groupLine(item) {
+    const g = swapGroup;
+    const swap = g.side === "sell" ? swapList.find((x) => x.id === item.key) : swapList.find((x) => x.board_id === item.key);
+    if (swap) {
+      if (swap.stage === "done") return { swap, state: "done", line: g.side === "buy" ? "Done · ORN in your wallet" : "Done · SOL in your Solana balance" };
+      if (swap.stage === "cancelled") return { swap, state: "stopped", line: swap.status || "Stopped" };
+      if (swap.problem && swap.problem.startsWith("password:")) return { swap, state: "now", line: "Needs your approval · open it" };
+      return { swap, state: "now", line: stageLine(swap) || "Under way" };
+    }
+    // Buying: the seller's wallet locks the ORN first, by itself.
+    const waited = Date.now() / 1000 - g.created;
+    if (waited > 600) return { swap: null, state: "stopped", line: "Their wallet didn't answer · nothing was paid" };
+    return { swap: null, state: "now", line: "Waiting for their wallet to lock the ORN" };
+  }
+  function renderGroup() {
+    const g = swapGroup, buy = g.side === "buy";
+    const sum = g.items.reduce((t, i) => ({ orn: t.orn + i.orn, lamports: t.lamports + i.lamports }), { orn: 0, lamports: 0 });
+    const lines = g.items.map(groupLine);
+    const done = lines.filter((l) => l.state === "done").length, stopped = lines.filter((l) => l.state === "stopped").length;
+    const over = done + stopped === lines.length;
+    $("sd-title").textContent = buy ? "Buying ORN" : "Selling ORN";
+    $("sd-orn").textContent = fmtOrn(sum.orn) + " ORN";
+    const cur = exCur() === "sol" ? "usd" : exCur();
+    const rate = (board.solRates || {})[cur] || (cur === "usd" ? board.solUsd : null);
+    const sol = sum.lamports / 1e9;
+    $("sd-btc").textContent = `${exPlain(sol, 4)} SOL` + (rate || board.solUsd ? ` ≈ ${exMoney(sol * (rate || board.solUsd), rate ? cur : "usd")}` : "");
+    $("sd-coin-label").textContent = "SOL";
+    $("sd-other-row").hidden = false;
+    $("sd-other-label").textContent = buy ? "Sellers" : "Buyers";
+    $("sd-other").textContent = String(g.items.length);
+    $("sd-steps").innerHTML = g.items.map((item, i) => {
+      const l = lines[i];
+      const dot = l.state === "done" ? "✓" : l.state === "stopped" ? "!" : String(i + 1);
+      return `<li class="s-${l.state}${l.swap ? " sd-group-row" : ""}"${l.swap ? ` data-group-swap="${esc(l.swap.id)}"` : ""}><span class="dot">${dot}</span>
+        <div class="what"><strong>${esc(item.name)}</strong> · ${esc(fmtOrn(item.orn))} ORN for ${esc(exPlain(item.lamports / 1e9, 4))} SOL<div class="who">${esc(l.line)}</div></div></li>`;
+    }).join("");
+    const head = over
+      ? `<div class="sd-state-head ready"><span>${stopped ? `✓ ${done} of ${lines.length} complete` : "✓ Complete"}</span></div>`
+      : `<div class="sd-state-head"><span class="spinner"></span><span>${done} of ${lines.length} done</span></div>`;
+    $("sd-status").innerHTML = head + esc(over
+      ? (stopped ? "The rest stopped; nothing was paid for those." : buy ? `${fmtOrn(sum.orn)} ORN are in your wallet.` : `${exPlain(sol, 4)} SOL is in your Solana balance.`)
+      : `Each ${buy ? "seller" : "buyer"} is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.`)
+      + (g.missed ? esc(` One order was taken by someone else first (${g.missed}); nothing was paid for it.`) : "");
+    $("sd-status").hidden = false;
+    $("sd-status").classList.remove("sd-pop-quiet");
+    for (const id of ["sd-pay", "sd-gone", "sd-pw-field", "sd-cancel-order", "detail-problem", "sd-exchange"]) $(id).hidden = true;
+    $("sd-done-back").hidden = false;
+    $("sd-done-back").textContent = !phone && window.innerWidth >= 860 ? (over ? "Done" : "Close") : "Back to Exchange";
+    if ($("sd-review").parentNode !== $("sd-main")) $("sd-main").prepend($("sd-review"));
+  }
   function renderDetail() {
+    if (current === "group" && swapGroup) return renderGroup();
     const s = swapList.find((x) => x.id === current) || (pendingTake && pendingTake.id === current ? pendingTake : null);
     if (!s) return;
     $("sd-title").textContent = s.role === "sell" ? "Selling ORN" : "Buying ORN";
@@ -10956,6 +11011,11 @@
   }
 
   window.addEventListener("resize", () => { if (!$("swap-detail").hidden) renderDetail(); });
+  // A line of a market order's pop-up opens that swap's own.
+  $("sd-steps").addEventListener("click", (event) => {
+    const row = event.target.closest("[data-group-swap]");
+    if (row) openSwap(row.dataset.groupSwap);
+  });
 
   // Passing codes between the two sides: the seller's offer, the buyer's
   // reply. A public swap board will pass them for both wallets later.
@@ -12012,33 +12072,54 @@
         // Each order its own swap; one that can't start doesn't stop the rest.
         const refund = await ensureOwnSol(password);
         if (!isBuy && await shortOfSol(taken.lamports / 1e9, "bt-problem", taken.many.length * SOL_SWAP_FEES)) return;
-        let started = 0, failed = "";
-        for (const f of taken.many) {
+        // What started, each with the swap it becomes: the order's number
+        // (buying) or the sale's own id (selling into a buy order).
+        const items = [];
+        let failed = "";
+        const take = async (f) => {
           try {
+            let key;
             if (isBuy && f.o.book) {
-              await invoke("order_fill_book", { serverId: f.o.id, orderPubkey: f.o.order_pubkey, orn: plainOrn(f.orn),
+              key = await invoke("order_fill_book", { serverId: f.o.id, orderPubkey: f.o.order_pubkey, orn: plainOrn(f.orn),
                 buyerOrien: f.o.buyer_orien, buyerName: f.o.seller_name || null, payout: refund, password });
             } else if (isBuy) {
-              await invoke("order_fill_buy", { serverId: f.o.id, orderPubkey: f.o.order_pubkey, orn: f.o.orn, lamports: f.o.lamports, hash: f.o.hash,
+              key = await invoke("order_fill_buy", { serverId: f.o.id, orderPubkey: f.o.order_pubkey, orn: f.o.orn, lamports: f.o.lamports, hash: f.o.hash,
                 buyerOrien: f.o.buyer_orien, buyerName: f.o.seller_name || null, payout: refund, password });
             } else {
-              await invoke("board_take_sol", { offer: f.o.id, refund, orn: plainOrn(f.orn), password });
+              key = await invoke("board_take_sol", { offer: f.o.id, refund, orn: plainOrn(f.orn), password });
             }
-            started++;
+            items.push({ key, offer: f.o.id, name: f.o.seller_name || (isBuy ? "Buyer" : "Seller"), orn: f.orn, lamports: f.lamports });
+            return true;
           } catch (e) {
             const t = String(e);
             if (t.startsWith("password:")) throw e;
             failed = failed || t;
+            return false;
+          }
+        };
+        let missed = 0;
+        for (const f of taken.many) if (!(await take(f))) missed += f.lamports;
+        // Buying, and someone else got to an order first: what it would have
+        // cost goes to the next cheapest orders instead, never at a higher
+        // price than the dearest one approved.
+        if (!isBuy) {
+          const ceiling = Math.max(...taken.many.map((f) => exUnit(f.o))) * (1 + 1e-9);
+          for (let round = 0; round < 2 && missed >= EX_MIN_SOL * 1e9 && items.length < EX_MAX_TAKES; round++) {
+            await loadBoard();
+            const more = exBuyPlan(missed / 1e9).filter((f) => exUnit(f.o) <= ceiling && !items.some((i) => i.offer === f.o.id)).slice(0, EX_MAX_TAKES - items.length);
+            if (!more.length) break;
+            missed = 0;
+            for (const f of more) if (!(await take(f))) missed += f.lamports;
           }
         }
-        if (!started) throw failed || "None of these orders could be taken.";
+        if (!items.length) throw failed || "None of these orders could be taken.";
         $("bt-pw").value = "";
         board.taking = null;
         $("ex-spend").value = $("ex-orn").value = $("ex-sol").value = "";
         await loadSwaps();
-        show("swaps");
-        if (!handset && wide.matches) { setExDeck("mine"); exDeckModal(true); } else swapTab("mine");
-        if (failed) problem("ex-problem", `${started} of ${taken.many.length} swaps started. Another couldn't: ${failed}`);
+        // One pop-up for the whole order, as for a single swap.
+        swapGroup = { side: isBuy ? "sell" : "buy", items, created: Date.now() / 1000, missed: missed >= EX_MIN_SOL * 1e9 ? failed : "" };
+        openSwap("group");
         loadBoard();
         stepSwaps();
         return;
@@ -15899,6 +15980,8 @@
   // Fast 3-second polling while watching an active swap or order in detail.
   setInterval(() => {
     if ($("swap-detail").hidden || !current) return;
+    // A market order's pop-up: while any of its swaps is still going.
+    if (current === "group" && swapGroup) { if (swapGroup.items.some((i) => groupLine(i).state === "now")) stepSwaps(); else renderGroup(); return; }
     const s = swapList.find((x) => x.id === current);
     if (s && !["done", "cancelled", "open"].includes(s.stage) && !(s.problem && s.problem.startsWith("password:"))) stepSwaps();
   }, 3000);
