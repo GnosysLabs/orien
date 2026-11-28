@@ -576,9 +576,38 @@ impl Client {
         let certificate = self.certificate(from, seq)?;
         let Kind::Lock { hash, until } = certificate.order.kind else { return None };
         let escrow = Escrow { to: certificate.order.to, amount: certificate.order.amount, hash, until };
-        self.finish(certificate, 0).ok()?;
+        // Final: confirmed afresh, or, for a lock that is no longer the
+        // account's newest payment (validators confirm only the newest),
+        // certified and recorded by a quorum.
+        if self.finish(certificate.clone(), 0).is_err() && !self.recorded(&certificate) {
+            return None;
+        }
         proven.made = Some(escrow);
         Some(proven)
+    }
+
+    /// Whether validators holding a quorum of the stake have recorded
+    /// `certificate`, itself a quorum's signed votes for the order (checked
+    /// by `certificate`). They confirm afresh only an account's newest
+    /// payment; an older one they answer as already applied.
+    fn recorded(&self, certificate: &Certificate) -> bool {
+        let committee = self.committee();
+        if committee.verify_certificate(certificate).is_err() {
+            return false;
+        }
+        let digest = certificate.order.digest(committee.network());
+        let stake: u64 = self
+            .ask_all(&Request::Confirm(certificate.clone()))
+            .into_iter()
+            .enumerate()
+            .filter(|(_, answer)| match answer {
+                Ok(Response::Applied { .. }) => true,
+                Ok(Response::Confirmed(confirmation)) => committee.verify_confirmation(&digest, confirmation).is_ok(),
+                _ => false,
+            })
+            .map(|(seat, _)| committee.stake_of(seat as u16))
+            .sum();
+        committee.has_quorum(stake)
     }
 
     /// What came into `account` from epoch `from` on: payments, claimed

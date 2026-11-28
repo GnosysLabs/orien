@@ -2486,6 +2486,38 @@ fn a_locked_payment_and_its_secret_are_proven_by_checkpoints() {
 }
 
 
+/// Two locks made one after the other, as a seller makes when two of their
+/// orders are taken at once: the older is proven straight away too, not
+/// only once a checkpoint has passed.
+#[test]
+fn an_older_lock_is_proven_at_once_after_a_newer_payment() {
+    use orien_ledger::lock_hash;
+    let net = TestNet::with_epochs("lock-proof-older", 3);
+    let client = net.client();
+    let alice = net.address("alice");
+    let mut sender = net.wallet("alice");
+    sender.accept_fee(net.genesis.fee);
+    let payee = Wallet::create(&net.dir.join("older.wallet")).unwrap();
+    net.wait_until_level();
+    client.follow();
+    let until = client.epoch() + 20;
+    let mut seqs = Vec::new();
+    for secret in [[21u8; 32], [22u8; 32]] {
+        let status = client.account(&alice, sender.next_seq());
+        let lock = sender
+            .sign(Kind::Lock { hash: lock_hash(&secret), until }, status.seq, payee.address(), 300, status.signer.as_ref(), &net.network)
+            .unwrap();
+        assert!(matches!(client.pay(&lock, Duration::from_secs(20)), Ok(Done::Receipt(_))));
+        seqs.push(lock.order.seq);
+    }
+    let older = client.proven_lock(&alice, seqs[0]).expect("the older lock is proven at once");
+    assert_eq!(older.made.map(|e| (e.to, e.amount, e.hash)), Some((payee.address(), 300, lock_hash(&[21u8; 32]))));
+    let newer = client.proven_lock(&alice, seqs[1]).expect("the newer lock is proven");
+    assert_eq!(newer.made.map(|e| e.hash), Some(lock_hash(&[22u8; 32])));
+    // Still nothing of a payment never made.
+    assert!(client.proven_lock(&alice, seqs[1] + 5).is_none());
+}
+
 /// How many work shares validator `v` holds for `epoch`, by asking it page
 /// by page.
 fn shares_held(net: &TestNet, v: usize, epoch: u64) -> usize {
