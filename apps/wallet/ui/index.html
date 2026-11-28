@@ -1825,6 +1825,10 @@
   @media (max-width: 859px) { #swaps .ex-deck-head { display: none; } }
   body.phone #swaps .ex-deck-head { display: none; }
   .sd-group-row { cursor: pointer; }
+  /* TradingView's logo on the chart. Its library adds these rules itself in
+     a way this app doesn't allow, which left the logo unplaced and unseen. */
+  a#tv-attr-logo { --fill: #131722; --stroke: #fff; position: absolute; left: 10px; bottom: 10px; height: 19px; width: 35px; margin: 0; padding: 0; border: 0; z-index: 3; }
+  a#tv-attr-logo[data-dark] { --fill: #D1D4DC; --stroke: #131722; }
   .ex-deck-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
   .ex-deck-tabs { display: flex; gap: 6px; }
   .ex-deck-tab { height: 32px; padding: 0 13px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--dim);
@@ -10620,6 +10624,8 @@
     return { good: v("--good", "#5fd3a1"), bad: v("--bad", "#f08a8a"), ink: v("--ink", "#e9eef8"), dim: v("--dim", "#96a1ba"), faint: v("--faint", "#7d88a2"), line: v("--line", "#2e3852") };
   }
   // The chart's times are local, as the rest of the app shows them.
+  // Whether this person's clock is a 12-hour one.
+  const exHour12 = !!new Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions().hour12;
   const exLocalTime = (t) => t - new Date(t * 1000).getTimezoneOffset() * 60;
   // A theme colour, see-through, in a form the chart reads.
   function exAlpha(color, a) {
@@ -10658,7 +10664,18 @@
         layout: { background: { type: "solid", color: "transparent" }, textColor: col.faint, fontSize: 11, fontFamily: "-apple-system, 'Segoe UI', system-ui, sans-serif", attributionLogo: true },
         grid: { vertLines: { visible: false }, horzLines: { color: col.line } },
         rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.12, bottom: 0.24 } },
-        timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, rightOffset: 3, minBarSpacing: 3 },
+        // Times as this person's own clock writes them, in their time zone
+        // ("7 PM", or "19:00" where that's the custom), and a new day as
+        // "Nov 27", not a bare "27" between the hours.
+        localization: { timeFormatter: (time) => new Date(time * 1000).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC" }) },
+        timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false, rightOffset: 3, minBarSpacing: 3,
+          tickMarkFormatter: (time, kind) => {
+            const at = new Date(time * 1000);
+            if (kind === 2) return at.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+            if (kind !== 3) return null;
+            if (!exHour12) return at.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" });
+            return at.toLocaleTimeString(undefined, at.getUTCMinutes() ? { hour: "numeric", minute: "2-digit", timeZone: "UTC" } : { hour: "numeric", timeZone: "UTC" });
+          } },
         crosshair: { mode: LC.CrosshairMode.Normal },
         handleScale: { axisPressedMouseMove: false },
       });
