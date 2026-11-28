@@ -10440,7 +10440,10 @@
   // A swap waiting on this person: a buyer who hasn't paid yet.
   // A SOL buy paid from this wallet's own Solana balance pays itself: the
   // person approved it once, when taking the offer or placing the order.
-  const paysItself = (s) => s.coin === "sol" && s.role === "buy" && !!s.refund && s.refund === devnetAssets.address && !s.problem;
+  // Until this wallet's own Solana address has been read (just after the
+  // app opens), a SOL buy is taken to pay itself, so "pay now" never flashes
+  // for a swap the wallet is already paying.
+  const paysItself = (s) => s.coin === "sol" && s.role === "buy" && !!s.refund && (!devnetAssets.address || s.refund === devnetAssets.address) && !s.problem;
   const needsMe = (s) => s.coin === "sol"
     ? s.role === "buy" && s.stage === "pay" && !!s.pay_to && !paysItself(s)
     : s.role === "buy" && s.stage === "bitcoin" && !s.paid && !s.paid_seen && !!s.pay_to;
