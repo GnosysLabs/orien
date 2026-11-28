@@ -11537,7 +11537,11 @@
     let warn = false;
     what.textContent = "";
     if (!typed) val.textContent = buy ? "Enter how much to spend" : "Enter an amount";
-    else if (buy && exSpendSol() < EX_MIN_SOL) { val.textContent = "Minimum order is 0.01 SOL"; warn = true; }
+    else if (buy && exSpendSol() < EX_MIN_SOL) {
+      // In the box's own currency, rounded up to a cent, with its SOL.
+      val.textContent = cur === "sol" ? "Minimum order is 0.01 SOL" : `Minimum order is ${exMoney(Math.ceil(EX_MIN_SOL * exSolRate(cur) * 100) / 100, cur)} (0.01 SOL)`;
+      warn = true;
+    }
     else if (!fills.length) { val.textContent = buy ? "Nothing for sale right now" : "No buy order fits this amount"; warn = true; }
     else if (short) { val.textContent = "More than this wallet has"; warn = true; }
     else {
