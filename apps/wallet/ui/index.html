@@ -11216,17 +11216,18 @@
     $("ex-pct-fill").style.width = `${exPct || 0}%`;
     const buy = exSide === "buy";
     const sol = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
-    const orn = view && view.spendable;
+    const orn = view && view.most;
     $("ex-pct-of").textContent = buy
       ? (devnetAssets.balances && Number.isFinite(sol) ? `of your ${exPlain(sol, 4)} SOL` : "")
       : (orn ? `of your ${orn} ORN` : "");
   }
   for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.onclick = () => {
+    const was = exPct;
     exPct = Number(b.dataset.pct);
     const price = parseFloat($("ex-price").value);
     if (exSide === "buy" && exKind === "market") {
       const have = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
-      if (!devnetAssets.balances || !Number.isFinite(have)) return;
+      if (!devnetAssets.balances || !Number.isFinite(have)) { exPct = was; return; }
       // Room for the Solana fees of the swaps all of it would take, not more.
       const swaps = Math.max(1, exBuyPlan(have).length);
       const sol = Math.max(0, have - swaps * SOL_SWAP_FEES) * exPct / 100;
@@ -11235,13 +11236,14 @@
       $("ex-spend").value = exPct > 0 ? String(shown) : "";
     } else if (exSide === "buy") {
       const max = exSolMax();
-      if (max == null) return;
+      if (max == null) { exPct = was; return; }
       const sol = Math.floor(max * exPct / 100 * 1e4) / 1e4;
       $("ex-sol").value = sol ? exPlain(sol) : "";
       $("ex-orn").value = sol && price > 0 ? exPlain(sol / price, 4) : "";
     } else {
-      const have = parseFloat(String(view && view.spendable || "").replace(/,/g, ""));
-      if (!(have > 0)) return;
+      // The most this wallet can sell: its ORN less the network's fee.
+      const have = parseFloat(String(view && view.most || "").replace(/,/g, ""));
+      if (!(have > 0)) { exPct = was; return; }
       const orn = Math.floor(have * exPct / 100 * 1e4) / 1e4;
       $("ex-orn").value = orn ? exPlain(orn, 4) : "";
       $("ex-sol").value = orn && price > 0 ? exPlain(orn * price) : "";
@@ -11482,7 +11484,7 @@
       : "Your wallet locks the ORN automatically when someone buys your offer. Keep Orien Wallet running in the menu bar or tray.";
     $("ex-verify").hidden = buy || !exUnverified;
     exSetKind(exKind);
-    $("ex-bal").textContent = !buy && view && view.spendable ? `${view.spendable} ORN available` : "";
+    $("ex-bal").textContent = !buy && view && view.most ? `${view.most} ORN available` : "";
     paintExSolHint();
     if (buy) ownSolBalance().then(() => { paintExSolHint(); updateExRate(); });
     const typed = !!(view && !view.unprotected && !view.biometric);
