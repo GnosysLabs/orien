@@ -10851,6 +10851,9 @@
       if (swap.problem && swap.problem.startsWith("password:")) return { swap, state: "now", line: "Needs your approval · open it" };
       return { swap, state: "now", line: stageLine(swap) || "Under way" };
     }
+    // This wallet couldn't start its side: say why, rather than "waiting".
+    const held = (board.waiting || []).find((w) => w.offer && w.offer.id === item.key);
+    if (held && held.problem) return { swap: null, state: "now", line: `Couldn't start yet, trying again: ${held.problem}` };
     // Buying: the seller's wallet locks the ORN first, by itself.
     const waited = Date.now() / 1000 - g.created;
     if (waited > 600) return { swap: null, state: "stopped", line: "Their wallet didn't answer · nothing was paid" };

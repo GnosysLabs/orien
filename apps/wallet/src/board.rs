@@ -923,6 +923,9 @@ pub fn waiting(dir: &Path, mine: &Value) -> Vec<Value> {
                 item["unlock_biometric"] = json!(crate::biometric::enabled(wallet));
             }
             item["elsewhere"] = json!(elsewhere);
+            if let Some(why) = id.and_then(|id| CANT_START.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).get(&id).cloned()) {
+                item["problem"] = json!(why);
+            }
             item
         })
         .collect()
@@ -930,6 +933,10 @@ pub fn waiting(dir: &Path, mine: &Value) -> Vec<Value> {
 
 /// Taken offers this app would start but for a locked wallet: offer, and
 /// the wallet that must be unlocked.
+/// Why an offer's swap couldn't be started here, so the window can say so
+/// instead of waiting in silence: offer, and the reason.
+pub static CANT_START: std::sync::Mutex<std::collections::BTreeMap<i64, String>> = std::sync::Mutex::new(std::collections::BTreeMap::new());
+
 pub static NEEDS_UNLOCK: std::sync::Mutex<std::collections::BTreeMap<i64, PathBuf>> =
     std::sync::Mutex::new(std::collections::BTreeMap::new());
 
@@ -1354,12 +1361,20 @@ pub fn drive_sol(orien: &AppOrien, dir: &Path, mine: &Value, sol: &mut Vec<crate
             },
             _ => Ok(()),
         };
-        if let Err(error) = result {
-            match link.swap.as_ref().and_then(|swap| sol.iter().position(|kept| &kept.id == swap)) {
+        let mut cant = CANT_START.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        match result {
+            Err(error) => match link.swap.as_ref().and_then(|swap| sol.iter().position(|kept| &kept.id == swap)) {
                 Some(index) => sol[index].problem = Some(error),
-                None => eprintln!("swap board SOL offer {id}: {error}"),
+                None => {
+                    eprintln!("swap board SOL offer {id}: {error}");
+                    cant.insert(id, error);
+                }
+            },
+            Ok(()) => {
+                cant.remove(&id);
             }
         }
+        drop(cant);
         // Either side, at the end.
         if let Some(index) = link.swap.as_ref().and_then(|swap| sol.iter().position(|kept| &kept.id == swap))
             && !link.finished
