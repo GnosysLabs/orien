@@ -16084,13 +16084,14 @@
   };
 
   // Swaps move along while the app is open.
-  // Swaps, and this wallet's board swaps, move along while the app is open;
-  // the board's offers refresh while the Swap screen shows.
+  // The order book, while the Exchange is on screen: every 5 seconds, so an
+  // order that's taken, placed or whose wallet closed shows almost at once.
+  setInterval(() => { if (!$("swaps").hidden && !document.hidden) loadBoard(); }, 5000);
+  // Swaps, and this wallet's board swaps, move along while the app is open.
   setInterval(() => {
     // A seller's swap at "done" still delivers the buyer's ORN: keep going
     // until it is truly finished.
     if (board.me || swapList.some((s) => !s.finished)) stepSwaps();
-    if (!$("swaps").hidden) loadBoard();
     // "This wallet is open", on its own: a slow swap step must never make
     // the person's offers look like their wallet is closed.
     if (board.me) invoke("board_here").catch(() => {});
