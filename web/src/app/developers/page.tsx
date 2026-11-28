@@ -331,8 +331,10 @@ export default function DevelopersPage() {
         <h3 id="hiveos" className="pt-2 text-lg font-semibold text-ink">Mining rigs on HiveOS</h3>
         <p>
           Orien is a HiveOS custom miner: one flight sheet sets many rigs mining, each with its hashrate in the HiveOS
-          dashboard. <Link href="/try/#hiveos">Mining rigs on HiveOS</Link> says how to set it up. Its scripts are in
-          the code&apos;s <Code>hiveos/orien</Code> folder.
+          dashboard. Its scripts are in the code, in hiveos/orien.
+        </p>
+        <p>
+          <Link href="/try/#hiveos">How to set it up</Link>
         </p>
       </Section>
 

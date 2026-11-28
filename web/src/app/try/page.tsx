@@ -16,7 +16,6 @@ export const metadata: Metadata = pageMeta({
   path: '/try/',
 })
 
-const code = 'rounded bg-raised px-1.5 py-0.5 text-sm text-ink'
 
 /** The first steps, as they look in Orien Wallet. */
 const STEPS: { title: string; body: React.ReactNode }[] = [
@@ -151,8 +150,8 @@ export default function GetStartedPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-bold tracking-tight text-ink">Run a validator</h3>
             <p>
-              Validators check payments and earn the network&apos;s fees, shared by stake. It takes at least{' '}
-              <strong>10,000 ORN</strong> and a server that stays on.
+              Validators check payments and earn the network’s fees, shared by stake. It takes at least 10,000 ORN and a
+              server that stays on.
             </p>
             <Link
               href="/developers/validators/"
@@ -181,19 +180,15 @@ export default function GetStartedPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-bold tracking-tight text-ink">Make a flight sheet</h3>
             <p>
-              In the HiveOS dashboard, add a wallet for the coin <strong>ORN</strong> with your ORN address. Then make a
-              flight sheet with that wallet, the pool <strong>Configure in miner</strong>, and the miner{' '}
-              <strong>Custom</strong>. Press <strong>Setup Miner Config</strong> and fill it in:
+              In the HiveOS dashboard, add a wallet for the coin ORN with your ORN address. Then make a flight sheet with
+              that wallet, the pool “Configure in miner” and the miner “Custom”, press “Setup Miner Config”, and fill it
+              in:
             </p>
             <CopyText label="Installation URL" text="https://orien.network/downloads/hiveos/orien-1.0.tar.gz" />
             <CopyText label="Hash algorithm" text="randomx" />
             <CopyText label="Wallet and worker template" text="%WAL%" />
             <CopyText label="Pool URL" text="orien.network" />
-            <p>
-              <strong>Extra config arguments</strong> can stay empty, to mine on every core, or say how many:{' '}
-              <code className={`${code} whitespace-nowrap`}>--threads 8</code>, or <code className={`${code} whitespace-nowrap`}>--cpu 75</code> for a share of the
-              processor.
-            </p>
+            <CopyText label="Extra config arguments: empty mines on every core; this uses 8" text="--threads 8" />
           </div>
 
           <div className="space-y-4">
@@ -205,8 +200,7 @@ export default function GetStartedPage() {
             </p>
             <p className="text-sm">
               It needs a HiveOS image on Ubuntu 20.04 or newer, and about 2.5 GB of memory per rig for full speed; with
-              less, it mines in a slower mode. Each rig&apos;s log is at{' '}
-              <code className={code}>/var/log/miner/orien/orien.log</code>.
+              less, it mines in a slower mode.
             </p>
           </div>
         </div>
