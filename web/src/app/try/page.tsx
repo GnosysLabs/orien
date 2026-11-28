@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { OpenOnHash } from '@/components/OpenOnHash'
 import Link from 'next/link'
-import { ArrowRight, ChevronDown, Terminal } from 'lucide-react'
+import { ArrowRight, ChevronDown, Server, Terminal } from 'lucide-react'
 import { CopyText } from '@/components/CopyText'
 import { WalletDownload } from '@/components/WalletDownload'
 import { ReferralInvite } from '@/components/ReferralInvite'
@@ -169,6 +169,54 @@ export default function GetStartedPage() {
               instead, add <code className={code}>--no-auto-update</code>. At the next hourly checkpoint, if its stake is
               among the largest, it joins the validators. To stop, run{' '}
               <code className={code}>orien unstake --amount 10000</code>: the ORN come back after a week.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <OpenOnHash id="hiveos" />
+      <details id="hiveos" className="group mt-6 scroll-mt-24 rounded-2xl border border-line bg-surface">
+        <summary className="flex cursor-pointer list-none items-center gap-4 p-6 transition hover:bg-raised sm:px-8 [&::-webkit-details-marker]:hidden group-open:rounded-t-2xl rounded-2xl">
+          <Server className="h-5 w-5 shrink-0 text-pearl" strokeWidth={1.75} aria-hidden />
+          <span className="min-w-0 flex-1">
+            <span className="block font-bold text-ink">Mining rigs on HiveOS?</span>
+            <span className="block text-sm text-muted">
+              Orien is a HiveOS custom miner: one flight sheet sets every rig mining.
+            </span>
+          </span>
+          <ChevronDown className="h-5 w-5 shrink-0 text-muted transition group-open:rotate-180" aria-hidden />
+        </summary>
+
+        <div className="space-y-10 border-t border-line p-6 leading-relaxed text-muted sm:p-8 [&_strong]:font-semibold [&_strong]:text-ink">
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold tracking-tight text-ink">Make a flight sheet</h3>
+            <p>
+              In the HiveOS dashboard, add a wallet for the coin <strong>ORN</strong> with your ORN address. Then make a
+              flight sheet with that wallet, the pool <strong>Configure in miner</strong>, and the miner{' '}
+              <strong>Custom</strong>. Press <strong>Setup Miner Config</strong> and fill it in:
+            </p>
+            <CopyText label="Installation URL" text="https://orien.network/downloads/hiveos/orien-1.0.tar.gz" />
+            <CopyText label="Hash algorithm" text="randomx" />
+            <CopyText label="Wallet and worker template" text="%WAL%" />
+            <CopyText label="Pool URL" text="orien.network" />
+            <p>
+              <strong>Extra config arguments</strong> can stay empty, to mine on every core, or say how many:{' '}
+              <code className={`${code} whitespace-nowrap`}>--threads 8</code>, or <code className={`${code} whitespace-nowrap`}>--cpu 75</code> for a share of the
+              processor.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold tracking-tight text-ink">Apply it to your rigs</h3>
+            <p>
+              Choose the rigs, as many as you like, and apply the flight sheet. Each shows its hashrate and uptime in the
+              dashboard, and all of them mine for your address. The miner keeps itself up to date with each signed
+              release.
+            </p>
+            <p className="text-sm">
+              It needs a HiveOS image on Ubuntu 20.04 or newer, and about 2.5 GB of memory per rig for full speed; with
+              less, it mines in a slower mode. Each rig&apos;s log is at{' '}
+              <code className={code}>/var/log/miner/orien/orien.log</code>.
             </p>
           </div>
         </div>

@@ -133,6 +133,12 @@ const DOWNLOADS: {
     detail: "Mac, Linux and Windows",
     icon: Terminal,
   },
+  {
+    href: "/try/#hiveos",
+    label: "Orien for HiveOS",
+    detail: "Mining rigs, as a custom miner",
+    icon: Server,
+  },
 ];
 
 function DownloadsMenu() {

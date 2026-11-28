@@ -330,26 +330,10 @@ export default function DevelopersPage() {
         </ul>
         <h3 id="hiveos" className="pt-2 text-lg font-semibold text-ink">Mining rigs on HiveOS</h3>
         <p>
-          Orien comes as a HiveOS custom miner, so one flight sheet sets many rigs mining at once, each with its
-          hashrate and uptime in the HiveOS dashboard. In the dashboard, make a flight sheet: coin ORN, your ORN
-          address as the wallet, pool “Configure in miner”, and miner “Custom”, set up as follows.
+          Orien is a HiveOS custom miner: one flight sheet sets many rigs mining, each with its hashrate in the HiveOS
+          dashboard. <Link href="/try/#hiveos">Mining rigs on HiveOS</Link> says how to set it up. Its scripts are in
+          the code&apos;s <Code>hiveos/orien</Code> folder.
         </p>
-        <Block>{`Installation URL             https://orien.network/downloads/hiveos/orien-1.0.tar.gz
-Hash algorithm               randomx
-Wallet and worker template   %WAL%
-Pool URL                     orien.network
-Extra config arguments       --threads 8     (optional: every core by default, or --cpu 75)`}</Block>
-        <ul className="list-disc space-y-2 pl-5">
-          <li>Apply the flight sheet to as many rigs as you like. Each mines for the same address.</li>
-          <li>
-            The miner keeps itself on the newest signed release, as <Code>orien mine</Code> does anywhere. Its log is
-            at <Code>/var/log/miner/orien/orien.log</Code> on each rig.
-          </li>
-          <li>
-            It needs a HiveOS image on Ubuntu 20.04 or newer, and about 2.5 GB of memory per rig for full speed; with
-            less, it mines in RandomX’s slower light mode.
-          </li>
-        </ul>
       </Section>
 
       <Section id="validators" title="Running a validator">
