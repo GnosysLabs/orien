@@ -11523,9 +11523,12 @@
     // form; trading with an order now asks on its own screen.
     const needPw = !match && (exPwAsked || !!(view && !view.unprotected && !view.biometric));
     $("ex-pw-field").hidden = !needPw;
-    const ok = !needVer && !wrongSize && orn > 0 && sol >= 0.01 && (!buy || match || sol <= maxSol) && !exOverSol() && (match || exAddrOk())
-      && (!needPw || $("ex-pw").value.length > 0);
-    go.disabled = !ok;
+    const rest = !needVer && !wrongSize && orn > 0 && sol >= 0.01 && (!buy || match || sol <= maxSol) && !exOverSol() && (match || exAddrOk());
+    const pwMissing = needPw && !$("ex-pw").value.length;
+    // Everything in but the password: the button says so, rather than
+    // simply not answering.
+    if (rest && pwMissing) setExGo("Type your password above");
+    go.disabled = !rest || pwMissing;
   }
   function syncExTicket() {
     const buy = exSide === "buy";
@@ -11861,7 +11864,11 @@
   // The take screen's button: only once everything it needs is in, the
   // password included when one is asked for here.
   let btShort = false;
-  function paintBtGo() { $("bt-go").disabled = btShort || (!$("bt-pw-field").hidden && !$("bt-pw").value); }
+  function paintBtGo() {
+    const go = $("bt-go"), missing = !$("bt-pw-field").hidden && !$("bt-pw").value;
+    go.disabled = btShort || missing;
+    if (!btShort && go.dataset.label && !swapGate["bt-go"]) go.textContent = missing ? "Type your password above" : go.dataset.label;
+  }
   $("bt-pw").addEventListener("input", paintBtGo);
   async function startTake(id, tag, part) {
     let o = board.offers.find((x) => x.id === id && offerTag(x) === (tag || ""));
@@ -11926,7 +11933,7 @@
     const typed = !!(view && !view.unprotected && !view.biometric);
     $("bt-pw-field").hidden = !typed;
     $("bt-pw").value = "";
-    $("bt-go").textContent = view && view.biometric ? `${isBuy ? "Sell" : "Take"} with ${bio}` : isBuy ? "Sell ORN" : "Take the offer";
+    $("bt-go").textContent = $("bt-go").dataset.label = view && view.biometric ? `${isBuy ? "Sell" : "Take"} with ${bio}` : isBuy ? "Sell ORN" : "Take the offer";
     show("board-take");
     btShort = false;
     paintBtGo();
@@ -11954,7 +11961,8 @@
     $("bt-btc").textContent = offerPrice({ ...fills[0].o, orn: sum.orn, lamports: sum.lamports }) + offerValue({ ...fills[0].o, orn: sum.orn, lamports: sum.lamports }).total;
     $("bt-other-label").textContent = selling ? "Buyers" : "Sellers";
     $("bt-seller").textContent = fills.map((f) => f.o.seller_name).filter((n, i, all) => all.indexOf(n) === i).join(", ");
-    $("bt-go").textContent = view && view.biometric ? `${selling ? "Sell" : "Buy"} with ${bio}` : selling ? "Sell ORN" : "Buy ORN";
+    $("bt-go").textContent = $("bt-go").dataset.label = view && view.biometric ? `${selling ? "Sell" : "Buy"} with ${bio}` : selling ? "Sell ORN" : "Buy ORN";
+    paintBtGo();
     if (!selling) {
       $("bt-go").disabled = true;
       const short = await shortOfSol(sum.lamports / 1e9, "bt-problem", fills.length * SOL_SWAP_FEES);
