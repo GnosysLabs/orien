@@ -26,7 +26,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 /// Most open part-filling buy orders one account may have at once.
-pub const MAX_BOOK_ORDERS: i64 = 5;
+pub const MAX_BOOK_ORDERS: i64 = 20;
 /// How long a part whose fill never reached Solana is kept before it's given up.
 const FILL_LANDS_SECONDS: u64 = 300;
 /// ORN are claimed for the buyer only with at least this long left to pay the

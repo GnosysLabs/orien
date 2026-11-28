@@ -26,7 +26,7 @@ pub const ONLINE_SECONDS: u64 = 2 * 60;
 /// before the hold lapses. An open wallet locks in about a minute.
 pub const QUIET_SECONDS: u64 = 5 * 60;
 /// Offers one account may have on the board at once.
-pub const MAX_OFFERS: i64 = 5;
+pub const MAX_OFFERS: i64 = 20;
 /// Lapses in a week after which an account may not take offers for a week.
 pub const LAPSES_ALLOWED: i64 = 2;
 /// The swap rules of a wallet that sells part of an order (posting one
