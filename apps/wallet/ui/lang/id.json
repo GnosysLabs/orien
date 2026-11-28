@@ -2139,6 +2139,14 @@
     [
       "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
       "Anda dapat memasang {0} order beli sekaligus: tarik satu untuk memasang yang lain"
+    ],
+    [
+      "^Price per ORN \\(([A-Z]+)\\)$",
+      "Harga per ORN ({0})"
+    ],
+    [
+      "^≈ (.+) SOL per ORN, fixed when you place the order$",
+      "≈ {0} SOL per ORN, tetap sejak order dipasang"
     ]
   ],
   "_guides": {
@@ -2426,7 +2434,7 @@
       "steps": [
         "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah. Di jendela kecil, buka tab <b>Beli / Jual</b> terlebih dahulu.",
         "Di bawah <b>Beli ORN</b>, klik <b>Order limit</b>.",
-        "Ketik <b>Harga per ORN</b> Anda, dalam SOL, dan <b>Jumlah</b> ORN. Totalnya dihitung dengan sendirinya.",
+        "Ketik <b>Harga per ORN</b> Anda dan <b>Jumlah</b> ORN. Totalnya dihitung dengan sendirinya.",
         "Klik <b>Beli ORN</b> dan konfirmasi dengan Touch ID atau kata sandi dompet. SOL langsung disisihkan dari dompet ini, dan order Anda masuk ke buku pesanan.",
         "Penjual dapat memenuhi seluruhnya atau sebagian. ORN tiba dengan sendirinya setiap kali satu bagian terpenuhi, bahkan saat Orien Wallet tertutup.",
         "Untuk membatalkan sisanya, klik <b>Order Anda</b> (<b>Penukaran Anda</b> di jendela kecil), lalu <b>Batal</b> pada order itu di <b>Beli terbuka</b>. SOL yang tidak terpakai kembali."

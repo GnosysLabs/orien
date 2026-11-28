@@ -2139,6 +2139,14 @@
     [
       "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
       "Aynı anda en fazla {0} alış emriniz olabilir: yenisini vermek için birini geri çekin"
+    ],
+    [
+      "^Price per ORN \\(([A-Z]+)\\)$",
+      "ORN başına fiyat ({0})"
+    ],
+    [
+      "^≈ (.+) SOL per ORN, fixed when you place the order$",
+      "ORN başına ≈ {0} SOL, emri verdiğinizde sabitlenir"
     ]
   ],
   "_guides": {
@@ -2426,7 +2434,7 @@
       "steps": [
         "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın. Küçük pencerede önce <b>Al / Sat</b> sekmesini açın.",
         "<b>ORN Satın Al</b> altında <b>Limit emri</b>'ne tıklayın.",
-        "SOL cinsinden <b>ORN başına fiyat</b> ve ORN olarak <b>Tutar</b> değerlerini yazın. Toplam kendiliğinden hesaplanır.",
+        "<b>ORN başına fiyat</b> ve ORN olarak <b>Tutar</b> değerlerini yazın. Toplam kendiliğinden hesaplanır.",
         "<b>ORN Satın Al</b>'a tıklayın ve Touch ID veya cüzdanın parolasıyla onaylayın. SOL hemen bu cüzdandan kenara ayrılır ve emriniz emir defterine eklenir.",
         "Satıcılar emrin tamamını veya bir kısmını karşılayabilir. ORN'ler, Orien Wallet kapalı olsa bile her kısım karşılandıkça kendiliğinden ulaşır.",
         "Kalanı iptal etmek için <b>Emirleriniz</b>'e (küçük pencerede <b>Takaslarınız</b>), ardından <b>Açık alışlar</b> altında emrin üzerindeki <b>İptal</b>'e tıklayın. Kullanılmayan SOL geri gelir."

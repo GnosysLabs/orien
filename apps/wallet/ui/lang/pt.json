@@ -2139,6 +2139,14 @@
     [
       "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
       "Você pode ter {0} ordens de compra ativas ao mesmo tempo: retire uma para publicar outra"
+    ],
+    [
+      "^Price per ORN \\(([A-Z]+)\\)$",
+      "Preço por ORN ({0})"
+    ],
+    [
+      "^≈ (.+) SOL per ORN, fixed when you place the order$",
+      "≈ {0} SOL por ORN, fixado ao colocar a ordem"
     ]
   ],
   "_guides": {
@@ -2426,7 +2434,7 @@
       "steps": [
         "No Início, clique em <b>Trocar</b>, o botão redondo com duas setas. Em uma janela pequena, abra primeiro a aba <b>Comprar / Vender</b>.",
         "Em <b>Comprar ORN</b>, clique em <b>Ordem limitada</b>.",
-        "Digite seu <b>Preço por ORN</b>, em SOL, e a <b>Quantidade</b> de ORN. O total é calculado sozinho.",
+        "Digite seu <b>Preço por ORN</b> e a <b>Quantidade</b> de ORN. O total é calculado sozinho.",
         "Clique em <b>Comprar ORN</b> e confirme com Touch ID ou a senha da carteira. O SOL é reservado desta carteira na hora, e sua ordem entra no livro de ofertas.",
         "Os vendedores podem atender a ordem inteira ou só uma parte. Os ORN chegam sozinhos conforme cada parte é atendida, mesmo com o Orien Wallet fechado.",
         "Para cancelar o que sobrou, clique em <b>Suas ordens</b> (<b>Suas trocas</b> em uma janela pequena) e depois em <b>Cancelar</b> na ordem em <b>Compras ativas</b>. O SOL não usado volta."

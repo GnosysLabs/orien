@@ -2139,6 +2139,14 @@
     [
       "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
       "Bạn có thể có {0} lệnh mua cùng lúc: hãy rút một lệnh để đăng lệnh khác"
+    ],
+    [
+      "^Price per ORN \\(([A-Z]+)\\)$",
+      "Giá mỗi ORN ({0})"
+    ],
+    [
+      "^≈ (.+) SOL per ORN, fixed when you place the order$",
+      "≈ {0} SOL mỗi ORN, cố định khi bạn đặt lệnh"
     ]
   ],
   "_guides": {
@@ -2426,7 +2434,7 @@
       "steps": [
         "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên. Ở cửa sổ nhỏ, hãy mở thẻ <b>Mua / Bán</b> trước.",
         "Trong mục <b>Mua ORN</b>, nhấn <b>Lệnh giới hạn</b>.",
-        "Nhập <b>Giá mỗi ORN</b> của bạn, tính bằng SOL, và <b>Số lượng</b> ORN. Tổng sẽ tự được tính.",
+        "Nhập <b>Giá mỗi ORN</b> của bạn và <b>Số lượng</b> ORN. Tổng sẽ tự được tính.",
         "Nhấn <b>Mua ORN</b> và xác nhận bằng Touch ID hoặc mật khẩu của ví. Số SOL được tạm giữ ngay từ ví này, và lệnh của bạn được đưa lên sổ lệnh.",
         "Người bán có thể khớp toàn bộ hoặc một phần. ORN sẽ tự động về ví mỗi khi một phần được khớp, kể cả khi Orien Wallet đã đóng.",
         "Để hủy phần còn lại, nhấn <b>Lệnh của bạn</b> (<b>Hoán đổi của bạn</b> ở cửa sổ nhỏ), sau đó nhấn <b>Hủy</b> trên lệnh đó trong mục <b>Lệnh mua mở</b>. Số SOL chưa dùng sẽ được hoàn lại."

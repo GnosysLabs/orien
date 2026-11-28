@@ -2139,6 +2139,14 @@
     [
       "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
       "Je kunt {0} kooporders tegelijk open hebben: trek er een in om een nieuwe te plaatsen"
+    ],
+    [
+      "^Price per ORN \\(([A-Z]+)\\)$",
+      "Prijs per ORN ({0})"
+    ],
+    [
+      "^≈ (.+) SOL per ORN, fixed when you place the order$",
+      "≈ {0} SOL per ORN, vast zodra je de order plaatst"
     ]
   ],
   "_guides": {
@@ -2426,7 +2434,7 @@
       "steps": [
         "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen. Open in een klein venster eerst het tabblad <b>Kopen / Verkopen</b>.",
         "Klik onder <b>ORN kopen</b> op <b>Limietorder</b>.",
-        "Typ je <b>Prijs per ORN</b>, in SOL, en het <b>Bedrag</b> aan ORN. Het totaal wordt vanzelf berekend.",
+        "Typ je <b>Prijs per ORN</b> en het <b>Bedrag</b> aan ORN. Het totaal wordt vanzelf berekend.",
         "Klik op <b>ORN kopen</b> en bevestig met Touch ID of het wachtwoord van de wallet. De SOL wordt meteen apart gezet uit deze wallet en je order komt in het orderboek.",
         "Verkopers kunnen de order helemaal of gedeeltelijk vullen. De ORN komen vanzelf binnen zodra een deel is gevuld, ook als Orien Wallet gesloten is.",
         "Om de rest te annuleren klik je op <b>Jouw orders</b> (<b>Je ruiltransacties</b> in een klein venster) en daarna op <b>Annuleren</b> bij de order onder <b>Open aankopen</b>. De ongebruikte SOL komt terug."

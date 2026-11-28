@@ -2139,6 +2139,14 @@
     [
       "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
       "Vous pouvez avoir {0} ordres d'achat actifs à la fois : retirez-en un pour en publier un autre"
+    ],
+    [
+      "^Price per ORN \\(([A-Z]+)\\)$",
+      "Prix par ORN ({0})"
+    ],
+    [
+      "^≈ (.+) SOL per ORN, fixed when you place the order$",
+      "≈ {0} SOL par ORN, fixé au moment de passer l’ordre"
     ]
   ],
   "_guides": {
@@ -2426,7 +2434,7 @@
       "steps": [
         "Sur l'Accueil, cliquez sur <b>Échanger</b>, le bouton rond avec deux flèches. Dans une petite fenêtre, ouvrez d'abord l'onglet <b>Acheter / Vendre</b>.",
         "Sous <b>Acheter des ORN</b>, cliquez sur <b>Ordre à cours limité</b>.",
-        "Saisissez votre <b>Prix par ORN</b>, en SOL, et le <b>Montant</b> d'ORN. Le total se calcule tout seul.",
+        "Saisissez votre <b>Prix par ORN</b> et le <b>Montant</b> d'ORN. Le total se calcule tout seul.",
         "Cliquez sur <b>Acheter des ORN</b> et confirmez avec Touch ID ou le mot de passe du portefeuille. Les SOL sont immédiatement mis de côté depuis ce portefeuille, et votre ordre rejoint le carnet d'ordres.",
         "Les vendeurs peuvent le remplir en entier ou en partie. Les ORN arrivent tout seuls à mesure que chaque partie est remplie, même si Orien Wallet est fermé.",
         "Pour annuler ce qui reste, cliquez sur <b>Vos ordres</b> (<b>Vos échanges</b> dans une petite fenêtre), puis sur <b>Annuler</b> sur cet ordre dans <b>Achats actifs</b>. Les SOL non utilisés vous reviennent."

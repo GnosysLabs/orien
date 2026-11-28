@@ -8332,7 +8332,7 @@
       add("Getting ORN", "buy-order", "Buy ORN at your own price", [
         `On Home, click ${SWAP}. ${SMALL}`,
         "Under <b>Buy ORN</b>, click <b>Limit order</b>.",
-        "Type your <b>Price per ORN</b>, in SOL, and the <b>Amount</b> of ORN. The total works itself out.",
+        "Type your <b>Price per ORN</b> and the <b>Amount</b> of ORN. The total works itself out.",
         `Click <b>Buy ORN</b> (${APPROVE}). The SOL is set aside from this wallet at once, and your order joins the order book.`,
         "Sellers can fill all of it or part of it. The ORN arrive by themselves as each part fills, even with Orien Wallet closed.",
         "To cancel what’s left, click <b>Your orders</b> (<b>Your swaps</b> in a small window), then <b>Cancel</b> on it under <b>Open buys</b>. The unused SOL comes back.",
@@ -11302,6 +11302,7 @@
     const asks = list.querySelector(".ob-asks");
     if (asks) asks.scrollTop = asks.scrollHeight;
     for (const b of list.querySelectorAll("[data-pick]")) b.onclick = () => exPick(Number(b.dataset.pick), b.dataset.funded);
+    exPriceCurSync();
     exDefaultPrice();
     updateExRate();
   }
@@ -11353,27 +11354,66 @@
   // What Buy or Sell would do at the price typed: trade with an order now
   // (Buy at or above the cheapest sell order, Sell at or below the highest
   // buy order), or wait in the order book as an order of its own.
+  // The Limit price is typed in the Exchange's currency, chosen in its
+  // menu (SOL is one of them). An order itself is in SOL: this is the price
+  // typed, in SOL per ORN. An order clicked in the book keeps its exact
+  // SOL price while its figure stays in the box.
+  let exPicked = null;
+  // A price in a currency, as the order book writes it: three figures
+  // under 1, cents above.
+  const exFiatPx = (v) => v < 1 ? String(Number(v.toPrecision(3))) : v.toFixed(2);
+  const exPriceText = (sol) => { const cur = exSpendCur(); return cur === "sol" ? exPlain(sol, 9) : exFiatPx(sol * exSolRate(cur)); };
+  function exPriceSol() {
+    const text = $("ex-price").value.trim(), typed = parseFloat(text);
+    if (!(typed > 0)) return NaN;
+    if (exPicked && exPicked.text === text) return exPicked.sol;
+    const cur = exSpendCur();
+    return cur === "sol" ? typed : typed / exSolRate(cur);
+  }
   function exMatch() {
-    const price = parseFloat($("ex-price").value);
+    const price = exPriceSol();
     if (!(price > 0)) return null;
     const best = exSide === "buy" ? exBest("sell") : exBest("buy");
     if (!best) return null;
     const unit = exUnit(best);
+    const cur = exSpendCur(), text = $("ex-price").value.trim();
+    // In a currency, the order's price as the book shows it is met by
+    // typing that figure: it trades at the order's own price.
+    if (cur !== "sol" && !(exPicked && exPicked.text === text)) {
+      const typed = parseFloat(text), shown = Number(exFiatPx(unit * exSolRate(cur)));
+      return (exSide === "buy" ? typed >= shown * (1 - 1e-9) : typed <= shown * (1 + 1e-9)) ? best : null;
+    }
     const crosses = exSide === "buy" ? price >= unit * (1 - 1e-9) : price <= unit * (1 + 1e-9);
     return crosses ? best : null;
+  }
+  // The price box says its currency, and what's in it follows a change of
+  // currency (or the rates arriving), keeping the same price.
+  let exPriceCurNow = null;
+  function exPriceCurSync() {
+    const cur = exSpendCur();
+    if (cur === exPriceCurNow) return;
+    const text = $("ex-price").value.trim(), typed = parseFloat(text);
+    let sol = NaN;
+    if (typed > 0 && exPriceCurNow) sol = exPicked && exPicked.text === text ? exPicked.sol : exPriceCurNow === "sol" ? typed : typed / exSolRate(exPriceCurNow);
+    exPriceCurNow = cur;
+    $("ex-price-label").textContent = `Price per ORN (${cur.toUpperCase()})`;
+    if (sol > 0) { const now = exPriceText(sol); $("ex-price").value = now; exPicked = { text: now, sol }; }
+    exDefaultPrice();
   }
   // The box starts empty, the best order on the other side shown in it as
   // a hint: nothing to erase before typing your own price.
   function exDefaultPrice() {
     const best = exSide === "buy" ? exBest("sell") : (exBest("buy") || exBest("sell"));
-    $("ex-price").placeholder = best ? exPlain(exUnit(best), 9) : "0.0001";
+    $("ex-price").placeholder = best ? exPriceText(exUnit(best)) : exSpendCur() === "sol" ? "0.0001" : "0.01";
   }
   // The three boxes agree: Total is Price × Amount. Whichever box was typed
   // in last stays as typed, Amount or Total moving to match.
   // Typing a price never changes the amount: Total is Price × Amount, and
   // only what you typed goes in the boxes.
   function exFromPrice() {
-    const price = parseFloat($("ex-price").value), orn = parseFloat($("ex-orn").value);
+    // Trading with an order now is at that order's own price.
+    const match = exMatch();
+    const price = match ? exUnit(match) : exPriceSol(), orn = parseFloat($("ex-orn").value);
     $("ex-sol").value = price > 0 && orn > 0 ? exPlain(price * orn) : "";
   }
   // A share of what this wallet has: SOL to spend on a buy, ORN to sell.
@@ -11391,7 +11431,7 @@
   for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.onclick = () => {
     const was = exPct;
     exPct = Number(b.dataset.pct);
-    const price = parseFloat($("ex-price").value);
+    const price = exPriceSol();
     if (exSide === "buy" && exKind === "market") {
       const have = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
       if (!devnetAssets.balances || !Number.isFinite(have)) { exPct = was; return; }
@@ -11427,7 +11467,9 @@
     $("ex-problem").hidden = true;
     syncExTicket();
     if (exSide === "sell") checkExWallet();
-    $("ex-price").value = exPlain(exUnit(o), 9);
+    exPriceCurSync();
+    $("ex-price").value = exPriceText(exUnit(o));
+    exPicked = { text: $("ex-price").value, sol: exUnit(o) };
     $("ex-orn").value = exPlain(o.orn / 1e9, 9);
     $("ex-sol").value = exPlain(o.lamports / 1e9);
     exPct = null; exPctPaint();
@@ -11452,6 +11494,7 @@
     // price and amount.
     $("ex-pct").hidden = !market;
     $("ex-spend-label").textContent = `Spend (${exSpendCur().toUpperCase()})`;
+    exPriceCurSync();
   }
   $("ex-kind-market").onclick = () => { exSetKind("market"); exPct = null; exPctPaint(); updateExRate(); };
   $("ex-kind-limit").onclick = () => { exSetKind("limit"); exDefaultPrice(); updateExRate(); };
@@ -11554,8 +11597,12 @@
     const match = exMatch();
     const tooHigh = exSide === "buy" && !match && sol > maxSol;
     const over = exOverSol();
-    const price = parseFloat($("ex-price").value);
-    $("ex-price-hint").textContent = price > 0 && board.solUsd ? `≈ ${fmtUsd(price * board.solUsd)} per ORN` : "";
+    // Under the price: its other side. In a currency, the SOL it comes to
+    // (an order is set in SOL as it's placed); in SOL, its dollars.
+    const price = match ? exUnit(match) : exPriceSol();
+    $("ex-price-hint").textContent = !(price > 0) ? ""
+      : exSpendCur() !== "sol" ? `≈ ${fmtBookUnit(price)} SOL per ORN` + (match ? "" : ", fixed when you place the order")
+      : board.solUsd ? `≈ ${fmtUsd(price * board.solUsd)} per ORN` : "";
     // Selling into a buy order: any part of one that fills in parts, an
     // older one whole.
     const sizeProblem = match && exSide === "sell" && orn > 0 ? exSellSizeProblem(match, Math.round(orn * 1e9)) : null;
@@ -11747,15 +11794,14 @@
     box.addEventListener("mouseup", (e) => { if (fresh) { e.preventDefault(); fresh = false; } });
     box.addEventListener("blur", () => { fresh = false; });
   }
-  $("ex-price").oninput = () => { exFromPrice(); updateExRate(); };
+  $("ex-price").oninput = () => { if (exPicked && exPicked.text !== $("ex-price").value.trim()) exPicked = null; exFromPrice(); updateExRate(); };
   $("ex-orn").oninput = () => {
-    const price = parseFloat($("ex-price").value), orn = parseFloat($("ex-orn").value);
-    if (price > 0) $("ex-sol").value = orn > 0 ? exPlain(price * orn) : "";
+    exFromPrice();
     exPct = null; exPctPaint();
     updateExRate();
   };
   $("ex-sol").oninput = () => {
-    const price = parseFloat($("ex-price").value), sol = parseFloat($("ex-sol").value);
+    const price = exPriceSol(), sol = parseFloat($("ex-sol").value);
     if (price > 0) $("ex-orn").value = sol > 0 ? exPlain(sol / price, 4) : "";
     exPct = null; exPctPaint();
     updateExRate();
@@ -14770,12 +14816,18 @@
   $("ex-cur-menu").onclick = (e) => {
     const b = e.target.closest("[data-cur]");
     if (!b) return;
+    const spending = exSpendSol();
     localStorage.setItem("ex-cur", b.dataset.cur);
     $("ex-cur-menu").hidden = true;
     exCurPaint();
     renderExChart();
     renderOffers();
     renderSwaps();
+    // The form's boxes follow: the same price and spend, in the new currency.
+    if (spending > 0) { const cur = exSpendCur(); $("ex-spend").value = cur === "sol" ? String(Math.floor(spending * 1e4) / 1e4) : String(Math.round(spending * exSolRate(cur) * 100) / 100); }
+    exSetKind(exKind);
+    exFromPrice();
+    updateExRate();
   };
   document.addEventListener("click", (e) => { if (!$("ex-cur-menu").hidden && !e.target.closest("#ex-cur-menu, #ex-cur, #bal-cur")) $("ex-cur-menu").hidden = true; }, true);
   exCurPaint();

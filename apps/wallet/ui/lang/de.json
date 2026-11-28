@@ -2139,6 +2139,14 @@
     [
       "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
       "Du kannst {0} Kauforders gleichzeitig offen haben: Ziehe eine zurück, um eine neue zu veröffentlichen"
+    ],
+    [
+      "^Price per ORN \\(([A-Z]+)\\)$",
+      "Preis pro ORN ({0})"
+    ],
+    [
+      "^≈ (.+) SOL per ORN, fixed when you place the order$",
+      "≈ {0} SOL pro ORN, fest, sobald du die Order platzierst"
     ]
   ],
   "_guides": {
@@ -2426,7 +2434,7 @@
       "steps": [
         "Klicke auf Start auf <b>Tauschen</b>, den runden Button mit zwei Pfeilen. Öffne in einem kleinen Fenster zuerst den Tab <b>Kaufen / Verkaufen</b>.",
         "Klicke unter <b>ORN kaufen</b> auf <b>Limit-Order</b>.",
-        "Gib deinen <b>Preis pro ORN</b> in SOL und die <b>Menge</b> an ORN ein. Die Summe ergibt sich von selbst.",
+        "Gib deinen <b>Preis pro ORN</b> und die <b>Menge</b> an ORN ein. Die Summe ergibt sich von selbst.",
         "Klicke auf <b>ORN kaufen</b> und bestätige mit Touch ID oder dem Passwort der Wallet. Die SOL werden sofort aus dieser Wallet zurückgelegt und deine Order kommt ins Orderbuch.",
         "Verkäufer können sie ganz oder teilweise ausführen. Die ORN treffen automatisch ein, sobald ein Teil ausgeführt wird, auch wenn Orien Wallet geschlossen ist.",
         "Um den Rest abzubrechen, klicke auf <b>Deine Orders</b> (in einem kleinen Fenster <b>Deine Swaps</b>) und dann unter <b>Offene Käufe</b> bei der Order auf <b>Abbrechen</b>. Die nicht genutzten SOL kommen zurück."
