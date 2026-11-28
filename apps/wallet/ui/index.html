@@ -11469,6 +11469,8 @@
     }
     const buy = exSide === "buy";
     if (exKind === "market") {
+      // Market trades ask on their own screen.
+      $("ex-pw-field").hidden = true;
       const fills = exPlan() || [];
       setExGo(buy ? "Buy ORN" : "Sell ORN");
       go.disabled = !fills.length || exPlanShort(fills) || (buy && exSpendSol() < EX_MIN_SOL);
@@ -11484,8 +11486,12 @@
     const needVer = !buy && !match && exUnverified;
     const maxSol = (board.maxOrderLamports || 10e9) / 1e9;
     const wrongSize = !!match && !buy && !!exSellSizeProblem(match, Math.round(orn * 1e9));
+    // The password is asked for here only for an order placed from this
+    // form; trading with an order now asks on its own screen.
+    const needPw = !match && (exPwAsked || !!(view && !view.unprotected && !view.biometric));
+    $("ex-pw-field").hidden = !needPw;
     const ok = !needVer && !wrongSize && orn > 0 && sol >= 0.01 && (!buy || match || sol <= maxSol) && !exOverSol() && (match || exAddrOk())
-      && (match || $("ex-pw-field").hidden || $("ex-pw").value.length > 0);
+      && (!needPw || $("ex-pw").value.length > 0);
     go.disabled = !ok;
   }
   function syncExTicket() {
@@ -11508,8 +11514,6 @@
     $("ex-bal").textContent = !buy && view && view.most ? `${view.most} ORN available` : "";
     paintExSolHint();
     if (buy) ownSolBalance().then(() => { paintExSolHint(); updateExRate(); });
-    const typed = !!(view && !view.unprotected && !view.biometric);
-    $("ex-pw-field").hidden = !typed;
     updateExRate();
   }
   async function checkExWallet() {
@@ -11613,6 +11617,8 @@
   // One order at a time: while one is under way the button stays busy, so
   // a second press can never post a second order.
   var exBusy = false;
+  // Touch ID didn't unlock the wallet: its password, typed in the form.
+  var exPwAsked = false;
   $("ex-go").onclick = async () => {
     if (exBusy || !ready()) return;
     // Market: the orders the plan fills, on one screen, one approval.
@@ -11714,7 +11720,7 @@
       loadBoard().then(stepSwaps);
     } catch (e) {
       const text = String(e);
-      if (text === "password: needed") { $("ex-pw-field").hidden = false; $("ex-pw").focus(); problem("ex-problem", "Type this wallet's password to approve this order."); }
+      if (text === "password: needed") { exPwAsked = true; $("ex-pw-field").hidden = false; $("ex-pw").focus(); problem("ex-problem", "Type this wallet's password to approve this order."); }
       else if (text === "password: wrong") { $("ex-pw").select(); problem("ex-problem", "That is not this wallet's password."); }
       else problem("ex-problem", e);
     } finally {
@@ -11807,6 +11813,11 @@
     return true;
   }
 
+  // The take screen's button: only once everything it needs is in, the
+  // password included when one is asked for here.
+  let btShort = false;
+  function paintBtGo() { $("bt-go").disabled = btShort || (!$("bt-pw-field").hidden && !$("bt-pw").value); }
+  $("bt-pw").addEventListener("input", paintBtGo);
   async function startTake(id, tag, part) {
     let o = board.offers.find((x) => x.id === id && offerTag(x) === (tag || ""));
     if (!o) return;
@@ -11872,15 +11883,16 @@
     $("bt-pw").value = "";
     $("bt-go").textContent = view && view.biometric ? `${isBuy ? "Sell" : "Take"} with ${bio}` : isBuy ? "Sell ORN" : "Take the offer";
     show("board-take");
-    $("bt-go").disabled = false;
+    btShort = false;
+    paintBtGo();
     if (await gateSwap("bt-go", "bt-problem")) return;
     // Buying with SOL: only with the SOL already in this wallet.
     if (sol && !isBuy) {
       $("bt-go").disabled = true;
       const short = await shortOfSol(o.lamports / 1e9, "bt-problem");
       if (board.taking !== o) return;
-      if (short) { $("bt-go").textContent = "Not enough SOL"; return; }
-      $("bt-go").disabled = false;
+      if (short) { btShort = true; $("bt-go").textContent = "Not enough SOL"; return; }
+      paintBtGo();
     }
   }
 
@@ -11902,8 +11914,8 @@
       $("bt-go").disabled = true;
       const short = await shortOfSol(sum.lamports / 1e9, "bt-problem", fills.length * SOL_SWAP_FEES);
       if (board.taking !== many) return;
-      if (short) { $("bt-go").textContent = "Not enough SOL"; return; }
-      $("bt-go").disabled = false;
+      if (short) { btShort = true; $("bt-go").textContent = "Not enough SOL"; return; }
+      paintBtGo();
     }
   }
 
@@ -12080,7 +12092,7 @@
       const t = String(e);
       problem("bt-problem", t === "password: wrong" ? "That's not this wallet's password." : t === "password: needed" ? "Type your wallet password to approve this swap." : t);
     }
-    finally { $("bt-go").disabled = false; }
+    finally { paintBtGo(); }
   };
 
   $("board-post-go").onclick = () => {
