@@ -2039,6 +2039,106 @@
     [
       "^of your ([0-9.,]+) ORN$",
       "보유 {0} ORN 중"
+    ],
+    [
+      "^(\\d+) of (\\d+) done$",
+      "{0} / {1} 완료"
+    ],
+    [
+      "^✓ (\\d+) of (\\d+) complete$",
+      "✓ {0} / {1} 완료"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · the rest live on order book$",
+      "{0} / {1} ORN 매수됨 · 나머지는 호가창에 등록됨"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · a part is settling \\(~1 min\\)$",
+      "{0} / {1} ORN 매수됨 · 일부 정산 중 (약 1분)"
+    ],
+    [
+      "^Stopped · ([0-9.,]+) of ([0-9.,]+) ORN bought$",
+      "중지됨 · {0} / {1} ORN 매수됨"
+    ],
+    [
+      "^This order only takes all ([0-9.,]+) ORN at once(\\.?)$",
+      "이 주문은 {0} ORN 전량을 한 번에만 매수합니다{1}"
+    ],
+    [
+      "^This order only sells all ([0-9.,]+) ORN at once(\\.?)$",
+      "이 주문은 {0} ORN 전량을 한 번에만 매도합니다{1}"
+    ],
+    [
+      "^Sell at least ([0-9.,]+) ORN to this order(\\.?)$",
+      "이 주문에는 {0} ORN 이상 매도하세요{1}"
+    ],
+    [
+      "^Buy at least ([0-9.,]+) ORN from this order(\\.?)$",
+      "이 주문에서는 {0} ORN 이상 매수하세요{1}"
+    ],
+    [
+      "^Sell up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "{0} ORN까지 또는 전량 {1} ORN을 매도하세요{2}"
+    ],
+    [
+      "^Buy up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "{0} ORN까지 또는 전량 {1} ORN을 매수하세요{2}"
+    ],
+    [
+      "^Minimum order is (.+) \\(0\\.01 SOL\\)$",
+      "최소 주문 수량은 {0}(0.01 SOL)입니다"
+    ],
+    [
+      "^Couldn't start yet, trying again: (.*)$",
+      "아직 시작하지 못했습니다. 다시 시도하는 중: {0}"
+    ],
+    [
+      "^Cancelled buy order for ([0-9.,]+) ORN$",
+      "{0} ORN 매수 주문 취소됨"
+    ],
+    [
+      "^Order for ([0-9.,]+) ORN$",
+      "{0} ORN 주문"
+    ],
+    [
+      "^Deposit back from buy order for ([0-9.,]+) ORN$",
+      "{0} ORN 매수 주문 예치금 반환"
+    ],
+    [
+      "^Bought ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. They're in your wallet\\.$",
+      "{1} SOL로 {0} ORN을 매수했습니다. 지갑에 들어왔습니다."
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. It's in your Solana balance\\.$",
+      "{0} ORN을 {1} SOL에 매도했습니다. Solana 잔액에 들어왔습니다."
+    ],
+    [
+      "^([0-9.,]+) ORN are in your wallet\\.$",
+      "{0} ORN이 지갑에 들어왔습니다."
+    ],
+    [
+      "^([0-9.,]+) SOL is in your Solana balance\\.$",
+      "{0} SOL이 Solana 잔액에 들어왔습니다."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. Your buy order is live on the order book, and sellers can fill any part of it\\. You can close Orien Wallet: ORN arrive in your wallet as each part fills\\.$",
+      "지금까지 {0} / {1} ORN을 매수했습니다. 매수 주문이 호가창에 등록되었으며, 판매자는 그 일부만 체결할 수도 있습니다. Orien Wallet을 닫아도 됩니다. 체결되는 만큼 ORN이 지갑으로 들어옵니다."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. A seller is filling part of your order: those ORN arrive in your wallet within a minute or so\\.$",
+      "지금까지 {0} / {1} ORN을 매수했습니다. 판매자가 주문의 일부를 체결하는 중입니다. 해당 ORN은 1분 정도 안에 지갑으로 들어옵니다."
+    ],
+    [
+      "^Buy with (.+)$",
+      "{0}(으)로 매수"
+    ],
+    [
+      "^you can have (\\d+) sell orders up at once: withdraw one to post another$",
+      "매도 주문은 한 번에 {0}개까지 올릴 수 있습니다. 새로 올리려면 하나를 취소하세요"
+    ],
+    [
+      "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
+      "매수 주문은 한 번에 {0}개까지 올릴 수 있습니다. 새로 올리려면 하나를 취소하세요"
     ]
   ],
   "_guides": {
@@ -2204,10 +2304,10 @@
       "title": "SOL로 ORN 매수",
       "steps": [
         "먼저 이 지갑에 SOL을 넣으세요(<b>SOL 또는 USDC 받기</b> 참고). Solana의 소액 수수료를 위해 약 0.005 SOL을 더 넣어 두세요.",
-        "홈 화면에서 화살표 두 개가 있는 동그란 버튼인 <b>스왑</b>을 클릭하세요. 거래소가 열립니다.",
-        "<b>호가창</b>에서 마음에 드는 주문 옆의 <b>매수</b>를 클릭하세요.",
-        "수량을 확인한 뒤 <b>Touch ID(으)로 수락</b>를 클릭하세요.",
-        "SOL은 이 지갑에서 결제되고 ORN은 자동으로 입금됩니다. 보통 1분 이내입니다."
+        "홈 화면에서 화살표 두 개가 있는 동그란 버튼인 <b>스왑</b>을 클릭하세요. 거래소가 열립니다. 작은 창에서는 먼저 <b>매수 / 매도</b> 탭을 여세요.",
+        "<b>ORN 매수</b> 아래 <b>시장가 주문</b>에서 지불할 금액을 입력하세요. 받게 될 ORN의 대략적인 수량이 양식에 표시됩니다.",
+        "<b>ORN 매수</b>를 클릭하고 수량을 확인한 뒤, Touch ID 또는 지갑 비밀번호로 확인하고 버튼을 클릭하세요.",
+        "SOL은 이 지갑에서 결제되고 ORN은 자동으로 입금됩니다. 보통 1~2분 이내입니다. 큰 금액을 매수하면 여러 판매자에게서 동시에 살 수 있으며, 하나의 팝업에 각 판매자가 표시됩니다."
       ],
       "note": "스왑이 중간에 멈추더라도 SOL은 자동으로 돌아옵니다."
     },
@@ -2215,10 +2315,10 @@
       "title": "ORN 매도",
       "steps": [
         "먼저 로그인하고 이 지갑을 연결하세요.",
-        "홈 화면에서 화살표 두 개가 있는 동그란 버튼인 <b>스왑</b>을 클릭하세요.",
-        "바로 팔려면 <b>호가창</b>의 매수 주문 옆에 있는 <b>매도</b>를 클릭한 뒤 <b>Touch ID(으)로 판매</b>를 클릭하세요.",
-        "원하는 가격을 정하려면 큰 창에서는 <b>주문하기</b>를, 작은 창에서는 <b>매수 / 매도</b> 탭을 클릭하세요. <b>ORN 매도</b>를 선택하고 ORN 수량과 SOL 총액을 입력한 뒤 <b>Touch ID(으)로 ORN 매도</b>를 클릭하세요.",
-        "주문이 체결될 때까지 Orien Wallet을 열어 두세요. 설정의 <b>이 컴퓨터</b>에서 <b>컴퓨터 절전 방지</b>를 켜 두면 자리를 비워도 앱이 계속 열려 있습니다."
+        "홈 화면에서 화살표 두 개가 있는 동그란 버튼인 <b>스왑</b>을 클릭하세요. 작은 창에서는 먼저 <b>매수 / 매도</b> 탭을 여세요.",
+        "바로 팔려면 <b>ORN 매도</b> 아래 <b>시장가 주문</b>에서 ORN 수량을 입력하고 <b>ORN 매도</b>를 클릭한 뒤 Touch ID 또는 지갑 비밀번호로 확인하세요. 가장 좋은 매수 주문부터 각 주문의 전체 또는 일부에 판매됩니다.",
+        "원하는 가격을 정하려면 <b>지정가 주문</b>을 클릭하고 <b>ORN당 가격</b>과 <b>수량</b>을 입력한 뒤 <b>ORN 매도</b>를 클릭하세요. 구매자는 전체 또는 일부를 살 수 있습니다.",
+        "매도 주문이 체결될 때까지 Orien Wallet을 열어 두세요. 설정의 <b>이 컴퓨터</b>에서 <b>컴퓨터 절전 방지</b>를 켜 두면 자리를 비워도 앱이 계속 열려 있습니다."
       ],
       "note": "SOL은 이 지갑의 Solana 잔액으로 들어오며, 보통 매도 후 1분 이내에 도착합니다."
     },
@@ -2322,13 +2422,14 @@
       "note": "스왑은 Solana의 Jupiter를 통해 이루어집니다. 지갑은 서명하기 전에 매번 내용을 확인하며, 몇 초 안에 완료됩니다."
     },
     "buy-order": {
-      "title": "매수 주문 올리기",
+      "title": "원하는 가격에 ORN 매수",
       "steps": [
-        "홈 화면에서 화살표 두 개가 있는 동그란 버튼인 <b>스왑</b>을 클릭하세요.",
-        "큰 창에서는 <b>주문하기</b>를, 작은 창에서는 <b>매수 / 매도</b> 탭을 클릭하세요.",
-        "<b>ORN 매수</b>를 선택한 뒤 ORN 수량과 지불할 SOL 총액을 입력하세요.",
-        "<b>Touch ID(으)로 ORN 매수</b>를 클릭하세요. SOL이 즉시 이 지갑에서 따로 확보됩니다.",
-        "판매자가 주문을 체결하면 Orien Wallet이 닫혀 있어도 ORN이 자동으로 입금됩니다. 취소하려면 <b>미체결 매수</b>(작은 창에서는 <b>내 스왑</b>)에서 해당 주문의 <b>취소</b>를 클릭하세요."
+        "홈 화면에서 화살표 두 개가 있는 동그란 버튼인 <b>스왑</b>을 클릭하세요. 작은 창에서는 먼저 <b>매수 / 매도</b> 탭을 여세요.",
+        "<b>ORN 매수</b> 아래에서 <b>지정가 주문</b>을 클릭하세요.",
+        "<b>ORN당 가격</b>(SOL)과 ORN <b>수량</b>을 입력하세요. 합계는 자동으로 계산됩니다.",
+        "<b>ORN 매수</b>를 클릭하고 Touch ID 또는 지갑 비밀번호로 확인하세요. SOL이 즉시 이 지갑에서 따로 확보되고, 주문이 호가창에 등록됩니다.",
+        "판매자는 주문 전체 또는 일부를 체결할 수 있습니다. 체결되는 만큼 ORN이 자동으로 입금되며, Orien Wallet이 닫혀 있어도 됩니다.",
+        "남은 수량을 취소하려면 <b>내 주문</b>(작은 창에서는 <b>내 스왑</b>)을 클릭한 뒤 <b>미체결 매수</b>에서 해당 주문의 <b>취소</b>를 클릭하세요. 사용되지 않은 SOL은 돌아옵니다."
       ]
     }
   },
@@ -2508,5 +2609,21 @@
   "None of these orders could be taken.": "이 주문 중 어느 것도 받을 수 없었습니다.",
   "Candle length": "캔들 기간",
   "Your orders": "내 주문",
-  "The Exchange's price chart:": "거래소 가격 차트:"
+  "The Exchange's price chart:": "거래소 가격 차트:",
+  "Buy order": "매수 주문",
+  "Done · ORN in your wallet": "완료 · ORN이 지갑에 들어왔습니다",
+  "Done · SOL in your Solana balance": "완료 · SOL이 Solana 잔액에 들어왔습니다",
+  "Needs your approval · open it": "승인이 필요합니다 · 열어 주세요",
+  "Under way": "진행 중",
+  "Their ORN are locked for you · your wallet is paying": "상대방의 ORN이 잠겼습니다 · 내 지갑이 결제하는 중",
+  "Their wallet is locking the ORN": "상대방 지갑이 ORN을 잠그는 중",
+  "Their wallet didn't answer · nothing was paid": "상대방 지갑이 응답하지 않았습니다 · 결제된 금액 없음",
+  "The rest stopped; nothing was paid for those.": "나머지는 중지되었으며, 그 부분에 대해 결제된 금액은 없습니다.",
+  "Each seller is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "판매자마다 별도의 스왑으로 진행되며 보통 1분 이내에 자동으로 완료됩니다. 이 창을 닫아도 계속 진행됩니다.",
+  "Each buyer is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "구매자마다 별도의 스왑으로 진행되며 보통 1분 이내에 자동으로 완료됩니다. 이 창을 닫아도 계속 진행됩니다.",
+  "Type your password above": "위에 비밀번호를 입력하세요",
+  "A part is settling (~1 min)": "일부 정산 중 (약 1분)",
+  "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "매수 주문이 호가창에 등록되었으며, 판매자는 그 일부만 체결할 수도 있습니다. Orien Wallet을 닫아도 됩니다. 체결되는 만큼 ORN이 지갑으로 들어옵니다.",
+  "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "판매자가 주문의 일부를 체결하는 중입니다. 해당 ORN은 1분 정도 안에 지갑으로 들어옵니다.",
+  "Waiting for their wallet to lock the ORN": "상대방 지갑이 ORN을 잠그기를 기다리는 중"
 }

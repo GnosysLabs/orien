@@ -2039,6 +2039,106 @@
     [
       "^of your ([0-9.,]+) ORN$",
       "trong {0} ORN của bạn"
+    ],
+    [
+      "^(\\d+) of (\\d+) done$",
+      "Đã xong {0} / {1}"
+    ],
+    [
+      "^✓ (\\d+) of (\\d+) complete$",
+      "✓ Đã hoàn tất {0} / {1}"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · the rest live on order book$",
+      "Đã mua {0} / {1} ORN · phần còn lại đang mở trên sổ lệnh"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · a part is settling \\(~1 min\\)$",
+      "Đã mua {0} / {1} ORN · một phần đang tất toán (~1 phút)"
+    ],
+    [
+      "^Stopped · ([0-9.,]+) of ([0-9.,]+) ORN bought$",
+      "Đã dừng · đã mua {0} / {1} ORN"
+    ],
+    [
+      "^This order only takes all ([0-9.,]+) ORN at once(\\.?)$",
+      "Lệnh này chỉ nhận toàn bộ {0} ORN trong một lần{1}"
+    ],
+    [
+      "^This order only sells all ([0-9.,]+) ORN at once(\\.?)$",
+      "Lệnh này chỉ bán toàn bộ {0} ORN trong một lần{1}"
+    ],
+    [
+      "^Sell at least ([0-9.,]+) ORN to this order(\\.?)$",
+      "Hãy bán ít nhất {0} ORN cho lệnh này{1}"
+    ],
+    [
+      "^Buy at least ([0-9.,]+) ORN from this order(\\.?)$",
+      "Hãy mua ít nhất {0} ORN từ lệnh này{1}"
+    ],
+    [
+      "^Sell up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "Bán tối đa {0} ORN, hoặc toàn bộ {1}{2}"
+    ],
+    [
+      "^Buy up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "Mua tối đa {0} ORN, hoặc toàn bộ {1}{2}"
+    ],
+    [
+      "^Minimum order is (.+) \\(0\\.01 SOL\\)$",
+      "Lệnh tối thiểu là {0} (0,01 SOL)"
+    ],
+    [
+      "^Couldn't start yet, trying again: (.*)$",
+      "Chưa bắt đầu được, đang thử lại: {0}"
+    ],
+    [
+      "^Cancelled buy order for ([0-9.,]+) ORN$",
+      "Đã hủy lệnh mua {0} ORN"
+    ],
+    [
+      "^Order for ([0-9.,]+) ORN$",
+      "Lệnh {0} ORN"
+    ],
+    [
+      "^Deposit back from buy order for ([0-9.,]+) ORN$",
+      "Tiền ký quỹ hoàn lại từ lệnh mua {0} ORN"
+    ],
+    [
+      "^Bought ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. They're in your wallet\\.$",
+      "Đã mua {0} ORN với giá {1} SOL. ORN đã vào ví của bạn."
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. It's in your Solana balance\\.$",
+      "Đã bán {0} ORN với giá {1} SOL. SOL đã vào số dư Solana của bạn."
+    ],
+    [
+      "^([0-9.,]+) ORN are in your wallet\\.$",
+      "{0} ORN đã vào ví của bạn."
+    ],
+    [
+      "^([0-9.,]+) SOL is in your Solana balance\\.$",
+      "{0} SOL đã vào số dư Solana của bạn."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. Your buy order is live on the order book, and sellers can fill any part of it\\. You can close Orien Wallet: ORN arrive in your wallet as each part fills\\.$",
+      "Đến nay đã mua {0} / {1} ORN. Lệnh mua của bạn đang mở trên sổ lệnh, và người bán có thể khớp bất kỳ phần nào. Bạn có thể đóng Orien Wallet: ORN sẽ về ví của bạn mỗi khi một phần được khớp."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. A seller is filling part of your order: those ORN arrive in your wallet within a minute or so\\.$",
+      "Đến nay đã mua {0} / {1} ORN. Một người bán đang khớp một phần lệnh của bạn: số ORN đó sẽ về ví của bạn trong khoảng một phút."
+    ],
+    [
+      "^Buy with (.+)$",
+      "Mua bằng {0}"
+    ],
+    [
+      "^you can have (\\d+) sell orders up at once: withdraw one to post another$",
+      "Bạn có thể có {0} lệnh bán cùng lúc: hãy rút một lệnh để đăng lệnh khác"
+    ],
+    [
+      "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
+      "Bạn có thể có {0} lệnh mua cùng lúc: hãy rút một lệnh để đăng lệnh khác"
     ]
   ],
   "_guides": {
@@ -2204,10 +2304,10 @@
       "title": "Mua ORN bằng SOL",
       "steps": [
         "Trước tiên hãy nạp SOL vào ví này (xem <b>Nhận SOL hoặc USDC</b>), cùng thêm khoảng 0,005 SOL cho các khoản phí nhỏ của Solana.",
-        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên. Sàn giao dịch sẽ mở ra.",
-        "Trong <b>Sổ lệnh</b>, nhấn <b>Mua</b> bên cạnh đề nghị bạn thích.",
-        "Kiểm tra các số lượng, sau đó nhấn <b>Chấp nhận với Touch ID</b>.",
-        "SOL được thanh toán từ ví này và ORN sẽ tự động về ví, thường trong vòng một phút."
+        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên. Sàn giao dịch sẽ mở ra. Ở cửa sổ nhỏ, hãy mở thẻ <b>Mua / Bán</b> trước.",
+        "Trong mục <b>Mua ORN</b>, ở <b>Lệnh thị trường</b>, nhập số tiền muốn chi. Biểu mẫu sẽ cho biết bạn nhận được khoảng bao nhiêu ORN.",
+        "Nhấn <b>Mua ORN</b>, kiểm tra các số lượng, sau đó xác nhận bằng Touch ID hoặc mật khẩu của ví rồi nhấn nút.",
+        "SOL được thanh toán từ ví này và ORN sẽ tự động về ví, thường trong vòng một hoặc hai phút. Một lần mua lớn có thể đến từ nhiều người bán cùng lúc: một cửa sổ bật lên sẽ hiển thị từng người."
       ],
       "note": "Nếu giao dịch hoán đổi bị dừng giữa chừng, SOL của bạn sẽ tự động được hoàn lại."
     },
@@ -2215,10 +2315,10 @@
       "title": "Bán ORN",
       "steps": [
         "Hãy đăng nhập và liên kết ví này trước.",
-        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên.",
-        "Để bán ngay, nhấn <b>Bán</b> bên cạnh một đề nghị mua trong <b>Sổ lệnh</b>, sau đó nhấn <b>Bán với Touch ID</b>.",
-        "Để tự đặt giá: ở cửa sổ lớn, nhấn <b>Đặt lệnh</b>; ở cửa sổ nhỏ, nhấn thẻ <b>Mua / Bán</b>. Chọn <b>Bán ORN</b>, nhập số ORN và tổng số SOL, sau đó nhấn <b>Bán ORN lấy Touch ID</b>.",
-        "Giữ Orien Wallet luôn mở cho đến khi lệnh của bạn được khớp. Tùy chọn <b>Giữ máy tính này luôn thức</b> trong Cài đặt, mục <b>Máy tính này</b> sẽ giúp ứng dụng luôn mở khi bạn rời máy."
+        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên. Ở cửa sổ nhỏ, hãy mở thẻ <b>Mua / Bán</b> trước.",
+        "Để bán ngay: trong mục <b>Bán ORN</b>, ở <b>Lệnh thị trường</b>, nhập số ORN, nhấn <b>Bán ORN</b>, sau đó xác nhận bằng Touch ID hoặc mật khẩu của ví. ORN được bán vào các lệnh mua tốt nhất, toàn bộ hoặc một phần của mỗi lệnh.",
+        "Để tự đặt giá: nhấn <b>Lệnh giới hạn</b>, nhập <b>Giá mỗi ORN</b> và <b>Số lượng</b>, sau đó nhấn <b>Bán ORN</b>. Người mua có thể mua toàn bộ hoặc một phần.",
+        "Giữ Orien Wallet luôn mở cho đến khi lệnh bán của bạn được khớp. Tùy chọn <b>Giữ máy tính này luôn thức</b> trong Cài đặt, mục <b>Máy tính này</b> sẽ giúp ứng dụng luôn mở khi bạn rời máy."
       ],
       "note": "SOL sẽ về số dư Solana của ví này, thường trong vòng một phút sau khi bán."
     },
@@ -2322,13 +2422,14 @@
       "note": "Giao dịch hoán đổi được thực hiện qua Jupiter, trên Solana. Ví kiểm tra từng giao dịch trước khi ký, và giao dịch hoàn tất chỉ trong vài giây."
     },
     "buy-order": {
-      "title": "Đăng lệnh mua",
+      "title": "Mua ORN theo giá của bạn",
       "steps": [
-        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên.",
-        "Ở cửa sổ lớn, nhấn <b>Đặt lệnh</b>; ở cửa sổ nhỏ, nhấn thẻ <b>Mua / Bán</b>.",
-        "Chọn <b>Mua ORN</b>, sau đó nhập số ORN và tổng số SOL bạn sẽ trả.",
-        "Nhấn <b>Mua ORN bằng Touch ID</b>. Số SOL được tạm giữ ngay từ ví này.",
-        "Khi có người bán khớp lệnh, ORN sẽ tự động về ví, kể cả khi Orien Wallet đã đóng. Để hủy, nhấn <b>Hủy</b> trên lệnh đó trong mục <b>Lệnh mua mở</b> (<b>Hoán đổi của bạn</b> ở cửa sổ nhỏ)."
+        "Ở Trang chủ, nhấn <b>Hoán đổi</b>, nút tròn có hình hai mũi tên. Ở cửa sổ nhỏ, hãy mở thẻ <b>Mua / Bán</b> trước.",
+        "Trong mục <b>Mua ORN</b>, nhấn <b>Lệnh giới hạn</b>.",
+        "Nhập <b>Giá mỗi ORN</b> của bạn, tính bằng SOL, và <b>Số lượng</b> ORN. Tổng sẽ tự được tính.",
+        "Nhấn <b>Mua ORN</b> và xác nhận bằng Touch ID hoặc mật khẩu của ví. Số SOL được tạm giữ ngay từ ví này, và lệnh của bạn được đưa lên sổ lệnh.",
+        "Người bán có thể khớp toàn bộ hoặc một phần. ORN sẽ tự động về ví mỗi khi một phần được khớp, kể cả khi Orien Wallet đã đóng.",
+        "Để hủy phần còn lại, nhấn <b>Lệnh của bạn</b> (<b>Hoán đổi của bạn</b> ở cửa sổ nhỏ), sau đó nhấn <b>Hủy</b> trên lệnh đó trong mục <b>Lệnh mua mở</b>. Số SOL chưa dùng sẽ được hoàn lại."
       ]
     }
   },
@@ -2508,5 +2609,21 @@
   "None of these orders could be taken.": "Không thể nhận lệnh nào trong số này.",
   "Candle length": "Độ dài nến",
   "Your orders": "Lệnh của bạn",
-  "The Exchange's price chart:": "Biểu đồ giá của Sàn:"
+  "The Exchange's price chart:": "Biểu đồ giá của Sàn:",
+  "Buy order": "Lệnh mua",
+  "Done · ORN in your wallet": "Xong · ORN đã vào ví của bạn",
+  "Done · SOL in your Solana balance": "Xong · SOL đã vào số dư Solana của bạn",
+  "Needs your approval · open it": "Cần bạn phê duyệt · hãy mở ra",
+  "Under way": "Đang tiến hành",
+  "Their ORN are locked for you · your wallet is paying": "ORN của họ đã được khóa cho bạn · ví của bạn đang thanh toán",
+  "Their wallet is locking the ORN": "Ví của họ đang khóa ORN",
+  "Their wallet didn't answer · nothing was paid": "Ví của họ không phản hồi · chưa có khoản nào được trả",
+  "The rest stopped; nothing was paid for those.": "Phần còn lại đã dừng; chưa có khoản nào được trả cho các phần đó.",
+  "Each seller is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Mỗi người bán là một giao dịch hoán đổi riêng và tự hoàn tất, thường trong vòng một phút. Bạn có thể đóng cửa sổ này: giao dịch vẫn tiếp tục.",
+  "Each buyer is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Mỗi người mua là một giao dịch hoán đổi riêng và tự hoàn tất, thường trong vòng một phút. Bạn có thể đóng cửa sổ này: giao dịch vẫn tiếp tục.",
+  "Type your password above": "Nhập mật khẩu của bạn ở trên",
+  "A part is settling (~1 min)": "Một phần đang tất toán (~1 phút)",
+  "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "Lệnh mua của bạn đang mở trên sổ lệnh, và người bán có thể khớp bất kỳ phần nào. Bạn có thể đóng Orien Wallet: ORN sẽ về ví của bạn mỗi khi một phần được khớp.",
+  "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "Một người bán đang khớp một phần lệnh của bạn: số ORN đó sẽ về ví của bạn trong khoảng một phút.",
+  "Waiting for their wallet to lock the ORN": "Đang chờ ví của họ khóa ORN"
 }

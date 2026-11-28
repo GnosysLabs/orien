@@ -2039,6 +2039,106 @@
     [
       "^of your ([0-9.,]+) ORN$",
       "von deinen {0} ORN"
+    ],
+    [
+      "^(\\d+) of (\\d+) done$",
+      "{0} von {1} fertig"
+    ],
+    [
+      "^✓ (\\d+) of (\\d+) complete$",
+      "✓ {0} von {1} abgeschlossen"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · the rest live on order book$",
+      "{0} von {1} ORN gekauft · der Rest ist im Orderbuch aktiv"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · a part is settling \\(~1 min\\)$",
+      "{0} von {1} ORN gekauft · ein Teil wird abgewickelt (~1 Min.)"
+    ],
+    [
+      "^Stopped · ([0-9.,]+) of ([0-9.,]+) ORN bought$",
+      "Gestoppt · {0} von {1} ORN gekauft"
+    ],
+    [
+      "^This order only takes all ([0-9.,]+) ORN at once(\\.?)$",
+      "Diese Order nimmt nur alle {0} ORN auf einmal{1}"
+    ],
+    [
+      "^This order only sells all ([0-9.,]+) ORN at once(\\.?)$",
+      "Diese Order verkauft nur alle {0} ORN auf einmal{1}"
+    ],
+    [
+      "^Sell at least ([0-9.,]+) ORN to this order(\\.?)$",
+      "Verkaufe mindestens {0} ORN an diese Order{1}"
+    ],
+    [
+      "^Buy at least ([0-9.,]+) ORN from this order(\\.?)$",
+      "Kaufe mindestens {0} ORN von dieser Order{1}"
+    ],
+    [
+      "^Sell up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "Verkaufe bis zu {0} ORN oder alle {1}{2}"
+    ],
+    [
+      "^Buy up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "Kaufe bis zu {0} ORN oder alle {1}{2}"
+    ],
+    [
+      "^Minimum order is (.+) \\(0\\.01 SOL\\)$",
+      "Mindestorder ist {0} (0,01 SOL)"
+    ],
+    [
+      "^Couldn't start yet, trying again: (.*)$",
+      "Start noch nicht möglich, neuer Versuch: {0}"
+    ],
+    [
+      "^Cancelled buy order for ([0-9.,]+) ORN$",
+      "Kauforder für {0} ORN abgebrochen"
+    ],
+    [
+      "^Order for ([0-9.,]+) ORN$",
+      "Order für {0} ORN"
+    ],
+    [
+      "^Deposit back from buy order for ([0-9.,]+) ORN$",
+      "Kaution zurück aus Kauforder für {0} ORN"
+    ],
+    [
+      "^Bought ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. They're in your wallet\\.$",
+      "{0} ORN für {1} SOL gekauft. Sie sind in deiner Wallet."
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. It's in your Solana balance\\.$",
+      "{0} ORN für {1} SOL verkauft. Die SOL sind in deinem Solana-Guthaben."
+    ],
+    [
+      "^([0-9.,]+) ORN are in your wallet\\.$",
+      "{0} ORN sind in deiner Wallet."
+    ],
+    [
+      "^([0-9.,]+) SOL is in your Solana balance\\.$",
+      "{0} SOL sind in deinem Solana-Guthaben."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. Your buy order is live on the order book, and sellers can fill any part of it\\. You can close Orien Wallet: ORN arrive in your wallet as each part fills\\.$",
+      "Bisher {0} von {1} ORN gekauft. Deine Kauforder ist im Orderbuch aktiv, und Verkäufer können jeden Teil davon ausführen. Du kannst Orien Wallet schließen: Die ORN treffen in deiner Wallet ein, sobald ein Teil ausgeführt wird."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. A seller is filling part of your order: those ORN arrive in your wallet within a minute or so\\.$",
+      "Bisher {0} von {1} ORN gekauft. Ein Verkäufer führt einen Teil deiner Order aus: Diese ORN treffen in etwa einer Minute in deiner Wallet ein."
+    ],
+    [
+      "^Buy with (.+)$",
+      "Kaufen mit {0}"
+    ],
+    [
+      "^you can have (\\d+) sell orders up at once: withdraw one to post another$",
+      "Du kannst {0} Verkaufsorders gleichzeitig offen haben: Ziehe eine zurück, um eine neue zu veröffentlichen"
+    ],
+    [
+      "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
+      "Du kannst {0} Kauforders gleichzeitig offen haben: Ziehe eine zurück, um eine neue zu veröffentlichen"
     ]
   ],
   "_guides": {
@@ -2204,10 +2304,10 @@
       "title": "ORN mit SOL kaufen",
       "steps": [
         "Lege zuerst SOL in diese Wallet (siehe <b>SOL oder USDC empfangen</b>), dazu etwa 0,005 SOL extra für die kleinen Gebühren von Solana.",
-        "Klicke auf Start auf <b>Tauschen</b>, den runden Button mit zwei Pfeilen. Die Börse öffnet sich.",
-        "Klicke im <b>Orderbuch</b> neben einem Angebot, das dir gefällt, auf <b>Kaufen</b>.",
-        "Prüfe die Beträge und klicke dann auf <b>Annehmen mit Touch ID</b>.",
-        "Die SOL werden aus dieser Wallet bezahlt und die ORN treffen automatisch ein, meist innerhalb einer Minute."
+        "Klicke auf Start auf <b>Tauschen</b>, den runden Button mit zwei Pfeilen. Die Börse öffnet sich. Öffne in einem kleinen Fenster zuerst den Tab <b>Kaufen / Verkaufen</b>.",
+        "Gib unter <b>ORN kaufen</b> bei <b>Marktorder</b> ein, wie viel du ausgeben möchtest. Das Formular zeigt, wie viele ORN du ungefähr bekommst.",
+        "Klicke auf <b>ORN kaufen</b>, prüfe die Beträge, bestätige dann mit Touch ID oder dem Passwort der Wallet und klicke auf den Button.",
+        "Die SOL werden aus dieser Wallet bezahlt und die ORN treffen automatisch ein, meist innerhalb von ein bis zwei Minuten. Ein großer Kauf kann von mehreren Verkäufern gleichzeitig kommen: Ein einziges Pop-up zeigt sie alle."
       ],
       "note": "Bricht ein Swap einmal mittendrin ab, bekommst du deine SOL automatisch zurück."
     },
@@ -2215,10 +2315,10 @@
       "title": "ORN verkaufen",
       "steps": [
         "Melde dich zuerst an und verknüpfe diese Wallet.",
-        "Klicke auf Start auf <b>Tauschen</b>, den runden Button mit zwei Pfeilen.",
-        "Um sofort zu verkaufen, klicke im <b>Orderbuch</b> neben einem Kaufangebot auf <b>Verkaufen</b> und dann auf <b>Verkaufen mit Touch ID</b>.",
-        "Um deinen eigenen Preis festzulegen: Klicke in einem großen Fenster auf <b>Order erstellen</b>, in einem kleinen auf den Tab <b>Kaufen / Verkaufen</b>. Wähle <b>ORN verkaufen</b>, gib die ORN und die gesamten SOL ein und klicke dann auf <b>ORN verkaufen mit Touch ID</b>.",
-        "Lass Orien Wallet geöffnet, bis deine Order angenommen wird. Mit <b>Computer wach halten</b> in den Einstellungen unter <b>Dieser Computer</b> bleibt es geöffnet, während du weg bist."
+        "Klicke auf Start auf <b>Tauschen</b>, den runden Button mit zwei Pfeilen. Öffne in einem kleinen Fenster zuerst den Tab <b>Kaufen / Verkaufen</b>.",
+        "Um sofort zu verkaufen: Gib unter <b>ORN verkaufen</b> bei <b>Marktorder</b> ein, wie viele ORN, klicke auf <b>ORN verkaufen</b> und bestätige dann mit Touch ID oder dem Passwort der Wallet. Verkauft wird an die besten Kauforders, jeweils ganz oder teilweise.",
+        "Um deinen eigenen Preis festzulegen: Klicke auf <b>Limit-Order</b>, gib deinen <b>Preis pro ORN</b> und die <b>Menge</b> ein und klicke dann auf <b>ORN verkaufen</b>. Käufer können alles oder einen Teil nehmen.",
+        "Lass Orien Wallet geöffnet, bis deine Verkaufsorder angenommen wird. Mit <b>Computer wach halten</b> in den Einstellungen unter <b>Dieser Computer</b> bleibt es geöffnet, während du weg bist."
       ],
       "note": "Die SOL landen im Solana-Guthaben dieser Wallet, meist innerhalb einer Minute nach einem Verkauf."
     },
@@ -2322,13 +2422,14 @@
       "note": "Swaps laufen über Jupiter auf Solana. Die Wallet prüft jeden Swap, bevor sie ihn signiert, und er ist in Sekunden abgeschlossen."
     },
     "buy-order": {
-      "title": "Kauforder erstellen",
+      "title": "ORN zu deinem eigenen Preis kaufen",
       "steps": [
-        "Klicke auf Start auf <b>Tauschen</b>, den runden Button mit zwei Pfeilen.",
-        "Klicke in einem großen Fenster auf <b>Order erstellen</b>, in einem kleinen auf den Tab <b>Kaufen / Verkaufen</b>.",
-        "Wähle <b>ORN kaufen</b> und gib dann ein, wie viele ORN du möchtest und wie viel SOL du insgesamt zahlst.",
-        "Klicke auf <b>ORN kaufen mit Touch ID</b>. Die SOL werden sofort aus dieser Wallet zurückgelegt.",
-        "Wenn ein Verkäufer die Order ausführt, treffen die ORN automatisch ein, auch wenn Orien Wallet geschlossen ist. Zum Abbrechen klicke unter <b>Offene Käufe</b> (in einem kleinen Fenster <b>Deine Swaps</b>) bei der Order auf <b>Abbrechen</b>."
+        "Klicke auf Start auf <b>Tauschen</b>, den runden Button mit zwei Pfeilen. Öffne in einem kleinen Fenster zuerst den Tab <b>Kaufen / Verkaufen</b>.",
+        "Klicke unter <b>ORN kaufen</b> auf <b>Limit-Order</b>.",
+        "Gib deinen <b>Preis pro ORN</b> in SOL und die <b>Menge</b> an ORN ein. Die Summe ergibt sich von selbst.",
+        "Klicke auf <b>ORN kaufen</b> und bestätige mit Touch ID oder dem Passwort der Wallet. Die SOL werden sofort aus dieser Wallet zurückgelegt und deine Order kommt ins Orderbuch.",
+        "Verkäufer können sie ganz oder teilweise ausführen. Die ORN treffen automatisch ein, sobald ein Teil ausgeführt wird, auch wenn Orien Wallet geschlossen ist.",
+        "Um den Rest abzubrechen, klicke auf <b>Deine Orders</b> (in einem kleinen Fenster <b>Deine Swaps</b>) und dann unter <b>Offene Käufe</b> bei der Order auf <b>Abbrechen</b>. Die nicht genutzten SOL kommen zurück."
       ]
     }
   },
@@ -2508,5 +2609,21 @@
   "None of these orders could be taken.": "Keine dieser Orders konnte angenommen werden.",
   "Candle length": "Kerzenlänge",
   "Your orders": "Deine Orders",
-  "The Exchange's price chart:": "Der Kurs-Chart der Börse:"
+  "The Exchange's price chart:": "Der Kurs-Chart der Börse:",
+  "Buy order": "Kauforder",
+  "Done · ORN in your wallet": "Fertig · ORN in deiner Wallet",
+  "Done · SOL in your Solana balance": "Fertig · SOL in deinem Solana-Guthaben",
+  "Needs your approval · open it": "Braucht deine Genehmigung · öffnen",
+  "Under way": "Läuft",
+  "Their ORN are locked for you · your wallet is paying": "Die ORN sind für dich gesperrt · deine Wallet zahlt",
+  "Their wallet is locking the ORN": "Die andere Wallet sperrt die ORN",
+  "Their wallet didn't answer · nothing was paid": "Die andere Wallet hat nicht geantwortet · nichts wurde bezahlt",
+  "The rest stopped; nothing was paid for those.": "Der Rest wurde gestoppt; dafür wurde nichts bezahlt.",
+  "Each seller is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Jeder Verkäufer ist ein eigener Swap und wird automatisch abgeschlossen, meist innerhalb einer Minute. Du kannst das hier schließen: Es läuft weiter.",
+  "Each buyer is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Jeder Käufer ist ein eigener Swap und wird automatisch abgeschlossen, meist innerhalb einer Minute. Du kannst das hier schließen: Es läuft weiter.",
+  "Type your password above": "Gib oben dein Passwort ein",
+  "A part is settling (~1 min)": "Ein Teil wird abgewickelt (~1 Min.)",
+  "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "Deine Kauforder ist im Orderbuch aktiv, und Verkäufer können jeden Teil davon ausführen. Du kannst Orien Wallet schließen: Die ORN treffen in deiner Wallet ein, sobald ein Teil ausgeführt wird.",
+  "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "Ein Verkäufer führt einen Teil deiner Order aus: Diese ORN treffen in etwa einer Minute in deiner Wallet ein.",
+  "Waiting for their wallet to lock the ORN": "Warte darauf, dass die andere Wallet die ORN sperrt"
 }

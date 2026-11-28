@@ -2039,6 +2039,106 @@
     [
       "^of your ([0-9.,]+) ORN$",
       "de vos {0} ORN"
+    ],
+    [
+      "^(\\d+) of (\\d+) done$",
+      "{0} sur {1} terminés"
+    ],
+    [
+      "^✓ (\\d+) of (\\d+) complete$",
+      "✓ {0} sur {1} terminés"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · the rest live on order book$",
+      "{0} ORN sur {1} achetés · le reste est actif sur le carnet d'ordres"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · a part is settling \\(~1 min\\)$",
+      "{0} ORN sur {1} achetés · une partie est en cours de règlement (~1 min)"
+    ],
+    [
+      "^Stopped · ([0-9.,]+) of ([0-9.,]+) ORN bought$",
+      "Arrêté · {0} ORN sur {1} achetés"
+    ],
+    [
+      "^This order only takes all ([0-9.,]+) ORN at once(\\.?)$",
+      "Cet ordre ne prend que les {0} ORN en une seule fois{1}"
+    ],
+    [
+      "^This order only sells all ([0-9.,]+) ORN at once(\\.?)$",
+      "Cet ordre ne vend que les {0} ORN en une seule fois{1}"
+    ],
+    [
+      "^Sell at least ([0-9.,]+) ORN to this order(\\.?)$",
+      "Vendez au moins {0} ORN à cet ordre{1}"
+    ],
+    [
+      "^Buy at least ([0-9.,]+) ORN from this order(\\.?)$",
+      "Achetez au moins {0} ORN sur cet ordre{1}"
+    ],
+    [
+      "^Sell up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "Vendez jusqu'à {0} ORN, ou la totalité des {1}{2}"
+    ],
+    [
+      "^Buy up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "Achetez jusqu'à {0} ORN, ou la totalité des {1}{2}"
+    ],
+    [
+      "^Minimum order is (.+) \\(0\\.01 SOL\\)$",
+      "L'ordre minimal est de {0} (0,01 SOL)"
+    ],
+    [
+      "^Couldn't start yet, trying again: (.*)$",
+      "Démarrage impossible pour l'instant, nouvel essai : {0}"
+    ],
+    [
+      "^Cancelled buy order for ([0-9.,]+) ORN$",
+      "Ordre d'achat de {0} ORN annulé"
+    ],
+    [
+      "^Order for ([0-9.,]+) ORN$",
+      "Ordre de {0} ORN"
+    ],
+    [
+      "^Deposit back from buy order for ([0-9.,]+) ORN$",
+      "Retour du dépôt de l'ordre d'achat de {0} ORN"
+    ],
+    [
+      "^Bought ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. They're in your wallet\\.$",
+      "{0} ORN achetés pour {1} SOL. Ils sont dans votre portefeuille."
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. It's in your Solana balance\\.$",
+      "{0} ORN vendus pour {1} SOL. Les SOL sont sur votre solde Solana."
+    ],
+    [
+      "^([0-9.,]+) ORN are in your wallet\\.$",
+      "{0} ORN sont dans votre portefeuille."
+    ],
+    [
+      "^([0-9.,]+) SOL is in your Solana balance\\.$",
+      "{0} SOL sont sur votre solde Solana."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. Your buy order is live on the order book, and sellers can fill any part of it\\. You can close Orien Wallet: ORN arrive in your wallet as each part fills\\.$",
+      "{0} ORN sur {1} achetés jusqu'ici. Votre ordre d'achat est actif sur le carnet d'ordres, et les vendeurs peuvent en remplir n'importe quelle partie. Vous pouvez fermer Orien Wallet : les ORN arrivent dans votre portefeuille à mesure que chaque partie est remplie."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. A seller is filling part of your order: those ORN arrive in your wallet within a minute or so\\.$",
+      "{0} ORN sur {1} achetés jusqu'ici. Un vendeur remplit une partie de votre ordre : ces ORN arrivent dans votre portefeuille d'ici une minute environ."
+    ],
+    [
+      "^Buy with (.+)$",
+      "Acheter avec {0}"
+    ],
+    [
+      "^you can have (\\d+) sell orders up at once: withdraw one to post another$",
+      "Vous pouvez avoir {0} ordres de vente actifs à la fois : retirez-en un pour en publier un autre"
+    ],
+    [
+      "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
+      "Vous pouvez avoir {0} ordres d'achat actifs à la fois : retirez-en un pour en publier un autre"
     ]
   ],
   "_guides": {
@@ -2204,10 +2304,10 @@
       "title": "Acheter des ORN avec des SOL",
       "steps": [
         "Mettez d'abord des SOL dans ce portefeuille (voir <b>Recevoir des SOL ou des USDC</b>), avec environ 0,005 SOL en plus pour les petits frais de Solana.",
-        "Sur l'Accueil, cliquez sur <b>Échanger</b>, le bouton rond avec deux flèches. L'Échange s'ouvre.",
-        "Dans le <b>Carnet d'ordres</b>, cliquez sur <b>Acheter</b> à côté d'une offre qui vous plaît.",
-        "Vérifiez les montants, puis cliquez sur <b>Prendre avec Touch ID</b>.",
-        "Les SOL sont payés depuis ce portefeuille et les ORN arrivent tout seuls, généralement en moins d'une minute."
+        "Sur l'Accueil, cliquez sur <b>Échanger</b>, le bouton rond avec deux flèches. L'Échange s'ouvre. Dans une petite fenêtre, ouvrez d'abord l'onglet <b>Acheter / Vendre</b>.",
+        "Sous <b>Acheter des ORN</b>, dans <b>Ordre au marché</b>, saisissez le montant à dépenser. Le formulaire indique à peu près combien d'ORN vous recevrez.",
+        "Cliquez sur <b>Acheter des ORN</b>, vérifiez les montants, puis confirmez avec Touch ID ou le mot de passe du portefeuille et cliquez sur le bouton.",
+        "Les SOL sont payés depuis ce portefeuille et les ORN arrivent tout seuls, généralement en une minute ou deux. Un gros achat peut venir de plusieurs vendeurs à la fois : une seule fenêtre pop-up les affiche tous."
       ],
       "note": "Si un échange s'interrompt en cours de route, vos SOL vous reviennent automatiquement."
     },
@@ -2215,10 +2315,10 @@
       "title": "Vendre des ORN",
       "steps": [
         "Connectez-vous et liez d'abord ce portefeuille.",
-        "Sur l'Accueil, cliquez sur <b>Échanger</b>, le bouton rond avec deux flèches.",
-        "Pour vendre tout de suite, cliquez sur <b>Vendre</b> à côté d'une offre d'achat dans le <b>Carnet d'ordres</b>, puis sur <b>Vendre avec Touch ID</b>.",
-        "Pour fixer votre propre prix : dans une grande fenêtre, cliquez sur <b>Passer un ordre</b> ; dans une petite, sur l'onglet <b>Acheter / Vendre</b>. Choisissez <b>Vendre des ORN</b>, saisissez les ORN et le total en SOL, puis cliquez sur <b>Vendre des ORN avec Touch ID</b>.",
-        "Gardez Orien Wallet ouvert jusqu'à ce que votre ordre soit pris. <b>Empêcher la mise en veille</b> dans Paramètres, <b>Cet ordinateur</b>, le maintient ouvert pendant votre absence."
+        "Sur l'Accueil, cliquez sur <b>Échanger</b>, le bouton rond avec deux flèches. Dans une petite fenêtre, ouvrez d'abord l'onglet <b>Acheter / Vendre</b>.",
+        "Pour vendre tout de suite : sous <b>Vendre des ORN</b>, dans <b>Ordre au marché</b>, saisissez le nombre d'ORN, cliquez sur <b>Vendre des ORN</b>, puis confirmez avec Touch ID ou le mot de passe du portefeuille. La vente se fait sur les meilleurs ordres d'achat, chacun en entier ou en partie.",
+        "Pour fixer votre propre prix : cliquez sur <b>Ordre à cours limité</b>, saisissez votre <b>Prix par ORN</b> et le <b>Montant</b>, puis cliquez sur <b>Vendre des ORN</b>. Les acheteurs peuvent le prendre en entier ou en partie.",
+        "Gardez Orien Wallet ouvert jusqu'à ce que votre ordre de vente soit pris. <b>Empêcher la mise en veille</b> dans Paramètres, <b>Cet ordinateur</b>, le maintient ouvert pendant votre absence."
       ],
       "note": "Les SOL arrivent dans le solde Solana de ce portefeuille, généralement moins d'une minute après une vente."
     },
@@ -2322,13 +2422,14 @@
       "note": "Les échanges passent par Jupiter, sur Solana. Le portefeuille vérifie chacun avant de le signer, et il aboutit en quelques secondes."
     },
     "buy-order": {
-      "title": "Publier un ordre d'achat",
+      "title": "Acheter des ORN à votre propre prix",
       "steps": [
-        "Sur l'Accueil, cliquez sur <b>Échanger</b>, le bouton rond avec deux flèches.",
-        "Dans une grande fenêtre, cliquez sur <b>Passer un ordre</b> ; dans une petite, sur l'onglet <b>Acheter / Vendre</b>.",
-        "Choisissez <b>Acheter des ORN</b>, puis saisissez le nombre d'ORN et le total en SOL que vous paierez.",
-        "Cliquez sur <b>Acheter des ORN avec Touch ID</b>. Les SOL sont immédiatement mis de côté depuis ce portefeuille.",
-        "Quand un vendeur l'exécute, les ORN arrivent tout seuls, même si Orien Wallet est fermé. Pour l'annuler, cliquez sur <b>Annuler</b> sur cet ordre dans <b>Achats actifs</b> (<b>Vos échanges</b> dans une petite fenêtre)."
+        "Sur l'Accueil, cliquez sur <b>Échanger</b>, le bouton rond avec deux flèches. Dans une petite fenêtre, ouvrez d'abord l'onglet <b>Acheter / Vendre</b>.",
+        "Sous <b>Acheter des ORN</b>, cliquez sur <b>Ordre à cours limité</b>.",
+        "Saisissez votre <b>Prix par ORN</b>, en SOL, et le <b>Montant</b> d'ORN. Le total se calcule tout seul.",
+        "Cliquez sur <b>Acheter des ORN</b> et confirmez avec Touch ID ou le mot de passe du portefeuille. Les SOL sont immédiatement mis de côté depuis ce portefeuille, et votre ordre rejoint le carnet d'ordres.",
+        "Les vendeurs peuvent le remplir en entier ou en partie. Les ORN arrivent tout seuls à mesure que chaque partie est remplie, même si Orien Wallet est fermé.",
+        "Pour annuler ce qui reste, cliquez sur <b>Vos ordres</b> (<b>Vos échanges</b> dans une petite fenêtre), puis sur <b>Annuler</b> sur cet ordre dans <b>Achats actifs</b>. Les SOL non utilisés vous reviennent."
       ]
     }
   },
@@ -2508,5 +2609,21 @@
   "None of these orders could be taken.": "Aucun de ces ordres n'a pu être pris.",
   "Candle length": "Durée des bougies",
   "Your orders": "Vos ordres",
-  "The Exchange's price chart:": "Le graphique des prix de l'Exchange :"
+  "The Exchange's price chart:": "Le graphique des prix de l'Exchange :",
+  "Buy order": "Ordre d'achat",
+  "Done · ORN in your wallet": "Terminé · ORN dans votre portefeuille",
+  "Done · SOL in your Solana balance": "Terminé · SOL sur votre solde Solana",
+  "Needs your approval · open it": "Votre approbation est requise · ouvrez-le",
+  "Under way": "En cours",
+  "Their ORN are locked for you · your wallet is paying": "Ses ORN sont verrouillés pour vous · votre portefeuille paie",
+  "Their wallet is locking the ORN": "Son portefeuille verrouille les ORN",
+  "Their wallet didn't answer · nothing was paid": "Son portefeuille n'a pas répondu · rien n'a été payé",
+  "The rest stopped; nothing was paid for those.": "Le reste s'est arrêté ; rien n'a été payé pour ceux-là.",
+  "Each seller is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Chaque vendeur est un échange à part qui se termine tout seul, généralement en moins d'une minute. Vous pouvez fermer ceci : tout continue.",
+  "Each buyer is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Chaque acheteur est un échange à part qui se termine tout seul, généralement en moins d'une minute. Vous pouvez fermer ceci : tout continue.",
+  "Type your password above": "Saisissez votre mot de passe ci-dessus",
+  "A part is settling (~1 min)": "Une partie est en cours de règlement (~1 min)",
+  "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "Votre ordre d'achat est actif sur le carnet d'ordres, et les vendeurs peuvent en remplir n'importe quelle partie. Vous pouvez fermer Orien Wallet : les ORN arrivent dans votre portefeuille à mesure que chaque partie est remplie.",
+  "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "Un vendeur remplit une partie de votre ordre : ces ORN arrivent dans votre portefeuille d'ici une minute environ.",
+  "Waiting for their wallet to lock the ORN": "En attente que son portefeuille verrouille les ORN"
 }

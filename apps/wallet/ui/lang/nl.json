@@ -2039,6 +2039,106 @@
     [
       "^of your ([0-9.,]+) ORN$",
       "van je {0} ORN"
+    ],
+    [
+      "^(\\d+) of (\\d+) done$",
+      "{0} van {1} klaar"
+    ],
+    [
+      "^✓ (\\d+) of (\\d+) complete$",
+      "✓ {0} van {1} voltooid"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · the rest live on order book$",
+      "{0} van {1} ORN gekocht · de rest staat live in het orderboek"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · a part is settling \\(~1 min\\)$",
+      "{0} van {1} ORN gekocht · een deel wordt afgewikkeld (~1 min)"
+    ],
+    [
+      "^Stopped · ([0-9.,]+) of ([0-9.,]+) ORN bought$",
+      "Gestopt · {0} van {1} ORN gekocht"
+    ],
+    [
+      "^This order only takes all ([0-9.,]+) ORN at once(\\.?)$",
+      "Deze order neemt alleen alle {0} ORN in één keer{1}"
+    ],
+    [
+      "^This order only sells all ([0-9.,]+) ORN at once(\\.?)$",
+      "Deze order verkoopt alleen alle {0} ORN in één keer{1}"
+    ],
+    [
+      "^Sell at least ([0-9.,]+) ORN to this order(\\.?)$",
+      "Verkoop minstens {0} ORN aan deze order{1}"
+    ],
+    [
+      "^Buy at least ([0-9.,]+) ORN from this order(\\.?)$",
+      "Koop minstens {0} ORN van deze order{1}"
+    ],
+    [
+      "^Sell up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "Verkoop tot {0} ORN, of alle {1}{2}"
+    ],
+    [
+      "^Buy up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "Koop tot {0} ORN, of alle {1}{2}"
+    ],
+    [
+      "^Minimum order is (.+) \\(0\\.01 SOL\\)$",
+      "Minimumorder is {0} (0,01 SOL)"
+    ],
+    [
+      "^Couldn't start yet, trying again: (.*)$",
+      "Starten lukt nog niet, nieuwe poging: {0}"
+    ],
+    [
+      "^Cancelled buy order for ([0-9.,]+) ORN$",
+      "Kooporder voor {0} ORN geannuleerd"
+    ],
+    [
+      "^Order for ([0-9.,]+) ORN$",
+      "Order voor {0} ORN"
+    ],
+    [
+      "^Deposit back from buy order for ([0-9.,]+) ORN$",
+      "Borg terug van kooporder voor {0} ORN"
+    ],
+    [
+      "^Bought ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. They're in your wallet\\.$",
+      "{0} ORN gekocht voor {1} SOL. Ze staan in je wallet."
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. It's in your Solana balance\\.$",
+      "{0} ORN verkocht voor {1} SOL. De SOL staat in je Solana-saldo."
+    ],
+    [
+      "^([0-9.,]+) ORN are in your wallet\\.$",
+      "{0} ORN staan in je wallet."
+    ],
+    [
+      "^([0-9.,]+) SOL is in your Solana balance\\.$",
+      "{0} SOL staat in je Solana-saldo."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. Your buy order is live on the order book, and sellers can fill any part of it\\. You can close Orien Wallet: ORN arrive in your wallet as each part fills\\.$",
+      "Tot nu toe {0} van {1} ORN gekocht. Je kooporder staat live in het orderboek, en verkopers kunnen elk deel ervan vullen. Je kunt Orien Wallet sluiten: de ORN komen in je wallet binnen zodra een deel is gevuld."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. A seller is filling part of your order: those ORN arrive in your wallet within a minute or so\\.$",
+      "Tot nu toe {0} van {1} ORN gekocht. Een verkoper vult een deel van je order: die ORN staan binnen ongeveer een minuut in je wallet."
+    ],
+    [
+      "^Buy with (.+)$",
+      "Kopen met {0}"
+    ],
+    [
+      "^you can have (\\d+) sell orders up at once: withdraw one to post another$",
+      "Je kunt {0} verkooporders tegelijk open hebben: trek er een in om een nieuwe te plaatsen"
+    ],
+    [
+      "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
+      "Je kunt {0} kooporders tegelijk open hebben: trek er een in om een nieuwe te plaatsen"
     ]
   ],
   "_guides": {
@@ -2204,10 +2304,10 @@
       "title": "ORN kopen met SOL",
       "steps": [
         "Zet eerst SOL in deze wallet (zie <b>SOL of USDC ontvangen</b>), met ongeveer 0,005 SOL extra voor de kleine kosten van Solana.",
-        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen. De Beurs gaat open.",
-        "Klik in het <b>Orderboek</b> op <b>Kopen</b> naast een aanbieding die je bevalt.",
-        "Controleer de bedragen en klik op <b>Accepteren met Touch ID</b>.",
-        "De SOL wordt uit deze wallet betaald en de ORN komen vanzelf binnen, meestal binnen een minuut."
+        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen. De Beurs gaat open. Open in een klein venster eerst het tabblad <b>Kopen / Verkopen</b>.",
+        "Typ onder <b>ORN kopen</b>, bij <b>Marktorder</b>, hoeveel je wilt uitgeven. Het formulier laat zien hoeveel ORN je ongeveer krijgt.",
+        "Klik op <b>ORN kopen</b>, controleer de bedragen, bevestig dan met Touch ID of het wachtwoord van de wallet en klik op de knop.",
+        "De SOL wordt uit deze wallet betaald en de ORN komen vanzelf binnen, meestal binnen een minuut of twee. Een grote aankoop kan van meerdere verkopers tegelijk komen: één pop-up toont ze allemaal."
       ],
       "note": "Mocht een ruil ooit halverwege stoppen, dan krijg je je SOL vanzelf terug."
     },
@@ -2215,10 +2315,10 @@
       "title": "ORN verkopen",
       "steps": [
         "Log eerst in en koppel deze wallet.",
-        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen.",
-        "Om direct te verkopen klik je op <b>Verkopen</b> naast een koopaanbieding in het <b>Orderboek</b>, en daarna op <b>Verkopen met Touch ID</b>.",
-        "Om zelf je prijs te bepalen: klik in een groot venster op <b>Order plaatsen</b>; in een klein venster op het tabblad <b>Kopen / Verkopen</b>. Kies <b>ORN verkopen</b>, typ het aantal ORN en het totaal aan SOL, en klik op <b>ORN verkopen met Touch ID</b>.",
-        "Houd Orien Wallet open totdat je order wordt geaccepteerd. <b>Deze computer wakker houden</b> in Instellingen, <b>Deze computer</b>, houdt de app open terwijl je weg bent."
+        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen. Open in een klein venster eerst het tabblad <b>Kopen / Verkopen</b>.",
+        "Om direct te verkopen: typ onder <b>ORN verkopen</b>, bij <b>Marktorder</b>, hoeveel ORN, klik op <b>ORN verkopen</b> en bevestig met Touch ID of het wachtwoord van de wallet. Je verkoopt aan de beste kooporders, elk helemaal of gedeeltelijk.",
+        "Om zelf je prijs te bepalen: klik op <b>Limietorder</b>, typ je <b>Prijs per ORN</b> en het <b>Bedrag</b>, en klik op <b>ORN verkopen</b>. Kopers kunnen alles of een deel nemen.",
+        "Houd Orien Wallet open totdat je verkooporder wordt geaccepteerd. <b>Deze computer wakker houden</b> in Instellingen, <b>Deze computer</b>, houdt de app open terwijl je weg bent."
       ],
       "note": "De SOL komt binnen op het Solana-saldo van deze wallet, meestal binnen een minuut na een verkoop."
     },
@@ -2322,13 +2422,14 @@
       "note": "Ruiltransacties lopen via Jupiter, op Solana. De wallet controleert elke ruil voordat hij tekent, en die is binnen enkele seconden rond."
     },
     "buy-order": {
-      "title": "Een kooporder plaatsen",
+      "title": "ORN kopen tegen je eigen prijs",
       "steps": [
-        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen.",
-        "Klik in een groot venster op <b>Order plaatsen</b>; in een klein venster op het tabblad <b>Kopen / Verkopen</b>.",
-        "Kies <b>ORN kopen</b> en typ hoeveel ORN je wilt en hoeveel SOL je in totaal betaalt.",
-        "Klik op <b>ORN kopen met Touch ID</b>. De SOL wordt meteen apart gezet uit deze wallet.",
-        "Zodra een verkoper de order vult, komen de ORN vanzelf binnen, ook als Orien Wallet gesloten is. Om te annuleren klik je op <b>Annuleren</b> bij de order onder <b>Open aankopen</b> (<b>Je ruiltransacties</b> in een klein venster)."
+        "Klik op Start op <b>Ruilen</b>, de ronde knop met twee pijlen. Open in een klein venster eerst het tabblad <b>Kopen / Verkopen</b>.",
+        "Klik onder <b>ORN kopen</b> op <b>Limietorder</b>.",
+        "Typ je <b>Prijs per ORN</b>, in SOL, en het <b>Bedrag</b> aan ORN. Het totaal wordt vanzelf berekend.",
+        "Klik op <b>ORN kopen</b> en bevestig met Touch ID of het wachtwoord van de wallet. De SOL wordt meteen apart gezet uit deze wallet en je order komt in het orderboek.",
+        "Verkopers kunnen de order helemaal of gedeeltelijk vullen. De ORN komen vanzelf binnen zodra een deel is gevuld, ook als Orien Wallet gesloten is.",
+        "Om de rest te annuleren klik je op <b>Jouw orders</b> (<b>Je ruiltransacties</b> in een klein venster) en daarna op <b>Annuleren</b> bij de order onder <b>Open aankopen</b>. De ongebruikte SOL komt terug."
       ]
     }
   },
@@ -2508,5 +2609,21 @@
   "None of these orders could be taken.": "Geen van deze orders kon worden genomen.",
   "Candle length": "Kaarslengte",
   "Your orders": "Jouw orders",
-  "The Exchange's price chart:": "De koersgrafiek van de Exchange:"
+  "The Exchange's price chart:": "De koersgrafiek van de Exchange:",
+  "Buy order": "Kooporder",
+  "Done · ORN in your wallet": "Klaar · ORN in je wallet",
+  "Done · SOL in your Solana balance": "Klaar · SOL in je Solana-saldo",
+  "Needs your approval · open it": "Je goedkeuring is nodig · open het",
+  "Under way": "Bezig",
+  "Their ORN are locked for you · your wallet is paying": "Hun ORN zijn voor jou vergrendeld · je wallet betaalt",
+  "Their wallet is locking the ORN": "Hun wallet vergrendelt de ORN",
+  "Their wallet didn't answer · nothing was paid": "Hun wallet gaf geen antwoord · er is niets betaald",
+  "The rest stopped; nothing was paid for those.": "De rest is gestopt; daarvoor is niets betaald.",
+  "Each seller is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Elke verkoper is een eigen ruil en rondt vanzelf af, meestal binnen een minuut. Je kunt dit sluiten: het gaat gewoon door.",
+  "Each buyer is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Elke koper is een eigen ruil en rondt vanzelf af, meestal binnen een minuut. Je kunt dit sluiten: het gaat gewoon door.",
+  "Type your password above": "Typ hierboven je wachtwoord",
+  "A part is settling (~1 min)": "Een deel wordt afgewikkeld (~1 min)",
+  "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "Je kooporder staat live in het orderboek, en verkopers kunnen elk deel ervan vullen. Je kunt Orien Wallet sluiten: de ORN komen in je wallet binnen zodra een deel is gevuld.",
+  "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "Een verkoper vult een deel van je order: die ORN staan binnen ongeveer een minuut in je wallet.",
+  "Waiting for their wallet to lock the ORN": "Wachten tot hun wallet de ORN vergrendelt"
 }

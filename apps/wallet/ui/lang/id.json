@@ -2039,6 +2039,106 @@
     [
       "^of your ([0-9.,]+) ORN$",
       "dari {0} ORN Anda"
+    ],
+    [
+      "^(\\d+) of (\\d+) done$",
+      "{0} dari {1} selesai"
+    ],
+    [
+      "^✓ (\\d+) of (\\d+) complete$",
+      "✓ {0} dari {1} selesai"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · the rest live on order book$",
+      "{0} dari {1} ORN terbeli · sisanya aktif di buku pesanan"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · a part is settling \\(~1 min\\)$",
+      "{0} dari {1} ORN terbeli · sebagian sedang diselesaikan (~1 mnt)"
+    ],
+    [
+      "^Stopped · ([0-9.,]+) of ([0-9.,]+) ORN bought$",
+      "Dihentikan · {0} dari {1} ORN terbeli"
+    ],
+    [
+      "^This order only takes all ([0-9.,]+) ORN at once(\\.?)$",
+      "Order ini hanya menerima seluruh {0} ORN sekaligus{1}"
+    ],
+    [
+      "^This order only sells all ([0-9.,]+) ORN at once(\\.?)$",
+      "Order ini hanya menjual seluruh {0} ORN sekaligus{1}"
+    ],
+    [
+      "^Sell at least ([0-9.,]+) ORN to this order(\\.?)$",
+      "Jual minimal {0} ORN ke order ini{1}"
+    ],
+    [
+      "^Buy at least ([0-9.,]+) ORN from this order(\\.?)$",
+      "Beli minimal {0} ORN dari order ini{1}"
+    ],
+    [
+      "^Sell up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "Jual hingga {0} ORN, atau seluruh {1}{2}"
+    ],
+    [
+      "^Buy up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "Beli hingga {0} ORN, atau seluruh {1}{2}"
+    ],
+    [
+      "^Minimum order is (.+) \\(0\\.01 SOL\\)$",
+      "Order minimum adalah {0} (0,01 SOL)"
+    ],
+    [
+      "^Couldn't start yet, trying again: (.*)$",
+      "Belum bisa dimulai, mencoba lagi: {0}"
+    ],
+    [
+      "^Cancelled buy order for ([0-9.,]+) ORN$",
+      "Order beli {0} ORN dibatalkan"
+    ],
+    [
+      "^Order for ([0-9.,]+) ORN$",
+      "Order {0} ORN"
+    ],
+    [
+      "^Deposit back from buy order for ([0-9.,]+) ORN$",
+      "Deposit kembali dari order beli {0} ORN"
+    ],
+    [
+      "^Bought ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. They're in your wallet\\.$",
+      "Membeli {0} ORN seharga {1} SOL. ORN sudah di dompet Anda."
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. It's in your Solana balance\\.$",
+      "Menjual {0} ORN seharga {1} SOL. SOL sudah di saldo Solana Anda."
+    ],
+    [
+      "^([0-9.,]+) ORN are in your wallet\\.$",
+      "{0} ORN sudah di dompet Anda."
+    ],
+    [
+      "^([0-9.,]+) SOL is in your Solana balance\\.$",
+      "{0} SOL sudah di saldo Solana Anda."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. Your buy order is live on the order book, and sellers can fill any part of it\\. You can close Orien Wallet: ORN arrive in your wallet as each part fills\\.$",
+      "Sejauh ini {0} dari {1} ORN terbeli. Order beli Anda aktif di buku pesanan, dan penjual dapat memenuhi sebagian mana pun. Anda boleh menutup Orien Wallet: ORN masuk ke dompet Anda setiap kali satu bagian terpenuhi."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. A seller is filling part of your order: those ORN arrive in your wallet within a minute or so\\.$",
+      "Sejauh ini {0} dari {1} ORN terbeli. Seorang penjual sedang memenuhi sebagian order Anda: ORN tersebut masuk ke dompet Anda dalam kira-kira satu menit."
+    ],
+    [
+      "^Buy with (.+)$",
+      "Beli dengan {0}"
+    ],
+    [
+      "^you can have (\\d+) sell orders up at once: withdraw one to post another$",
+      "Anda dapat memasang {0} order jual sekaligus: tarik satu untuk memasang yang lain"
+    ],
+    [
+      "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
+      "Anda dapat memasang {0} order beli sekaligus: tarik satu untuk memasang yang lain"
     ]
   ],
   "_guides": {
@@ -2204,10 +2304,10 @@
       "title": "Beli ORN dengan SOL",
       "steps": [
         "Isi dompet ini dengan SOL terlebih dahulu (lihat <b>Terima SOL atau USDC</b>), ditambah sekitar 0,005 SOL untuk biaya kecil Solana.",
-        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah. Bursa akan terbuka.",
-        "Di <b>Buku pesanan</b>, klik <b>Beli</b> di samping penawaran yang Anda suka.",
-        "Periksa jumlahnya, lalu klik <b>Ambil dengan Touch ID</b>.",
-        "SOL dibayar dari dompet ini dan ORN tiba dengan sendirinya, biasanya dalam satu menit."
+        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah. Bursa akan terbuka. Di jendela kecil, buka tab <b>Beli / Jual</b> terlebih dahulu.",
+        "Di bawah <b>Beli ORN</b>, pada <b>Order pasar</b>, ketik jumlah yang ingin dibelanjakan. Formulir menunjukkan kira-kira berapa ORN yang Anda dapat.",
+        "Klik <b>Beli ORN</b>, periksa jumlahnya, lalu konfirmasi dengan Touch ID atau kata sandi dompet dan klik tombolnya.",
+        "SOL dibayar dari dompet ini dan ORN tiba dengan sendirinya, biasanya dalam satu atau dua menit. Pembelian besar bisa berasal dari beberapa penjual sekaligus: satu pop-up menampilkan masing-masing."
       ],
       "note": "Jika penukaran berhenti di tengah jalan, SOL Anda kembali dengan sendirinya."
     },
@@ -2215,10 +2315,10 @@
       "title": "Jual ORN",
       "steps": [
         "Masuk dan tautkan dompet ini terlebih dahulu.",
-        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah.",
-        "Untuk menjual sekarang, klik <b>Jual</b> di samping penawaran beli di <b>Buku pesanan</b>, lalu <b>Jual dengan Touch ID</b>.",
-        "Untuk menetapkan harga sendiri: di jendela besar, klik <b>Buat pesanan</b>; di jendela kecil, klik tab <b>Beli / Jual</b>. Pilih <b>Jual ORN</b>, ketik jumlah ORN dan total SOL, lalu klik <b>Jual ORN dengan Touch ID</b>.",
-        "Biarkan Orien Wallet tetap terbuka sampai pesanan Anda diambil. <b>Jaga komputer ini tetap menyala</b> di Pengaturan, <b>Komputer ini</b>, membuatnya tetap terbuka saat Anda pergi."
+        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah. Di jendela kecil, buka tab <b>Beli / Jual</b> terlebih dahulu.",
+        "Untuk menjual sekarang: di bawah <b>Jual ORN</b>, pada <b>Order pasar</b>, ketik jumlah ORN, klik <b>Jual ORN</b>, lalu konfirmasi dengan Touch ID atau kata sandi dompet. ORN dijual ke order beli terbaik, seluruhnya atau sebagian dari masing-masing.",
+        "Untuk menetapkan harga sendiri: klik <b>Order limit</b>, ketik <b>Harga per ORN</b> dan <b>Jumlah</b>, lalu klik <b>Jual ORN</b>. Pembeli dapat mengambil seluruhnya atau sebagian.",
+        "Biarkan Orien Wallet tetap terbuka sampai order jual Anda diambil. <b>Jaga komputer ini tetap menyala</b> di Pengaturan, <b>Komputer ini</b>, membuatnya tetap terbuka saat Anda pergi."
       ],
       "note": "SOL masuk ke saldo Solana dompet ini, biasanya dalam satu menit setelah penjualan."
     },
@@ -2322,13 +2422,14 @@
       "note": "Penukaran berjalan melalui Jupiter, di Solana. Dompet memeriksa setiap penukaran sebelum menandatanganinya, dan penukaran selesai dalam hitungan detik."
     },
     "buy-order": {
-      "title": "Pasang pesanan beli",
+      "title": "Beli ORN dengan harga Anda sendiri",
       "steps": [
-        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah.",
-        "Di jendela besar, klik <b>Buat pesanan</b>; di jendela kecil, klik tab <b>Beli / Jual</b>.",
-        "Pilih <b>Beli ORN</b>, lalu ketik berapa ORN yang Anda inginkan dan total SOL yang akan Anda bayar.",
-        "Klik <b>Beli ORN dengan Touch ID</b>. SOL langsung disisihkan dari dompet ini.",
-        "Saat penjual mengisinya, ORN tiba dengan sendirinya, bahkan saat Orien Wallet tertutup. Untuk membatalkan, klik <b>Batal</b> pada pesanan itu di <b>Beli terbuka</b> (<b>Penukaran Anda</b> di jendela kecil)."
+        "Di Beranda, klik <b>Tukar</b>, tombol bulat dengan dua panah. Di jendela kecil, buka tab <b>Beli / Jual</b> terlebih dahulu.",
+        "Di bawah <b>Beli ORN</b>, klik <b>Order limit</b>.",
+        "Ketik <b>Harga per ORN</b> Anda, dalam SOL, dan <b>Jumlah</b> ORN. Totalnya dihitung dengan sendirinya.",
+        "Klik <b>Beli ORN</b> dan konfirmasi dengan Touch ID atau kata sandi dompet. SOL langsung disisihkan dari dompet ini, dan order Anda masuk ke buku pesanan.",
+        "Penjual dapat memenuhi seluruhnya atau sebagian. ORN tiba dengan sendirinya setiap kali satu bagian terpenuhi, bahkan saat Orien Wallet tertutup.",
+        "Untuk membatalkan sisanya, klik <b>Order Anda</b> (<b>Penukaran Anda</b> di jendela kecil), lalu <b>Batal</b> pada order itu di <b>Beli terbuka</b>. SOL yang tidak terpakai kembali."
       ]
     }
   },
@@ -2508,5 +2609,21 @@
   "None of these orders could be taken.": "Tidak satu pun order ini bisa diambil.",
   "Candle length": "Durasi candle",
   "Your orders": "Order Anda",
-  "The Exchange's price chart:": "Grafik harga Exchange:"
+  "The Exchange's price chart:": "Grafik harga Exchange:",
+  "Buy order": "Order beli",
+  "Done · ORN in your wallet": "Selesai · ORN sudah di dompet Anda",
+  "Done · SOL in your Solana balance": "Selesai · SOL sudah di saldo Solana Anda",
+  "Needs your approval · open it": "Perlu persetujuan Anda · buka",
+  "Under way": "Sedang berjalan",
+  "Their ORN are locked for you · your wallet is paying": "ORN mereka terkunci untuk Anda · dompet Anda sedang membayar",
+  "Their wallet is locking the ORN": "Dompet mereka sedang mengunci ORN",
+  "Their wallet didn't answer · nothing was paid": "Dompet mereka tidak menjawab · tidak ada yang dibayar",
+  "The rest stopped; nothing was paid for those.": "Sisanya berhenti; tidak ada yang dibayar untuk itu.",
+  "Each seller is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Setiap penjual adalah penukaran tersendiri dan selesai dengan sendirinya, biasanya dalam satu menit. Anda boleh menutup ini: prosesnya tetap berjalan.",
+  "Each buyer is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Setiap pembeli adalah penukaran tersendiri dan selesai dengan sendirinya, biasanya dalam satu menit. Anda boleh menutup ini: prosesnya tetap berjalan.",
+  "Type your password above": "Ketik kata sandi Anda di atas",
+  "A part is settling (~1 min)": "Sebagian sedang diselesaikan (~1 mnt)",
+  "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "Order beli Anda aktif di buku pesanan, dan penjual dapat memenuhi sebagian mana pun. Anda boleh menutup Orien Wallet: ORN masuk ke dompet Anda setiap kali satu bagian terpenuhi.",
+  "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "Seorang penjual sedang memenuhi sebagian order Anda: ORN tersebut masuk ke dompet Anda dalam kira-kira satu menit.",
+  "Waiting for their wallet to lock the ORN": "Menunggu dompet mereka mengunci ORN"
 }

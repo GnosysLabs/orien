@@ -2039,6 +2039,106 @@
     [
       "^of your ([0-9.,]+) ORN$",
       "保有 {0} ORN のうち"
+    ],
+    [
+      "^(\\d+) of (\\d+) done$",
+      "{0} / {1} 完了"
+    ],
+    [
+      "^✓ (\\d+) of (\\d+) complete$",
+      "✓ {0} / {1} 完了"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · the rest live on order book$",
+      "{0} / {1} ORN 購入済み · 残りはオーダーブック掲載中"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · a part is settling \\(~1 min\\)$",
+      "{0} / {1} ORN 購入済み · 一部を決済中（約1分）"
+    ],
+    [
+      "^Stopped · ([0-9.,]+) of ([0-9.,]+) ORN bought$",
+      "停止中 · {0} / {1} ORN 購入済み"
+    ],
+    [
+      "^This order only takes all ([0-9.,]+) ORN at once(\\.?)$",
+      "この注文は {0} ORN を全量まとめてのみ買い取ります{1}"
+    ],
+    [
+      "^This order only sells all ([0-9.,]+) ORN at once(\\.?)$",
+      "この注文は {0} ORN を全量まとめてのみ売却します{1}"
+    ],
+    [
+      "^Sell at least ([0-9.,]+) ORN to this order(\\.?)$",
+      "この注文には {0} ORN 以上を売ってください{1}"
+    ],
+    [
+      "^Buy at least ([0-9.,]+) ORN from this order(\\.?)$",
+      "この注文からは {0} ORN 以上を買ってください{1}"
+    ],
+    [
+      "^Sell up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "{0} ORN まで、または全量の {1} ORN を売ってください{2}"
+    ],
+    [
+      "^Buy up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "{0} ORN まで、または全量の {1} ORN を買ってください{2}"
+    ],
+    [
+      "^Minimum order is (.+) \\(0\\.01 SOL\\)$",
+      "最小注文額は {0}（0.01 SOL）です"
+    ],
+    [
+      "^Couldn't start yet, trying again: (.*)$",
+      "まだ開始できません。再試行中: {0}"
+    ],
+    [
+      "^Cancelled buy order for ([0-9.,]+) ORN$",
+      "{0} ORNの買い注文をキャンセル"
+    ],
+    [
+      "^Order for ([0-9.,]+) ORN$",
+      "{0} ORNの注文"
+    ],
+    [
+      "^Deposit back from buy order for ([0-9.,]+) ORN$",
+      "{0} ORNの買い注文のデポジット返金"
+    ],
+    [
+      "^Bought ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. They're in your wallet\\.$",
+      "{1} SOL で {0} ORN を購入しました。ウォレットに届いています。"
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. It's in your Solana balance\\.$",
+      "{0} ORN を {1} SOL で売却しました。Solana 残高に届いています。"
+    ],
+    [
+      "^([0-9.,]+) ORN are in your wallet\\.$",
+      "{0} ORN がウォレットに届きました。"
+    ],
+    [
+      "^([0-9.,]+) SOL is in your Solana balance\\.$",
+      "{0} SOL が Solana 残高に届きました。"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. Your buy order is live on the order book, and sellers can fill any part of it\\. You can close Orien Wallet: ORN arrive in your wallet as each part fills\\.$",
+      "現在 {0} / {1} ORN を購入済みです。買い注文がオーダーブックに掲載されました。売り手は一部だけでも約定できます。Orien Wallet を閉じても大丈夫です。約定した分から ORN がウォレットに届きます。"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. A seller is filling part of your order: those ORN arrive in your wallet within a minute or so\\.$",
+      "現在 {0} / {1} ORN を購入済みです。売り手があなたの注文の一部を約定しています。その分の ORN は1分ほどでウォレットに届きます。"
+    ],
+    [
+      "^Buy with (.+)$",
+      "{0} で買う"
+    ],
+    [
+      "^you can have (\\d+) sell orders up at once: withdraw one to post another$",
+      "同時に出せる売り注文は {0} 件までです。別の注文を出すには、1件取り消してください"
+    ],
+    [
+      "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
+      "同時に出せる買い注文は {0} 件までです。別の注文を出すには、1件取り消してください"
     ]
   ],
   "_guides": {
@@ -2204,10 +2304,10 @@
       "title": "SOL で ORN を買う",
       "steps": [
         "まずこのウォレットに SOL を入れます（<b>SOL または USDC を受け取る</b>を参照）。Solana の少額の手数料用に、約 0.005 SOL 多めに入れてください。",
-        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックします。取引所が開きます。",
-        "<b>オーダーブック</b>で、条件に合う注文の横にある<b>買う</b>をクリックします。",
-        "数量を確認し、<b>Touch ID で受ける</b>をクリックします。",
-        "SOL がこのウォレットから支払われ、ORN は自動的に届きます。通常は1分以内です。"
+        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックします。取引所が開きます。小さいウィンドウでは、先に<b>購入 / 売却</b>タブを開きます。",
+        "<b>ORN を買う</b>の<b>成行注文</b>で、支払う金額を入力します。受け取れる ORN のおおよその数量がフォームに表示されます。",
+        "<b>ORN を買う</b>をクリックして数量を確認し、Touch ID またはウォレットのパスワードで確認してボタンをクリックします。",
+        "SOL がこのウォレットから支払われ、ORN は自動的に届きます。通常は1〜2分以内です。大口の購入は複数の売り手から同時に買うことがあり、1つのポップアップにそれぞれの売り手が表示されます。"
       ],
       "note": "万一スワップが途中で止まっても、SOL は自動的に戻ってきます。"
     },
@@ -2215,10 +2315,10 @@
       "title": "ORN を売る",
       "steps": [
         "先にサインインし、このウォレットを連携してください。",
-        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックします。",
-        "すぐに売るには、<b>オーダーブック</b>の買い注文の横にある<b>売る</b>をクリックし、<b>Touch ID で売却</b>をクリックします。",
-        "自分で価格を決めるには、大きいウィンドウでは<b>注文を出す</b>を、小さいウィンドウでは<b>購入 / 売却</b>タブをクリックします。<b>ORN を売る</b>を選び、ORN の数量と SOL の合計を入力して、<b>Touch ID で ORN を売る</b>をクリックします。",
-        "注文が受けられるまで Orien Wallet を開いたままにしてください。設定の<b>このコンピューター</b>にある<b>スリープを防ぐ</b>をオンにすると、席を離れている間も開いたままにできます。"
+        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックします。小さいウィンドウでは、先に<b>購入 / 売却</b>タブを開きます。",
+        "すぐに売るには、<b>ORN を売る</b>の<b>成行注文</b>で ORN の数量を入力し、<b>ORN を売る</b>をクリックして、Touch ID またはウォレットのパスワードで確認します。条件の良い買い注文から順に、それぞれの全部または一部に売却されます。",
+        "自分で価格を決めるには、<b>指値注文</b>をクリックし、<b>1 ORN あたりの価格</b>と<b>数量</b>を入力して、<b>ORN を売る</b>をクリックします。買い手は全部でも一部でも購入できます。",
+        "売り注文が受けられるまで Orien Wallet を開いたままにしてください。設定の<b>このコンピューター</b>にある<b>スリープを防ぐ</b>をオンにすると、席を離れている間も開いたままにできます。"
       ],
       "note": "SOL はこのウォレットの Solana 残高に届きます。通常は売却から1分以内です。"
     },
@@ -2322,13 +2422,14 @@
       "note": "スワップは Solana 上の Jupiter を経由します。ウォレットは署名する前に毎回内容を確認し、数秒で完了します。"
     },
     "buy-order": {
-      "title": "買い注文を出す",
+      "title": "自分で決めた価格で ORN を買う",
       "steps": [
-        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックします。",
-        "大きいウィンドウでは<b>注文を出す</b>を、小さいウィンドウでは<b>購入 / 売却</b>タブをクリックします。",
-        "<b>ORN を買う</b>を選び、ORN の数量と支払う SOL の合計を入力します。",
-        "<b>Touch ID で ORN を買う</b>をクリックします。SOL はすぐにこのウォレットから確保されます。",
-        "売り手が注文に応じると、Orien Wallet を閉じていても ORN は自動的に届きます。キャンセルするには、<b>未約定の買い</b>（小さいウィンドウでは<b>自分のスワップ</b>）でその注文の<b>キャンセル</b>をクリックします。"
+        "ホーム画面で、双方向矢印の丸いボタン<b>スワップ</b>をクリックします。小さいウィンドウでは、先に<b>購入 / 売却</b>タブを開きます。",
+        "<b>ORN を買う</b>で<b>指値注文</b>をクリックします。",
+        "<b>1 ORN あたりの価格</b>（SOL）と ORN の<b>数量</b>を入力します。合計は自動で計算されます。",
+        "<b>ORN を買う</b>をクリックし、Touch ID またはウォレットのパスワードで確認します。SOL はすぐにこのウォレットから確保され、注文がオーダーブックに掲載されます。",
+        "売り手は注文の全部でも一部でも約定できます。約定した分から ORN は自動的に届きます。Orien Wallet を閉じていても届きます。",
+        "残りをキャンセルするには、<b>あなたの注文</b>（小さいウィンドウでは<b>自分のスワップ</b>）をクリックし、<b>未約定の買い</b>でその注文の<b>キャンセル</b>をクリックします。使われなかった SOL は戻ってきます。"
       ]
     }
   },
@@ -2508,5 +2609,21 @@
   "None of these orders could be taken.": "これらの注文はどれも受けられませんでした。",
   "Candle length": "ローソク足の期間",
   "Your orders": "あなたの注文",
-  "The Exchange's price chart:": "取引所の価格チャート:"
+  "The Exchange's price chart:": "取引所の価格チャート:",
+  "Buy order": "買い注文",
+  "Done · ORN in your wallet": "完了 · ORN がウォレットに届きました",
+  "Done · SOL in your Solana balance": "完了 · SOL が Solana 残高に届きました",
+  "Needs your approval · open it": "承認が必要です · 開いてください",
+  "Under way": "進行中",
+  "Their ORN are locked for you · your wallet is paying": "相手の ORN があなたのためにロックされました · ウォレットが支払い中",
+  "Their wallet is locking the ORN": "相手のウォレットが ORN をロック中",
+  "Their wallet didn't answer · nothing was paid": "相手のウォレットから応答なし · 支払いは発生していません",
+  "The rest stopped; nothing was paid for those.": "残りは停止しました。その分の支払いは発生していません。",
+  "Each seller is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "売り手ごとに別々のスワップになり、それぞれ自動で完了します（通常1分以内）。この画面を閉じても処理は続きます。",
+  "Each buyer is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "買い手ごとに別々のスワップになり、それぞれ自動で完了します（通常1分以内）。この画面を閉じても処理は続きます。",
+  "Type your password above": "上にパスワードを入力してください",
+  "A part is settling (~1 min)": "一部を決済中（約1分）",
+  "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "買い注文がオーダーブックに掲載されました。売り手は一部だけでも約定できます。Orien Wallet を閉じても大丈夫です。約定した分から ORN がウォレットに届きます。",
+  "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "売り手があなたの注文の一部を約定しています。その分の ORN は1分ほどでウォレットに届きます。",
+  "Waiting for their wallet to lock the ORN": "相手のウォレットが ORN をロックするのを待っています"
 }

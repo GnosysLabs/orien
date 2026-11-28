@@ -2039,6 +2039,106 @@
     [
       "^of your ([0-9.,]+) ORN$",
       "你的 {0} ORN 中"
+    ],
+    [
+      "^(\\d+) of (\\d+) done$",
+      "已完成 {0} / {1}"
+    ],
+    [
+      "^✓ (\\d+) of (\\d+) complete$",
+      "✓ 已完成 {0} / {1}"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · the rest live on order book$",
+      "已買入 {0} / {1} ORN · 其餘在訂單簿生效中"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · a part is settling \\(~1 min\\)$",
+      "已買入 {0} / {1} ORN · 部分結算中（約 1 分鐘）"
+    ],
+    [
+      "^Stopped · ([0-9.,]+) of ([0-9.,]+) ORN bought$",
+      "已停止 · 已買入 {0} / {1} ORN"
+    ],
+    [
+      "^This order only takes all ([0-9.,]+) ORN at once(\\.?)$",
+      "此訂單只能一次性全部買入 {0} ORN{1}"
+    ],
+    [
+      "^This order only sells all ([0-9.,]+) ORN at once(\\.?)$",
+      "此訂單只能一次性全部賣出 {0} ORN{1}"
+    ],
+    [
+      "^Sell at least ([0-9.,]+) ORN to this order(\\.?)$",
+      "向此訂單至少賣出 {0} ORN{1}"
+    ],
+    [
+      "^Buy at least ([0-9.,]+) ORN from this order(\\.?)$",
+      "從此訂單至少買入 {0} ORN{1}"
+    ],
+    [
+      "^Sell up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "最多賣出 {0} ORN，或賣出全部 {1} ORN{2}"
+    ],
+    [
+      "^Buy up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "最多買入 {0} ORN，或買入全部 {1} ORN{2}"
+    ],
+    [
+      "^Minimum order is (.+) \\(0\\.01 SOL\\)$",
+      "最小訂單金額為 {0}（0.01 SOL）"
+    ],
+    [
+      "^Couldn't start yet, trying again: (.*)$",
+      "暫時無法開始，正在重試：{0}"
+    ],
+    [
+      "^Cancelled buy order for ([0-9.,]+) ORN$",
+      "已取消 {0} ORN 的買單"
+    ],
+    [
+      "^Order for ([0-9.,]+) ORN$",
+      "{0} ORN 的訂單"
+    ],
+    [
+      "^Deposit back from buy order for ([0-9.,]+) ORN$",
+      "{0} ORN 買單的押金退回"
+    ],
+    [
+      "^Bought ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. They're in your wallet\\.$",
+      "已用 {1} SOL 買入 {0} ORN，已存入你的錢包。"
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. It's in your Solana balance\\.$",
+      "已賣出 {0} ORN，換得 {1} SOL，已存入你的 Solana 餘額。"
+    ],
+    [
+      "^([0-9.,]+) ORN are in your wallet\\.$",
+      "{0} ORN 已存入你的錢包。"
+    ],
+    [
+      "^([0-9.,]+) SOL is in your Solana balance\\.$",
+      "{0} SOL 已存入你的 Solana 餘額。"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. Your buy order is live on the order book, and sellers can fill any part of it\\. You can close Orien Wallet: ORN arrive in your wallet as each part fills\\.$",
+      "目前已買入 {0} / {1} ORN。你的買單已在訂單簿上線，賣家可以成交其中任意部分。你可以關閉 Orien Wallet：每成交一部分，ORN 就會存入你的錢包。"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. A seller is filling part of your order: those ORN arrive in your wallet within a minute or so\\.$",
+      "目前已買入 {0} / {1} ORN。有賣家正在成交你訂單的一部分：這些 ORN 會在 1 分鐘左右存入你的錢包。"
+    ],
+    [
+      "^Buy with (.+)$",
+      "使用 {0} 買入"
+    ],
+    [
+      "^you can have (\\d+) sell orders up at once: withdraw one to post another$",
+      "最多可同時掛 {0} 個賣單：先撤單一個，才能再發布新的"
+    ],
+    [
+      "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
+      "最多可同時掛 {0} 個買單：先撤單一個，才能再發布新的"
     ]
   ],
   "_guides": {
@@ -2204,10 +2304,10 @@
       "title": "使用 SOL 買入 ORN",
       "steps": [
         "先將 SOL 存入此錢包（見<b>接收 SOL 或 USDC</b>），並額外預留約 0.005 SOL 用於支付 Solana 的少量手續費。",
-        "在首頁點擊<b>兌換</b>（帶雙向箭頭圖示的圓形按鈕），即可開啟交易所。",
-        "在<b>訂單簿</b>中，點擊你滿意的報價旁的<b>買入</b>。",
-        "核對金額，然後點擊<b>使用 Touch ID 接單</b>。",
-        "SOL 將從此錢包支付，ORN 會自動到帳，通常在 1 分鐘內完成。"
+        "在首頁點擊<b>兌換</b>（帶雙向箭頭圖示的圓形按鈕），即可開啟交易所。在小視窗中，請先開啟<b>買入 / 賣出</b>分頁。",
+        "在<b>買入 ORN</b>下的<b>市價單</b>中，輸入你要花費的金額。表單會顯示你大約能得到多少 ORN。",
+        "點擊<b>買入 ORN</b>，核對金額，然後使用 Touch ID 或錢包密碼確認，並點擊按鈕。",
+        "SOL 將從此錢包支付，ORN 會自動到帳，通常在一兩分鐘內完成。大額買入可能同時來自多個賣家：一個彈出視窗會顯示其中每一個賣家。"
       ],
       "note": "如果兌換中途停止，你的 SOL 會自動退回。"
     },
@@ -2215,10 +2315,10 @@
       "title": "賣出 ORN",
       "steps": [
         "請先登入並連結此錢包。",
-        "在首頁點擊<b>兌換</b>（帶雙向箭頭圖示的圓形按鈕）。",
-        "如需立即賣出，請在<b>訂單簿</b>中點擊某個買入報價旁的<b>賣出</b>，然後點擊<b>使用 Touch ID 賣出</b>。",
-        "如需自行定價：在大視窗中點擊<b>下單</b>；在小視窗中點擊<b>買入 / 賣出</b>分頁。選擇<b>賣出 ORN</b>，輸入 ORN 數量和 SOL 總額，然後點擊<b>使用 Touch ID 賣出 ORN</b>。",
-        "保持 Orien Wallet 執行，直到你的訂單成交。在設定中的<b>此電腦</b>開啟<b>防止電腦進入睡眠</b>，可在你離開時保持執行。"
+        "在首頁點擊<b>兌換</b>（帶雙向箭頭圖示的圓形按鈕）。在小視窗中，請先開啟<b>買入 / 賣出</b>分頁。",
+        "如需立即賣出：在<b>賣出 ORN</b>下的<b>市價單</b>中輸入 ORN 數量，點擊<b>賣出 ORN</b>，然後使用 Touch ID 或錢包密碼確認。它會賣給價格最好的買單，每個買單全部或部分成交。",
+        "如需自行定價：點擊<b>限價單</b>，輸入<b>每 ORN 價格</b>和<b>數量</b>，然後點擊<b>賣出 ORN</b>。買家可以買下全部或其中一部分。",
+        "保持 Orien Wallet 執行，直到你的賣單成交。在設定中的<b>此電腦</b>開啟<b>防止電腦進入睡眠</b>，可在你離開時保持執行。"
       ],
       "note": "成交後，SOL 通常會在 1 分鐘內到帳此錢包的 Solana 餘額。"
     },
@@ -2322,13 +2422,14 @@
       "note": "兌換透過 Solana 上的 Jupiter 完成。錢包會在簽署前檢查每一筆兌換，幾秒鐘即可完成。"
     },
     "buy-order": {
-      "title": "發布買單",
+      "title": "按自己的價格買入 ORN",
       "steps": [
-        "在首頁點擊<b>兌換</b>（帶雙向箭頭圖示的圓形按鈕）。",
-        "在大視窗中點擊<b>下單</b>；在小視窗中點擊<b>買入 / 賣出</b>分頁。",
-        "選擇<b>買入 ORN</b>，然後輸入要買入的 ORN 數量和你將支付的 SOL 總額。",
-        "點擊<b>使用 Touch ID 買入 ORN</b>。相應的 SOL 會立即從此錢包中預留出來。",
-        "賣家成交後，ORN 會自動到帳，即使 Orien Wallet 已關閉也不受影響。如需取消，請在<b>未成交買單</b>（小視窗中為<b>你的兌換</b>）下找到該訂單並點擊<b>取消</b>。"
+        "在首頁點擊<b>兌換</b>（帶雙向箭頭圖示的圓形按鈕）。在小視窗中，請先開啟<b>買入 / 賣出</b>分頁。",
+        "在<b>買入 ORN</b>下，點擊<b>限價單</b>。",
+        "輸入<b>每 ORN 價格</b>（以 SOL 計）和 ORN 的<b>數量</b>。總計會自動算出。",
+        "點擊<b>買入 ORN</b>，並使用 Touch ID 或錢包密碼確認。相應的 SOL 會立即從此錢包中預留出來，你的訂單隨即進入訂單簿。",
+        "賣家可以成交全部或其中一部分。每成交一部分，ORN 就會自動到帳，即使 Orien Wallet 已關閉也不受影響。",
+        "如需取消剩餘部分，請點擊<b>你的訂單</b>（小視窗中為<b>你的兌換</b>），然後在<b>未成交買單</b>下找到該訂單並點擊<b>取消</b>。未使用的 SOL 會退回。"
       ]
     }
   },
@@ -2508,5 +2609,21 @@
   "None of these orders could be taken.": "這些訂單都無法成交。",
   "Candle length": "K 線週期",
   "Your orders": "你的訂單",
-  "The Exchange's price chart:": "交易所的價格圖表："
+  "The Exchange's price chart:": "交易所的價格圖表：",
+  "Buy order": "買單",
+  "Done · ORN in your wallet": "完成 · ORN 已存入你的錢包",
+  "Done · SOL in your Solana balance": "完成 · SOL 已存入你的 Solana 餘額",
+  "Needs your approval · open it": "需要你確認 · 點擊開啟",
+  "Under way": "進行中",
+  "Their ORN are locked for you · your wallet is paying": "對方的 ORN 已為你鎖定 · 你的錢包正在付款",
+  "Their wallet is locking the ORN": "對方錢包正在鎖定 ORN",
+  "Their wallet didn't answer · nothing was paid": "對方錢包未回應 · 未支付任何款項",
+  "The rest stopped; nothing was paid for those.": "其餘部分已停止，這些部分未支付任何款項。",
+  "Each seller is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "每個賣家都是一筆獨立的兌換，會自動完成，通常在 1 分鐘內。你可以關閉此視窗，兌換會繼續進行。",
+  "Each buyer is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "每個買家都是一筆獨立的兌換，會自動完成，通常在 1 分鐘內。你可以關閉此視窗，兌換會繼續進行。",
+  "Type your password above": "請在上方輸入密碼",
+  "A part is settling (~1 min)": "部分結算中（約 1 分鐘）",
+  "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "你的買單已在訂單簿上線，賣家可以成交其中任意部分。你可以關閉 Orien Wallet：每成交一部分，ORN 就會存入你的錢包。",
+  "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "有賣家正在成交你訂單的一部分：這些 ORN 會在 1 分鐘左右存入你的錢包。",
+  "Waiting for their wallet to lock the ORN": "等待對方錢包鎖定 ORN"
 }

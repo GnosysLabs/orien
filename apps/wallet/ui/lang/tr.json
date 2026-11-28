@@ -2039,6 +2039,106 @@
     [
       "^of your ([0-9.,]+) ORN$",
       "{0} ORN'unuzdan"
+    ],
+    [
+      "^(\\d+) of (\\d+) done$",
+      "{0} / {1} tamamlandı"
+    ],
+    [
+      "^✓ (\\d+) of (\\d+) complete$",
+      "✓ {0} / {1} tamamlandı"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · the rest live on order book$",
+      "{0} / {1} ORN satın alındı · kalanı emir defterinde yayında"
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought · a part is settling \\(~1 min\\)$",
+      "{0} / {1} ORN satın alındı · bir kısmı sonuçlanıyor (~1 dk)"
+    ],
+    [
+      "^Stopped · ([0-9.,]+) of ([0-9.,]+) ORN bought$",
+      "Durduruldu · {0} / {1} ORN satın alındı"
+    ],
+    [
+      "^This order only takes all ([0-9.,]+) ORN at once(\\.?)$",
+      "Bu emir yalnızca {0} ORN'nin tamamını tek seferde alır{1}"
+    ],
+    [
+      "^This order only sells all ([0-9.,]+) ORN at once(\\.?)$",
+      "Bu emir yalnızca {0} ORN'nin tamamını tek seferde satar{1}"
+    ],
+    [
+      "^Sell at least ([0-9.,]+) ORN to this order(\\.?)$",
+      "Bu emre en az {0} ORN satmalısınız{1}"
+    ],
+    [
+      "^Buy at least ([0-9.,]+) ORN from this order(\\.?)$",
+      "Bu emirden en az {0} ORN almalısınız{1}"
+    ],
+    [
+      "^Sell up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "En fazla {0} ORN ya da tamamını ({1}) satabilirsiniz{2}"
+    ],
+    [
+      "^Buy up to ([0-9.,]+) ORN, or all ([0-9.,]*[0-9])(\\.?)$",
+      "En fazla {0} ORN ya da tamamını ({1}) alabilirsiniz{2}"
+    ],
+    [
+      "^Minimum order is (.+) \\(0\\.01 SOL\\)$",
+      "En düşük emir {0} (0.01 SOL)"
+    ],
+    [
+      "^Couldn't start yet, trying again: (.*)$",
+      "Henüz başlatılamadı, tekrar deneniyor: {0}"
+    ],
+    [
+      "^Cancelled buy order for ([0-9.,]+) ORN$",
+      "{0} ORN alış emri iptal edildi"
+    ],
+    [
+      "^Order for ([0-9.,]+) ORN$",
+      "{0} ORN emri"
+    ],
+    [
+      "^Deposit back from buy order for ([0-9.,]+) ORN$",
+      "{0} ORN alış emrinin depozito iadesi"
+    ],
+    [
+      "^Bought ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. They're in your wallet\\.$",
+      "{1} SOL karşılığında {0} ORN satın alındı. ORN'ler cüzdanınızda."
+    ],
+    [
+      "^Sold ([0-9.,]+) ORN for ([0-9.,]+) SOL\\. It's in your Solana balance\\.$",
+      "{1} SOL karşılığında {0} ORN satıldı. SOL, Solana bakiyenizde."
+    ],
+    [
+      "^([0-9.,]+) ORN are in your wallet\\.$",
+      "{0} ORN cüzdanınızda."
+    ],
+    [
+      "^([0-9.,]+) SOL is in your Solana balance\\.$",
+      "{0} SOL Solana bakiyenizde."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. Your buy order is live on the order book, and sellers can fill any part of it\\. You can close Orien Wallet: ORN arrive in your wallet as each part fills\\.$",
+      "Şimdiye kadar {0} / {1} ORN satın alındı. Alış emriniz emir defterinde yayında ve satıcılar herhangi bir kısmını karşılayabilir. Orien Wallet'ı kapatabilirsiniz: her kısım karşılandıkça ORN'ler cüzdanınıza ulaşır."
+    ],
+    [
+      "^([0-9.,]+) of ([0-9.,]+) ORN bought so far\\. A seller is filling part of your order: those ORN arrive in your wallet within a minute or so\\.$",
+      "Şimdiye kadar {0} / {1} ORN satın alındı. Bir satıcı emrinizin bir kısmını karşılıyor: bu ORN'ler yaklaşık bir dakika içinde cüzdanınıza ulaşır."
+    ],
+    [
+      "^Buy with (.+)$",
+      "{0} ile satın al"
+    ],
+    [
+      "^you can have (\\d+) sell orders up at once: withdraw one to post another$",
+      "Aynı anda en fazla {0} satış emriniz olabilir: yenisini vermek için birini geri çekin"
+    ],
+    [
+      "^you can have (\\d+) buy orders up at once: withdraw one to post another$",
+      "Aynı anda en fazla {0} alış emriniz olabilir: yenisini vermek için birini geri çekin"
     ]
   ],
   "_guides": {
@@ -2204,10 +2304,10 @@
       "title": "SOL ile ORN satın al",
       "steps": [
         "Önce bu cüzdana SOL yatırın (bkz. <b>SOL veya USDC Al</b>); Solana'nın küçük ücretleri için yaklaşık 0.005 SOL fazlası bulunsun.",
-        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın. Borsa açılır.",
-        "<b>Emir defteri</b> bölümünde beğendiğiniz bir teklifin yanındaki <b>Satın al</b>'a tıklayın.",
-        "Tutarları kontrol edin, ardından <b>Touch ID ile kabul et</b> düğmesine tıklayın.",
-        "SOL bu cüzdandan ödenir ve ORN'ler genellikle bir dakika içinde kendiliğinden ulaşır."
+        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın. Borsa açılır. Küçük pencerede önce <b>Al / Sat</b> sekmesini açın.",
+        "<b>ORN Satın Al</b> altında, <b>Piyasa emri</b> seçiliyken ne kadar harcayacağınızı yazın. Form, yaklaşık kaç ORN alacağınızı gösterir.",
+        "<b>ORN Satın Al</b>'a tıklayın, tutarları kontrol edin, ardından Touch ID veya cüzdanın parolasıyla onaylayıp düğmeye tıklayın.",
+        "SOL bu cüzdandan ödenir ve ORN'ler genellikle bir iki dakika içinde kendiliğinden ulaşır. Büyük bir alım aynı anda birkaç satıcıdan gelebilir: tek bir açılır pencere her birini gösterir."
       ],
       "note": "Bir takas yarıda kalırsa SOL'unuz kendiliğinden geri gelir."
     },
@@ -2215,10 +2315,10 @@
       "title": "ORN Sat",
       "steps": [
         "Önce giriş yapın ve bu cüzdanı bağlayın.",
-        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın.",
-        "Hemen satmak için <b>Emir defteri</b> bölümündeki bir alış teklifinin yanında <b>Sat</b>'a, ardından <b>Touch ID ile sat</b> düğmesine tıklayın.",
-        "Kendi fiyatınızı belirlemek için: büyük pencerede <b>Emir ver</b>'e, küçük pencerede <b>Al / Sat</b> sekmesine tıklayın. <b>ORN Sat</b> seçeneğini seçin, ORN miktarını ve toplam SOL'u yazın, ardından <b>Touch ID ile ORN sat</b> düğmesine tıklayın.",
-        "Emriniz alınana kadar Orien Wallet'ı açık tutun. Ayarlar, <b>Bu bilgisayar</b> altındaki <b>Bu bilgisayarı uyanık tut</b> seçeneği siz uzaktayken açık kalmasını sağlar."
+        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın. Küçük pencerede önce <b>Al / Sat</b> sekmesini açın.",
+        "Hemen satmak için: <b>ORN Sat</b> altında, <b>Piyasa emri</b> seçiliyken kaç ORN satacağınızı yazın, <b>ORN Sat</b>'a tıklayın, ardından Touch ID veya cüzdanın parolasıyla onaylayın. Satış en iyi alış emirlerine yapılır; her birinin tamamı veya bir kısmı karşılanır.",
+        "Kendi fiyatınızı belirlemek için: <b>Limit emri</b>'ne tıklayın, <b>ORN başına fiyat</b> ve <b>Tutar</b> değerlerini yazın, ardından <b>ORN Sat</b>'a tıklayın. Alıcılar tamamını veya bir kısmını alabilir.",
+        "Satış emriniz alınana kadar Orien Wallet'ı açık tutun. Ayarlar, <b>Bu bilgisayar</b> altındaki <b>Bu bilgisayarı uyanık tut</b> seçeneği siz uzaktayken açık kalmasını sağlar."
       ],
       "note": "SOL, satıştan sonra genellikle bir dakika içinde bu cüzdanın Solana bakiyesine ulaşır."
     },
@@ -2322,13 +2422,14 @@
       "note": "Takaslar Solana üzerinde Jupiter aracılığıyla yapılır. Cüzdan her takası imzalamadan önce kontrol eder ve takas saniyeler içinde tamamlanır."
     },
     "buy-order": {
-      "title": "Alış emri ver",
+      "title": "Kendi fiyatınızdan ORN satın al",
       "steps": [
-        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın.",
-        "Büyük pencerede <b>Emir ver</b>'e, küçük pencerede <b>Al / Sat</b> sekmesine tıklayın.",
-        "<b>ORN Satın Al</b> seçeneğini seçin, ardından kaç ORN alacağınızı ve ödeyeceğiniz toplam SOL'u yazın.",
-        "<b>Touch ID ile ORN satın al</b> düğmesine tıklayın. SOL hemen bu cüzdandan kenara ayrılır.",
-        "Bir satıcı emri karşıladığında ORN'ler, Orien Wallet kapalı olsa bile kendiliğinden ulaşır. İptal etmek için <b>Açık alışlar</b> (küçük pencerede <b>Takaslarınız</b>) altında emrin üzerindeki <b>İptal</b>'e tıklayın."
+        "Ana Sayfa'da iki ok simgeli yuvarlak düğme olan <b>Takas</b>'a tıklayın. Küçük pencerede önce <b>Al / Sat</b> sekmesini açın.",
+        "<b>ORN Satın Al</b> altında <b>Limit emri</b>'ne tıklayın.",
+        "SOL cinsinden <b>ORN başına fiyat</b> ve ORN olarak <b>Tutar</b> değerlerini yazın. Toplam kendiliğinden hesaplanır.",
+        "<b>ORN Satın Al</b>'a tıklayın ve Touch ID veya cüzdanın parolasıyla onaylayın. SOL hemen bu cüzdandan kenara ayrılır ve emriniz emir defterine eklenir.",
+        "Satıcılar emrin tamamını veya bir kısmını karşılayabilir. ORN'ler, Orien Wallet kapalı olsa bile her kısım karşılandıkça kendiliğinden ulaşır.",
+        "Kalanı iptal etmek için <b>Emirleriniz</b>'e (küçük pencerede <b>Takaslarınız</b>), ardından <b>Açık alışlar</b> altında emrin üzerindeki <b>İptal</b>'e tıklayın. Kullanılmayan SOL geri gelir."
       ]
     }
   },
@@ -2508,5 +2609,21 @@
   "None of these orders could be taken.": "Bu emirlerin hiçbiri alınamadı.",
   "Candle length": "Mum süresi",
   "Your orders": "Emirleriniz",
-  "The Exchange's price chart:": "Borsanın fiyat grafiği:"
+  "The Exchange's price chart:": "Borsanın fiyat grafiği:",
+  "Buy order": "Alış emri",
+  "Done · ORN in your wallet": "Tamamlandı · ORN cüzdanınızda",
+  "Done · SOL in your Solana balance": "Tamamlandı · SOL Solana bakiyenizde",
+  "Needs your approval · open it": "Onayınız gerekiyor · açın",
+  "Under way": "Sürüyor",
+  "Their ORN are locked for you · your wallet is paying": "Karşı tarafın ORN'leri sizin için kilitlendi · cüzdanınız ödeme yapıyor",
+  "Their wallet is locking the ORN": "Karşı tarafın cüzdanı ORN'leri kilitliyor",
+  "Their wallet didn't answer · nothing was paid": "Karşı tarafın cüzdanı yanıt vermedi · hiçbir ödeme yapılmadı",
+  "The rest stopped; nothing was paid for those.": "Geri kalanlar durdu; onlar için hiçbir ödeme yapılmadı.",
+  "Each seller is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Her satıcı ayrı bir takastır ve genellikle bir dakika içinde kendiliğinden tamamlanır. Bunu kapatabilirsiniz: işlem devam eder.",
+  "Each buyer is its own swap and finishes by itself, usually within a minute. You can close this: it carries on.": "Her alıcı ayrı bir takastır ve genellikle bir dakika içinde kendiliğinden tamamlanır. Bunu kapatabilirsiniz: işlem devam eder.",
+  "Type your password above": "Parolanızı yukarıya yazın",
+  "A part is settling (~1 min)": "Bir kısmı sonuçlanıyor (~1 dk)",
+  "Your buy order is live on the order book, and sellers can fill any part of it. You can close Orien Wallet: ORN arrive in your wallet as each part fills.": "Alış emriniz emir defterinde yayında ve satıcılar herhangi bir kısmını karşılayabilir. Orien Wallet'ı kapatabilirsiniz: her kısım karşılandıkça ORN'ler cüzdanınıza ulaşır.",
+  "A seller is filling part of your order: those ORN arrive in your wallet within a minute or so.": "Bir satıcı emrinizin bir kısmını karşılıyor: bu ORN'ler yaklaşık bir dakika içinde cüzdanınıza ulaşır.",
+  "Waiting for their wallet to lock the ORN": "Karşı tarafın cüzdanının ORN'leri kilitlemesi bekleniyor"
 }

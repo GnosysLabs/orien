@@ -10934,7 +10934,7 @@
       const l = lines[i];
       const dot = l.state === "done" ? "✓" : l.state === "stopped" ? "!" : String(i + 1);
       return `<li class="s-${l.state}${l.swap ? " sd-group-row" : ""}"${l.swap ? ` data-group-swap="${esc(l.swap.id)}"` : ""}><span class="dot">${dot}</span>
-        <div class="what"><strong>${esc(item.name)}</strong> · ${esc(fmtOrn(item.orn))} ORN for ${esc(exPlain(item.lamports / 1e9, 4))} SOL<div class="who">${esc(l.line)}</div></div></li>`;
+        <div class="what"><strong>${esc(item.name)}</strong> · ${esc(fmtOrn(item.orn))} ORN · ${esc(exPlain(item.lamports / 1e9, 4))} SOL<div class="who">${esc(l.line)}</div></div></li>`;
     }).join("");
     const head = over
       ? `<div class="sd-state-head ready"><span>${stopped ? `✓ ${done} of ${lines.length} complete` : "✓ Complete"}</span></div>`
