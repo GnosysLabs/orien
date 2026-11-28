@@ -11117,7 +11117,7 @@
     const depthClass = (orn, max) => `d-${Math.max(1, Math.min(10, Math.ceil((orn / max) * 10)))}`;
     // As an exchange shows it: sell orders above, cheapest nearest the
     // middle, the price between, buy orders below. An order fills the form.
-    const row = (o, isBuy, maxOrn) => `<button type="button" class="ob-row ${isBuy ? "bid" : "ask"}" data-pick="${o.id}" data-funded="${o.funded ? "1" : ""}" title="${esc(o.seller_name || "")}">
+    const row = (o, isBuy, maxOrn) => `<button type="button" class="ob-row ${isBuy ? "bid" : "ask"}" data-pick="${o.id}" data-funded="${offerTag(o)}" title="${esc(o.seller_name || "")}">
         <span class="ob-depth ${depthClass(o.orn, maxOrn)}" aria-hidden="true"></span>
         <span class="ob-price">${esc(exUsd() ? exPx(unitOf(o)) : fmtBookUnit(unitOf(o)))}</span>
         <span class="ob-num">${esc(fmtOrn(o.orn))}</span>
@@ -11153,7 +11153,7 @@
     // The cheapest sell order shows, beside the price.
     const asks = list.querySelector(".ob-asks");
     if (asks) asks.scrollTop = asks.scrollHeight;
-    for (const b of list.querySelectorAll("[data-pick]")) b.onclick = () => exPick(Number(b.dataset.pick), b.dataset.funded === "1");
+    for (const b of list.querySelectorAll("[data-pick]")) b.onclick = () => exPick(Number(b.dataset.pick), b.dataset.funded);
     exDefaultPrice();
     updateExRate();
   }
@@ -11163,6 +11163,19 @@
   // The order book's best orders, someone else's and open: the cheapest
   // sell order (to buy from) and the highest buy order (to sell into).
   const exUnit = (o) => (o.lamports / 1e9) / (o.orn / 1e9);
+  // Which list an order is from: sell orders, buy orders that fill in
+  // parts ("b"), or older buy orders that fill whole ("1"). Each list
+  // numbers its own orders.
+  const offerTag = (o) => o.book ? "b" : o.funded ? "1" : "";
+  // Selling `orn` units into a buy order: what it pays, or null when that
+  // part can't be sold (an older order goes whole; a part is at least
+  // 0.01 SOL, and leaves at least that much of the order, or all of it).
+  function exBookShare(o, orn) {
+    if (orn >= o.orn) return o.lamports;
+    if (!o.book || orn <= 0) return null;
+    const share = Math.floor(o.lamports_total * orn / o.orn_total);
+    return share >= 0.01e9 && o.lamports - share >= 0.01e9 ? share : null;
+  }
   function exBest(side) {
     const others = (board.offers || []).filter((o) => o.coin === "sol" && o.seller_online !== false && !(board.me && o.seller === board.me.id));
     const list = others.filter((o) => (o.side === "buy") === (side === "buy"));
@@ -11238,8 +11251,8 @@
   };
   // An order in the book, clicked: the form takes its side's opposite, its
   // price and all of it, to change before pressing Buy or Sell.
-  function exPick(id, funded) {
-    const o = (board.offers || []).find((x) => x.id === id && Boolean(x.funded) === Boolean(funded));
+  function exPick(id, tag) {
+    const o = (board.offers || []).find((x) => x.id === id && offerTag(x) === (tag || ""));
     if (!o) return;
     exSide = o.side === "buy" ? "sell" : "buy";
     $("ex-problem").hidden = true;
@@ -11306,16 +11319,26 @@
     }
     return fills;
   }
-  // Buy orders filled, highest price first, for `orn` units: each whole,
-  // so only those that fit in what's left.
+  // Buy orders filled, highest price first, for `orn` units: any part of
+  // one that fills in parts, older ones whole, so only those that fit.
   function exSellPlan(orn) {
     const bids = (board.offers || []).filter((o) => o.coin === "sol" && o.side === "buy" && o.seller_online !== false && !(board.me && o.seller === board.me.id))
       .sort((a, b) => exUnit(b) - exUnit(a));
     const fills = [];
     let left = orn;
     for (const o of bids) {
-      if (fills.length >= EX_MAX_TAKES) break;
-      if (o.orn <= left + 1) { fills.push({ o, orn: o.orn, lamports: o.lamports }); left -= o.orn; }
+      if (fills.length >= EX_MAX_TAKES || left <= 0) break;
+      if (o.orn <= left + 1) { fills.push({ o, orn: o.orn, lamports: o.lamports }); left -= o.orn; continue; }
+      if (!o.book) continue;
+      // Part of it, in whole ten-thousandths of an ORN; less if what it
+      // would leave of the order is under 0.01 SOL.
+      let part = Math.floor(left / 1e5) * 1e5;
+      const keep = Math.ceil(0.01e9 * o.orn_total / o.lamports_total / 1e5) * 1e5;
+      if (o.orn - part < keep) part = Math.floor((o.orn - keep) / 1e5) * 1e5;
+      const lamports = exBookShare(o, part);
+      if (lamports === null) continue;
+      fills.push({ o, orn: part, lamports });
+      left -= part;
     }
     return fills;
   }
@@ -11574,12 +11597,13 @@
       const fills = exPlan() || [];
       if (!fills.length) return;
       $("ex-problem").hidden = true;
-      if (fills.length === 1) return startTake(fills[0].o.id, exSide === "sell", fills[0].orn);
+      if (fills.length === 1) return startTake(fills[0].o.id, offerTag(fills[0].o), fills[0].orn);
       return startTakeMany(fills);
     }
     // At an order's price: trade with it now, on its own screen. Buying
     // takes what's typed from the cheapest sell order (all it has, at most);
-    // selling fills a buy order, which goes whole.
+    // selling sells what's typed into a buy order that fills in parts, and
+    // fills an older one whole.
     const match = exMatch();
     if (match) {
       $("ex-problem").hidden = true;
@@ -11591,8 +11615,16 @@
           problem("ex-problem", paid < 0.01e9 ? "Buy at least 0.01 SOL worth." : `Buy all ${fmtOrn(match.orn)} ORN, or leave at least 0.01 SOL worth of the order.`);
           return;
         }
-        startTake(match.id, false, part);
-      } else startTake(match.id, true);
+        startTake(match.id, "", part);
+      } else if (match.book) {
+        const want = Math.round(parseFloat($("ex-orn").value) * 1e9);
+        const part = Math.min(want, match.orn);
+        if (exBookShare(match, part) === null) {
+          problem("ex-problem", part * match.lamports_total / match.orn_total < 0.01e9 ? "Sell at least 0.01 SOL worth." : `Sell all ${fmtOrn(match.orn)} ORN, or leave at least 0.01 SOL worth of the order.`);
+          return;
+        }
+        startTake(match.id, "b", part);
+      } else startTake(match.id, "1");
       return;
     }
     exBusy = true;
@@ -11624,7 +11656,7 @@
           pendingTake.refund = $("ex-addr").value;
           renderDetail();
           if (await shortOfSol(parseFloat(sol), "ex-problem", ORDER_SOL_FEES)) throw $("ex-problem").textContent;
-          const orderId = await invoke("order_create_buy", { orn, sol, refund: $("ex-addr").value, password });
+          const orderId = await invoke("order_create_buy", { orn, sol, refund: $("ex-addr").value, password, filler: board.bookFiller || null });
           pendingTake = null;
           $("ex-pw").value = "";
           $("ex-orn").value = $("ex-sol").value = "";
@@ -11684,6 +11716,8 @@
         board.solUsd = answer.solana && answer.solana.usd;
         board.solRates = (answer.solana && typeof answer.solana === "object") ? answer.solana : {};
         board.maxOrderLamports = answer.max_order_lamports || 10e9;
+        // New buy orders fill in parts when the Market has the program.
+        board.bookFiller = answer.book_filler || null;
         board.loaded = true;
         if (answer.base) boardBase = answer.base;
         $("board-problem").hidden = true;
@@ -11750,11 +11784,11 @@
     return true;
   }
 
-  async function startTake(id, isFunded, part) {
-    let o = board.offers.find((x) => x.id === id && Boolean(x.funded) === Boolean(isFunded));
+  async function startTake(id, tag, part) {
+    let o = board.offers.find((x) => x.id === id && offerTag(x) === (tag || ""));
     if (!o) return;
-    // Part of a sell order: the rest stays in the book at the same price.
-    if (part && part < o.orn) o = { ...o, orn: part, lamports: Math.round(o.lamports * part / o.orn) };
+    // Part of an order: the rest stays in the book at the same price.
+    if (part && part < o.orn) o = { ...o, orn: part, lamports: o.book ? exBookShare(o, part) : Math.round(o.lamports * part / o.orn) };
     board.taking = o;
     if (!ready()) return;
     const isBuy = o.side === "buy";
@@ -11831,7 +11865,7 @@
   // the first, with the totals, then each order its own swap.
   async function startTakeMany(fills) {
     const selling = fills[0].o.side === "buy";
-    await startTake(fills[0].o.id, selling, fills[0].orn);
+    await startTake(fills[0].o.id, offerTag(fills[0].o), fills[0].orn);
     const sum = exPlanSum(fills);
     const many = { many: fills, side: fills[0].o.side, coin: "sol", funded: selling, orn: sum.orn, lamports: sum.lamports, seller_name: `${fills.length} sellers` };
     board.taking = many;
@@ -11893,7 +11927,10 @@
         let started = 0, failed = "";
         for (const f of taken.many) {
           try {
-            if (isBuy) {
+            if (isBuy && f.o.book) {
+              await invoke("order_fill_book", { serverId: f.o.id, orderPubkey: f.o.order_pubkey, orn: plainOrn(f.orn),
+                buyerOrien: f.o.buyer_orien, buyerName: f.o.seller_name || null, payout: refund, password });
+            } else if (isBuy) {
               await invoke("order_fill_buy", { serverId: f.o.id, orderPubkey: f.o.order_pubkey, orn: f.o.orn, lamports: f.o.lamports, hash: f.o.hash,
                 buyerOrien: f.o.buyer_orien, buyerName: f.o.seller_name || null, payout: refund, password });
             } else {
@@ -11921,6 +11958,24 @@
       if (taken.coin === "sol") {
         $("bt-refund").value = await ensureOwnSol(password);
         if (!isBuy && await shortOfSol(taken.lamports / 1e9, "bt-problem")) return;
+      }
+      if (isBuy && taken.book) {
+        const fillId = await invoke("order_fill_book", {
+          serverId: taken.id,
+          orderPubkey: taken.order_pubkey,
+          orn: plainOrn(taken.orn),
+          buyerOrien: taken.buyer_orien,
+          buyerName: taken.seller_name || null,
+          payout: $("bt-refund").value,
+          password,
+        });
+        $("bt-pw").value = "";
+        board.taking = null;
+        await loadSwaps();
+        openSwap(fillId);
+        loadBoard();
+        stepSwaps();
+        return;
       }
       if (isBuy && taken.funded) {
         const fillId = await invoke("order_fill_buy", {
@@ -12197,7 +12252,7 @@
       }
       if (buy) {
         if (postCoin === "sol") {
-          const orderId = await invoke("order_create_buy", { orn: $("bp-orn").value, sol: $("bp-btc").value, refund: $("bp-payout").value, password });
+          const orderId = await invoke("order_create_buy", { orn: $("bp-orn").value, sol: $("bp-btc").value, refund: $("bp-payout").value, password, filler: board.bookFiller || null });
           $("bp-pw").value = "";
           $("bp-orn").value = $("bp-btc").value = "";
           await loadSwaps();
@@ -15737,7 +15792,7 @@
         stepSwaps();
         linking.done = false;
         linkWallet();
-        if (board.taking) startTake(board.taking.id);
+        if (board.taking) startTake(board.taking.id, offerTag(board.taking));
       }
     } catch (e) { problem("bs-problem", e); }
     finally { $("bs-go").disabled = false; }

@@ -1144,7 +1144,7 @@ pub fn drive_on(
         .collect();
     live.extend(all.iter().filter(|kept| !kept.swap.finished()).filter_map(|kept| kept.board));
     live.extend(crate::solswaps::load(dir).iter().filter(|kept| !kept.swap.finished()).filter_map(|kept| kept.board));
-    live.extend(crate::orders::load(dir).iter().filter(|kept| !kept.finished()).filter_map(|kept| kept.server_id));
+    live.extend(crate::orders::load(dir).iter().filter(|kept| !kept.finished()).filter_map(|kept| kept.approval_key()));
     crate::approval::keep_only(dir, &live);
     swaps::save(dir, all)?;
     save(dir, &saved)?;
@@ -1203,6 +1203,31 @@ pub fn report_funded_fill(dir: &Path, id: i64, lock_from: &str, lock_seq: u64) -
         Some(json!({ "lock_from": lock_from, "lock_seq": lock_seq })),
     )?;
     Ok(answer["order"].clone())
+}
+
+/// Registers a part-filling buy order on the Market with its 64 secrets
+/// (over TLS; the Market never shows them), returning its number there.
+pub fn register_book_order(dir: &Path, order_pubkey: &str, secrets: &[String]) -> Result<i64, String> {
+    let answer = call(dir, "POST", "/books", Some(json!({ "order_pubkey": order_pubkey, "secrets": secrets })))?;
+    answer["order"]["id"].as_i64().ok_or_else(|| "The Market did not return the order ID.".into())
+}
+
+/// This account's part-filling orders (as buyer) and parts (as seller).
+pub fn my_book_orders(dir: &Path) -> Result<Value, String> {
+    Ok(call(dir, "GET", "/books/mine", None)?)
+}
+
+/// Asks the Market to reserve `orn` of book order `id` for this seller on
+/// Solana, paid to `seller_sol`. Returns the part (its hash and lamports).
+pub fn reserve_book_part(dir: &Path, id: i64, seller_sol: &str, wallet: &str, orn: u64) -> Result<Value, String> {
+    let answer = call(dir, "POST", &format!("/books/{id}/reserve"), Some(json!({ "seller_sol": seller_sol, "wallet": wallet, "orn": orn })))?;
+    Ok(answer["part"].clone())
+}
+
+/// Reports the seller's ORN lock for part `part`: the Market settles it.
+pub fn report_book_fill(dir: &Path, part: i64, lock_from: &str, lock_seq: u64) -> Result<Value, String> {
+    let answer = call(dir, "POST", &format!("/books/parts/{part}/fill"), Some(json!({ "lock_from": lock_from, "lock_seq": lock_seq })))?;
+    Ok(answer["part"].clone())
 }
 
 /// Syncs a funded buy order's on-chain state with the Market server.

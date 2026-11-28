@@ -2793,14 +2793,14 @@ fn order_list(app: AppHandle) -> Result<Vec<orders::View>, String> {
 /// Buyer: creates a new funded SOL buy order locally and returns its ID so the
 /// UI immediately opens the funding QR screen.
 #[tauri::command]
-async fn order_create_buy(app: AppHandle, orn: String, sol: String, refund: String, password: Option<String>) -> Result<String, String> {
+async fn order_create_buy(app: AppHandle, orn: String, sol: String, refund: String, password: Option<String>, filler: Option<String>) -> Result<String, String> {
     let orn = money::read(&orn)?;
     let lamports = solswaps::read_sol(&sol)?;
     let dir = folder(&app)?;
     let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
     tauri::async_runtime::spawn_blocking(move || {
         let password = approve_take(&wallet, password)?;
-        orders::create_buy_order(&dir, &wallet, orn, lamports, &refund, password.as_deref())
+        orders::create_buy_order(&dir, &wallet, orn, lamports, &refund, password.as_deref(), filler.as_deref())
     })
     .await
     .map_err(|error| error.to_string())?
@@ -2845,6 +2845,35 @@ async fn order_fill_buy(
             &payout,
             password.as_deref(),
         )
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+/// Seller: sells `orn` ORN into a part-filling buy order (0 SOL needed).
+#[tauri::command]
+#[allow(clippy::too_many_arguments)]
+async fn order_fill_book(
+    app: AppHandle,
+    server_id: i64,
+    order_pubkey: String,
+    orn: String,
+    buyer_orien: String,
+    buyer_name: Option<String>,
+    payout: String,
+    password: Option<String>,
+) -> Result<String, String> {
+    let orn = money::read(&orn)?;
+    let dir = folder(&app)?;
+    let wallet = wallet_file(&dir).ok_or("no wallet yet")?;
+    let password = tauri::async_runtime::spawn_blocking({
+        let wallet = wallet.clone();
+        move || approve_take(&wallet, password)
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+    with_swaps(&app, password.clone(), move |dir, orien| {
+        orders::fill_book_order(orien, dir, &wallet, server_id, &order_pubkey, orn, &buyer_orien, buyer_name, &payout, password.as_deref())
     })
     .await
     .map_err(|error| error.to_string())?
@@ -3069,7 +3098,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![share_address, biometry_kind, assets::solana_devnet_address, assets::solana_devnet_balances, assets::solana_devnet_history, assets::solana_devnet_transaction_activity, solana_send::solana_devnet_quote, solana_send::solana_devnet_send, solana_send::solana_devnet_receipt, solana_send::swap::devnet_swap_quote, solana_send::swap::devnet_swap_approve, solana_send::swap::devnet_swap_status, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_here, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, board_post_buy, board_post_buy_sol, board_take_buy, board_take_buy_sol, order_list, order_create_buy, order_fill_buy, order_cancel_buy, sol_open, sol_cluster, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, link_devnet_sol, profile_link::profile_link_quote, profile_link::profile_link_confirm, board_wallet_states, market_image,
+        .invoke_handler(tauri::generate_handler![share_address, biometry_kind, assets::solana_devnet_address, assets::solana_devnet_balances, assets::solana_devnet_history, assets::solana_devnet_transaction_activity, solana_send::solana_devnet_quote, solana_send::solana_devnet_send, solana_send::solana_devnet_receipt, solana_send::swap::devnet_swap_quote, solana_send::swap::devnet_swap_approve, solana_send::swap::devnet_swap_status, has_wallet, create_wallet, save_phrase, restore_wallet, set_password, choose_wallet, overview_now, send_payment, activity, quote, contacts, save_contact, delete_contact, contacts_sync, members, save_member, delete_member, biometric_unlock, biometric_enable, update::check_update, update::install_update, update::download_update, update::away_seconds, mine_start, mine_stop, mine_resume, mine_set, mine_status, mine_benchmark, mine_benchmark_cancel, large_pages_state, large_pages_set_up, wallets, wallet_balances, use_wallet, rename_wallet, add_wallet, forget_wallet, swap_list, swap_sell, swap_buy, swap_accept, swap_step, swap_smallest, board_offers, board_me, board_here, board_email_start, board_email_finish, board_sign_out, board_post, board_take, board_withdraw, board_link, notifications_ask, push_sync, open_network_map, board_wallets_sync, board_post_sol, board_take_sol, board_post_buy, board_post_buy_sol, board_take_buy, board_take_buy_sol, order_list, order_create_buy, order_fill_buy, order_fill_book, order_cancel_buy, sol_open, sol_cluster, sol_payout_check, open_site, qr_code, address_qr, wallet_profiles, board_profile_save, board_picture_pick, board_verify, link_devnet_sol, profile_link::profile_link_quote, profile_link::profile_link_confirm, board_wallet_states, market_image,
             theme_store_picture, board_banner_remove, market_search, market_listings, market_listing, market_profile, market_call, market_pick_pictures, market_listing_picture, community_picture, klipy_gifs, dock_badge, mac_notify, board_delete_account, wallet_icons, set_wallet_icon, vault_ready, vault_unlock, open_contact, pair_offer, pair_offer_wait, pair_offer_send, pair_join, pair_join_wait, pair_invite, pair_invite_wait, pair_accept, pair_wallets, pair_accept_send, pair_cancel, wallet_phrase, phrase_check, app_theme, set_app_theme, set_backdrop, theme_picture_save, theme_picture_load, theme_picture_delete, explorer, window_wide, window_ready, app_prefs, set_app_pref, app_unlock, computer_settings, set_computer_setting, notifications_muted, set_notification, open_legal, open_post_link, open_extension, haptics::haptic, haptics::haptic_ready, sitesignin::site_signin_answer, board_paid_wallet, board_wallet_remove])
         .build(tauri::generate_context!())
         .expect("the wallet window could not start")

@@ -34,6 +34,7 @@ export const CHANGELOG: Entry[] = [
       'The Exchange works like a trading app: a TradingView price chart, the order book with sell orders above and buy orders below, and a Buy / Sell form beside them.',
       'Market orders, the default: type how much to spend, and Buy takes it from the cheapest sellers, from several at once if one doesn\u2019t have enough.',
       'Buy just part of a sell order, at its price; the rest stays open for others.',
+      'Buy orders fill in parts too: sell 50 ORN into a buy order for 1,000, and the rest stays open. Each part settles on its own, with the buyer\u2019s SOL locked on Solana the whole time.',
       'Limit orders keep a price of your own, waiting in the order book until someone meets it.',
       'Recent trades shows everyone\u2019s latest swaps; Your orders shows your own open orders and history.',
       'Sell orders placed before this version were closed: post them again from this version, from the same wallet. Nothing was locked, so nothing was lost.',
