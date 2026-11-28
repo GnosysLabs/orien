@@ -1785,6 +1785,8 @@
   /* Share of what you have: five stops on a line, and what it's a share of
      under them. */
   .ex-pct-wrap[hidden] { display: none; }
+  /* Not usable yet (a Limit order with no price): dimmed, and it takes no clicks. */
+  .ex-pct-wrap.off .ex-pct { opacity: .35; pointer-events: none; }
   .ex-pct { position: relative; display: flex; justify-content: space-between; margin: 2px 0; }
   .ex-pct-line { position: absolute; left: 17px; right: 17px; top: 6px; height: 3px; border-radius: 2px; background: var(--line); }
   #ex-pct-fill { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--good); transition: width .15s ease; }
@@ -4981,7 +4983,7 @@
               </div>
               <div class="ex-field ex-in">
                 <label for="ex-orn"><em id="ex-orn-label">Amount (ORN)</em></label>
-                <div class="box plain"><input id="ex-orn" placeholder="500" inputmode="decimal" autocomplete="off"></div>
+                <div class="box plain"><input id="ex-orn" placeholder="0" inputmode="decimal" autocomplete="off"></div>
                 <div class="ex-under" id="ex-bal"></div>
               </div>
               <div class="ex-field ex-in ex-total">
@@ -11421,6 +11423,8 @@
   function exPctPaint() {
     for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.classList.toggle("on", Number(b.dataset.pct) <= (exPct || 0));
     $("ex-pct-fill").style.width = `${exPct || 0}%`;
+    // A Limit order's share needs its price first: greyed out until then.
+    $("ex-pct").classList.toggle("off", exKind === "limit" && !(exPriceSol() > 0));
     const buy = exSide === "buy";
     const sol = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
     const orn = view && view.most;
@@ -11428,33 +11432,43 @@
       ? (devnetAssets.balances && Number.isFinite(sol) ? `of your ${exPlain(sol, 4)} SOL` : "")
       : (orn ? `of your ${orn} ORN` : "");
   }
-  for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.onclick = () => {
-    const was = exPct;
-    exPct = Number(b.dataset.pct);
-    const price = exPriceSol();
+  // Fills the form with the share chosen: of this wallet's SOL to spend on
+  // a buy, of its ORN on a sale. False when it can't be worked out yet.
+  function exApplyPct() {
     if (exSide === "buy" && exKind === "market") {
       const have = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
-      if (!devnetAssets.balances || !Number.isFinite(have)) { exPct = was; return; }
+      if (!devnetAssets.balances || !Number.isFinite(have)) return false;
       // Room for the Solana fees of the swaps all of it would take, not more.
       const swaps = Math.max(1, exBuyPlan(have).length);
       const sol = Math.max(0, have - swaps * SOL_SWAP_FEES) * exPct / 100;
       const cur = exSpendCur();
       const shown = cur === "sol" ? Math.floor(sol * 1e4) / 1e4 : Math.floor(sol * exSolRate(cur) * 100) / 100;
       $("ex-spend").value = exPct > 0 ? String(shown) : "";
-    } else if (exSide === "buy") {
+      return true;
+    }
+    if (exKind === "limit" && !(exPriceSol() > 0)) return false;
+    if (exSide === "buy") {
+      // A Limit buy: that share of the SOL, at the price typed (or the
+      // order's own, when it trades at once).
       const max = exSolMax();
-      if (max == null) { exPct = was; return; }
-      const sol = Math.floor(max * exPct / 100 * 1e4) / 1e4;
-      $("ex-sol").value = sol ? exPlain(sol) : "";
-      $("ex-orn").value = sol && price > 0 ? exPlain(sol / price, 4) : "";
+      if (max == null) return false;
+      const match = exMatch(), price = match ? exUnit(match) : exPriceSol();
+      const orn = Math.floor(max * exPct / 100 / price * 1e4) / 1e4;
+      $("ex-orn").value = orn ? exPlain(orn, 4) : "";
     } else {
       // The most this wallet can sell: its ORN less the network's fee.
       const have = parseFloat(String(view && view.most || "").replace(/,/g, ""));
-      if (!(have > 0)) { exPct = was; return; }
+      if (!(have > 0)) return false;
       const orn = Math.floor(have * exPct / 100 * 1e4) / 1e4;
       $("ex-orn").value = orn ? exPlain(orn, 4) : "";
-      $("ex-sol").value = orn && price > 0 ? exPlain(orn * price) : "";
     }
+    if (exKind === "limit") exFromPrice();
+    return true;
+  }
+  for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.onclick = () => {
+    const was = exPct;
+    exPct = Number(b.dataset.pct);
+    if (!exApplyPct()) exPct = was;
     exPctPaint();
     updateExRate();
   };
@@ -11490,14 +11504,15 @@
     $("ex-price").closest(".ex-field").hidden = market;
     $("ex-orn").closest(".ex-field").hidden = market && buy;
     $("ex-sol").closest(".ex-field").hidden = market;
-    // A share of what you have: Market only. A limit order is your own
-    // price and amount.
-    $("ex-pct").hidden = !market;
+    // A share of what you have, on both kinds of order: a Limit order's
+    // waits for its price (see exPctPaint).
+    $("ex-pct").hidden = false;
+    exPctPaint();
     $("ex-spend-label").textContent = `Spend (${exSpendCur().toUpperCase()})`;
     exPriceCurSync();
   }
   $("ex-kind-market").onclick = () => { exSetKind("market"); exPct = null; exPctPaint(); updateExRate(); };
-  $("ex-kind-limit").onclick = () => { exSetKind("limit"); exDefaultPrice(); updateExRate(); };
+  $("ex-kind-limit").onclick = () => { exPct = null; exSetKind("limit"); exDefaultPrice(); updateExRate(); };
   // Spending is typed in the Exchange's currency when its SOL price is
   // known, otherwise in SOL. Its SOL, for the swaps.
   const exSpendCur = () => { const cur = exUsd() ? exCur() : "sol"; return cur !== "sol" && exSolRate(cur) ? cur : "sol"; };
@@ -11794,7 +11809,14 @@
     box.addEventListener("mouseup", (e) => { if (fresh) { e.preventDefault(); fresh = false; } });
     box.addEventListener("blur", () => { fresh = false; });
   }
-  $("ex-price").oninput = () => { if (exPicked && exPicked.text !== $("ex-price").value.trim()) exPicked = null; exFromPrice(); updateExRate(); };
+  $("ex-price").oninput = () => {
+    if (exPicked && exPicked.text !== $("ex-price").value.trim()) exPicked = null;
+    exFromPrice();
+    // A share already chosen follows the price; the slider wakes or sleeps with it.
+    if (exPct !== null && exKind === "limit") exApplyPct();
+    exPctPaint();
+    updateExRate();
+  };
   $("ex-orn").oninput = () => {
     exFromPrice();
     exPct = null; exPctPaint();
