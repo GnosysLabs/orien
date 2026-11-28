@@ -11191,7 +11191,18 @@
     if (!o.book) return Math.abs(orn - o.orn) > 1 ? `This buy order is for ${fmtOrn(o.orn)} ORN` : null;
     const part = Math.min(orn, o.orn);
     if (exBookShare(o, part) !== null) return null;
-    return o.lamports_total * part / o.orn_total < 0.01e9 ? "Sell at least 0.01 SOL worth" : `Sell all ${fmtOrn(o.orn)} ORN, or leave 0.01 SOL of it`;
+    // Each part is worth at least 0.01 SOL and leaves at least that much:
+    // say plainly which amounts work.
+    return exPartLimits(o, part, "Sell");
+  }
+  // Part of an order: worth at least 0.01 SOL, leaving at least that much.
+  // Which amounts work, said plainly ("Sell" or "Buy").
+  function exPartLimits(o, part, verb) {
+    const least = Math.ceil(0.01e9 * (o.orn_total || o.orn) / (o.lamports_total || o.lamports) / 1e5) * 1e5;
+    const most = Math.floor((o.orn - least) / 1e5) * 1e5;
+    if (most < least) return verb === "Sell" ? `This order only takes all ${fmtOrn(o.orn)} ORN at once` : `This order only sells all ${fmtOrn(o.orn)} ORN at once`;
+    if (part < least) return `${verb} at least ${fmtOrn(least)} ORN ${verb === "Sell" ? "to" : "from"} this order`;
+    return `${verb} up to ${fmtOrn(most)} ORN, or all ${fmtOrn(o.orn)}`;
   }
   function exBookShare(o, orn) {
     if (orn >= o.orn) return o.lamports;
@@ -11645,7 +11656,7 @@
         const part = Math.min(want, match.orn);
         const paid = match.lamports * part / match.orn;
         if (part < match.orn && (paid < 0.01e9 || match.lamports - paid < 0.01e9)) {
-          problem("ex-problem", paid < 0.01e9 ? "Buy at least 0.01 SOL worth." : `Buy all ${fmtOrn(match.orn)} ORN, or leave at least 0.01 SOL worth of the order.`);
+          problem("ex-problem", exPartLimits(match, part, "Buy") + ".");
           return;
         }
         startTake(match.id, "", part);
@@ -11653,7 +11664,7 @@
         const want = Math.round(parseFloat($("ex-orn").value) * 1e9);
         const part = Math.min(want, match.orn);
         if (exBookShare(match, part) === null) {
-          problem("ex-problem", part * match.lamports_total / match.orn_total < 0.01e9 ? "Sell at least 0.01 SOL worth." : `Sell all ${fmtOrn(match.orn)} ORN, or leave at least 0.01 SOL worth of the order.`);
+          problem("ex-problem", exSellSizeProblem(match, part) + ".");
           return;
         }
         startTake(match.id, "b", part);
