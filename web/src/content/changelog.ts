@@ -33,7 +33,7 @@ export const CHANGELOG: Entry[] = [
     changes: [
       'A Limit order\u2019s price is typed in the currency chosen at the top of the Exchange: dollars, euros and the rest, or SOL. The SOL price it comes to shows underneath; an order is set in SOL as it\u2019s placed.',
       'SOL sits right under USD in the currency menu.',
-      'The share slider is on Limit orders too, once a price is in, and shows what the wallet has.',
+      'The share slider is on Limit orders too, once a price is in, and shows what the wallet has. It\u2019s greyed out when there\u2019s too little for an order.',
       'A buy order for all of a wallet\u2019s SOL leaves the small minimum Solana keeps in a wallet. An order the wallet can\u2019t pay isn\u2019t made, and says the most it can be.',
       'Each amount in the order book says ORN after it.',
       'Clicking back into the window no longer closes the pop-up in front.',
