@@ -19,7 +19,7 @@ pub const MIN_PART: u64 = crate::sol::MIN_LAMPORTS;
 /// orien-book on Solana devnet, for testing.
 pub const DEVNET_BOOK_PROGRAM: &str = "5CjV4BhYX4kEydMEmKgX75fiAo8etX4mUxQfyheM6tDP";
 /// orien-book on Solana mainnet: none until it's deployed and made final.
-pub const MAINNET_BOOK_PROGRAM: Option<&str> = None;
+pub const MAINNET_BOOK_PROGRAM: Option<&str> = Some("91kXkHE87VAvHr52oKrXcMyycSc1jkyYrSgWLMAuMCdD");
 
 fn sha(parts: &[&[u8]]) -> [u8; 32] {
     let mut all = Vec::with_capacity(parts.iter().map(|p| p.len()).sum());
