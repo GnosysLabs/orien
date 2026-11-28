@@ -38,6 +38,8 @@ use std::str::FromStr;
 pub const MAX_ORDER_LAMPORTS: u64 = 10 * LAMPORTS_PER_SOL;
 /// Minimum remaining seconds on `fill_deadline` required before a seller locks ORN.
 const MIN_FILL_SAFETY_SECONDS: i64 = 1_800;
+/// A buy order this wallet was to pay for itself, still unpaid a minute on.
+const UNPAID: &str = "The SOL for this order hasn't arrived from this wallet, so nothing is locked. Cancel this order and place it again; anything that was sent comes back.";
 /// How long a seller has to finish a part of a part-filling order.
 const BOOK_FILL_WINDOW: i64 = 3_600;
 
@@ -131,6 +133,10 @@ pub struct KeptOrder {
     /// Buyer: what's still to buy, as Solana last said.
     #[serde(default)]
     pub orn_left: Option<u64>,
+    /// Buyer: paid from this wallet's own Solana balance as it was placed
+    /// (rather than from another wallet, by its pay screen).
+    #[serde(default)]
+    pub self_pay: bool,
     /// Seller: the Market's number for this part, and its secret's number.
     #[serde(default)]
     pub part_id: Option<i64>,
@@ -178,6 +184,9 @@ pub struct View {
     /// The last Solana transaction this wallet sent for it (a cancel), so
     /// the Solana activity can say what it was.
     pub sent_sig: Option<String>,
+    /// Paid from this wallet's own Solana balance, with nothing for the
+    /// person to send.
+    pub self_pay: bool,
 }
 
 fn file(dir: &Path) -> PathBuf {
@@ -331,6 +340,26 @@ pub fn create_buy_order(
     let auth_topup = authority_topup(&sol, &auth_kp.pubkey())?;
     let needed = lamports + order_rent + rent0 + 3 * FEE + auth_topup;
 
+    // Paid from this wallet's own Solana balance when that's where refunds
+    // go. Checked before anything is made: Solana refuses a payment that
+    // would leave a wallet with some SOL but less than its minimum.
+    let own = orien_net::keys::Wallet::open(wallet, password).ok().map(|opened| opened.solana_devnet_secret());
+    let self_pay = own.as_ref().is_some_and(|key| refund == solana::text(&Keypair::from_secret(key).pubkey()));
+    if let Some(key) = own.as_ref().filter(|_| self_pay) {
+        let balance = sol.balance(&Keypair::from_secret(key).pubkey()).map_err(|e| format!("Could not reach Solana: {e}"))?;
+        let extras = needed + CUSHION - lamports + FEE;
+        if balance.checked_sub(lamports + extras).is_none_or(|left| left > 0 && left < rent0) {
+            let most = balance.saturating_sub(extras + rent0);
+            return Err(format!(
+                "This wallet has {} SOL. Besides the order's {} SOL, Solana needs about {} SOL for its deposit and fees (most of it comes back) and keeps {} SOL in the wallet. The most this order can be is {} SOL.",
+                show_sol(balance),
+                show_sol(lamports),
+                show_sol(extras),
+                show_sol(rent0),
+                show_sol(most / 10_000 * 10_000)
+            ));
+        }
+    }
     let secret = random32()?;
     // A part-filling order is known by its root over all 64 hashes.
     let hash = if book {
@@ -380,28 +409,24 @@ pub fn create_buy_order(
         book,
         filler: filler.map(|f| solana::text(&f)),
         orn_left: None,
+        self_pay: false,
         part_id: None,
         index: None,
     };
 
     let mut all = load(dir);
     all.push(kept);
+    // Saved first, with its keys, so SOL sent to it can always be had back.
     save(dir, &all)?;
-    // Approved just now: paid at once from this wallet's own Solana balance,
-    // when that's where refunds go (and so the wallet it pays from).
-    if let Ok(opened) = orien_net::keys::Wallet::open(wallet, password) {
-        let secret = opened.solana_devnet_secret();
-        let index = all.len() - 1;
-        if all[index].buyer_sol == solana::text(&Keypair::from_secret(&secret).pubkey())
-            && let Some(to) = all[index].pay_address()
-        {
-            match solswaps::pay_from_wallet(&sol, &secret, &to, all[index].to_pay) {
-                Ok(_) => {}
-                Err(error) => all[index].problem = Some(error),
-            }
-            save(dir, &all)?;
-        }
+    let index = all.len() - 1;
+    all[index].self_pay = self_pay;
+    if let Some(key) = own.as_ref().filter(|_| self_pay)
+        && let Some(to) = all[index].pay_address()
+        && let Err(error) = solswaps::pay_from_wallet(&sol, key, &to, all[index].to_pay)
+    {
+        all[index].problem = Some(error);
     }
+    save(dir, &all)?;
     Ok(id)
 }
 
@@ -503,6 +528,7 @@ pub fn fill_buy_order(
         book: false,
         filler: None,
         orn_left: None,
+        self_pay: false,
         part_id: None,
         index: None,
     };
@@ -608,6 +634,7 @@ pub fn fill_book_order(
         book: true,
         filler: None,
         orn_left: None,
+        self_pay: false,
         part_id: Some(part_id),
         index,
     };
@@ -757,6 +784,10 @@ fn step_book(orien: &AppOrien, dir: &Path, order: &mut KeptOrder) -> Result<(), 
             let topup = authority_topup(&sol, &auth.pubkey())?;
             let needed = order.lamports + deposit + topup + FEE + rent0 + 2 * FEE;
             if balance < needed {
+                // Meant to be paid from this wallet at once, and it hasn't come.
+                if order.self_pay && now() > order.created + 60 {
+                    return Err(UNPAID.into());
+                }
                 return Ok(());
             }
             let t = sol.time().map_err(|e| e.to_string())?;
@@ -995,6 +1026,10 @@ fn step_one(orien: &AppOrien, dir: &Path, order: &mut KeptOrder) -> Result<(), S
             let topup = authority_topup(&sol, &auth.pubkey())?;
             let needed = order.lamports + deposit + topup + FEE + rent0 + 2 * FEE;
             if balance < needed {
+                // Meant to be paid from this wallet at once, and it hasn't come.
+                if order.self_pay && now() > order.created + 60 {
+                    return Err(UNPAID.into());
+                }
                 return Ok(());
             }
             let t = sol.time().map_err(|e| e.to_string())?;
@@ -1251,6 +1286,10 @@ pub fn step_all(orien: &AppOrien, dir: &Path, all: &mut [KeptOrder]) -> Result<(
 pub fn view(o: &KeptOrder) -> View {
     let sol = show_sol(o.lamports);
     let (stage, status) = match (&o.role, &o.stage) {
+        (OrderRole::Buyer, OrderStage::Funding) if o.self_pay => (
+            "pay",
+            format!("Paying {} SOL from this wallet's Solana balance to fund this buy order. Nothing to do: it goes live by itself.", show_sol(o.to_pay)),
+        ),
         (OrderRole::Buyer, OrderStage::Funding) => (
             "pay",
             format!(
@@ -1338,5 +1377,6 @@ pub fn view(o: &KeptOrder) -> View {
         book: o.book,
         orn_bought: bought.map(|n| crate::money::show(n as i128)),
         sent_sig: o.sent.as_ref().map(|(sig, _)| sig.clone()),
+        self_pay: o.self_pay,
     }
 }

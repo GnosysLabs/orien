@@ -10194,7 +10194,7 @@
     if (s.funded_order && s.role === "buy") {
       const steps = [
         paysItself(s)
-          ? { name: "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" ? "A few seconds" : "" }
+          ? { name: s.stage === "pay" ? "Paying" : "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" && !s.problem ? "A few seconds" : "" }
           : { name: "Pay", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: s.stage === "pay" ? "You" : "" },
         { name: "Posted", what: `Your ${B} locked on Solana and listed`, who: ["locking", "cancelling"].includes(s.stage) ? "About 20 seconds" : "" },
         { name: "Live", what: `Waiting for a seller · safe to close Orien Wallet`, who: "" },
@@ -10231,7 +10231,7 @@
       const steps = [
         { name: "Seller accepts", what: `${seller} locks ${O} for you`, who: s.stage === "accepting" ? "About a minute" : "" },
         own
-          ? { name: "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" ? "A few seconds" : "" }
+          ? { name: s.stage === "pay" ? "Paying" : "Paid", what: `${s.pay_amount ? s.pay_amount + " SOL" : B} from your Solana balance`, who: s.stage === "pay" && !s.problem ? "A few seconds" : "" }
           : { name: "Pay", what: `Send ${s.pay_amount ? s.pay_amount + " SOL" : B} from your SOL wallet`, who: s.stage === "pay" ? "You" : "" },
         { name: "Confirming", what: `Your ${O} on the way`, who: ["locking", "confirming", "claim"].includes(s.stage) ? "About a minute" : "" },
         { name: "Done", what: `${O} in your wallet`, who: "" },
@@ -10466,7 +10466,9 @@
   // Until this wallet's own Solana address has been read (just after the
   // app opens), a SOL buy is taken to pay itself, so "pay now" never flashes
   // for a swap the wallet is already paying.
-  const paysItself = (s) => s.coin === "sol" && s.role === "buy" && !!s.refund && (!devnetAssets.address || s.refund === devnetAssets.address) && !s.problem;
+  // A buy order knows it for itself (it was paid as it was placed).
+  const paysItself = (s) => s.funded_order ? s.role === "buy" && !!s.self_pay
+    : s.coin === "sol" && s.role === "buy" && !!s.refund && (!devnetAssets.address || s.refund === devnetAssets.address) && !s.problem;
   const needsMe = (s) => s.coin === "sol"
     ? s.role === "buy" && s.stage === "pay" && !!s.pay_to && !paysItself(s)
     : s.role === "buy" && s.stage === "bitcoin" && !s.paid && !s.paid_seen && !!s.pay_to;
@@ -11006,7 +11008,9 @@
     renderExchange(s);
     // The one thing a buyer does: pay. Gone once the payment is seen.
     $("sd-pay").hidden = !s.pay_to || s.paid || s.paid_seen || paysItself(s);
-    if (s.pay_to && paysItself(s) && s.stage === "pay") { $("sd-status").textContent = `Paying ${payText(s)} from your Solana balance. Nothing to do: the swap finishes by itself.`; $("sd-status").hidden = false; }
+    // Something's wrong with a payment this wallet makes: the problem says it all.
+    if (s.funded_order && s.stage === "pay" && s.problem && paysItself(s)) $("sd-status").hidden = true;
+    if (s.pay_to && paysItself(s) && s.stage === "pay" && !s.problem) { $("sd-status").textContent = `Paying ${payText(s)} from your Solana balance. Nothing to do: the swap finishes by itself.`; $("sd-status").hidden = false; }
     if (s.pay_to) {
       $("sd-pay-to").textContent = s.pay_to;
       $("sd-pay-amount").textContent = s.coin === "sol" ? s.pay_amount : s.btc;
@@ -11056,7 +11060,7 @@
     }
     // Cancel arrives with "Back to Exchange", once the order is live (or
     // when paying it ran into a problem), not while it's being set up.
-    $("sd-cancel-order").hidden = !(s.funded_order && s.can_cancel && (s.stage === "open" || (s.stage === "pay" && s.problem)));
+    $("sd-cancel-order").hidden = !(s.funded_order && s.can_cancel && (s.stage === "open" || (s.stage === "pay" && (s.problem || !paysItself(s)))));
     paintCancelOrder(s);
     if (s.problem && !needsPassword) problem("detail-problem", s.problem); else $("detail-problem").hidden = true;
     // As a pop-up, the checklist says how it's going: the status line only
@@ -11772,7 +11776,9 @@
   // rent (both back when it fills or is cancelled), Solana's fees and their
   // cushion, a top-up of the order's fee key when it runs low, the payment's
   // fee, and the 0.00089 SOL Solana keeps in any wallet left with SOL in it.
-  const ORDER_SOL_FEES = 0.0044;
+  // Besides those, Solana refuses a payment that leaves a wallet with some
+  // SOL but under its minimum (0.00065 SOL), so that much stays behind too.
+  const ORDER_SOL_FEES = 0.0052;
   // Buying: what this wallet's SOL can pay, after Solana's small fees, shown
   // beside the field and never exceeded. Unknown until the balance is read.
   function exSolMax() {
@@ -11913,7 +11919,7 @@
         // Approved: the order's own screen opens at once, its first step
         // under way, instead of the form sitting there while SOL is locked.
         const orn = $("ex-orn").value.trim(), sol = $("ex-sol").value.trim();
-        pendingTake = { id: "placing-order", pending: true, funded_order: true, role: "buy", coin: "sol", stage: "pay",
+        pendingTake = { id: "placing-order", pending: true, funded_order: true, self_pay: true, role: "buy", coin: "sol", stage: "pay",
           orn, sol, pay_amount: sol, refund: devnetAssets.address, created: Date.now() / 1000,
           status: "Payment received. Locking your SOL on Solana now. Keep this page open for about 20 seconds." };
         openSwap(pendingTake.id);
