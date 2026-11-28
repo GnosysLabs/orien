@@ -11181,6 +11181,14 @@
   // Selling `orn` units into a buy order: what it pays, or null when that
   // part can't be sold (an older order goes whole; a part is at least
   // 0.01 SOL, and leaves at least that much of the order, or all of it).
+  // Why `orn` units can't be sold into buy order `o`, or null when they can
+  // (more than it wants sells all of it).
+  function exSellSizeProblem(o, orn) {
+    if (!o.book) return Math.abs(orn - o.orn) > 1 ? `This buy order is for ${fmtOrn(o.orn)} ORN` : null;
+    const part = Math.min(orn, o.orn);
+    if (exBookShare(o, part) !== null) return null;
+    return o.lamports_total * part / o.orn_total < 0.01e9 ? "Sell at least 0.01 SOL worth" : `Sell all ${fmtOrn(o.orn)} ORN, or leave 0.01 SOL of it`;
+  }
   function exBookShare(o, orn) {
     if (orn >= o.orn) return o.lamports;
     if (!o.book || orn <= 0) return null;
@@ -11397,8 +11405,10 @@
     const over = exOverSol();
     const price = parseFloat($("ex-price").value);
     $("ex-price-hint").textContent = price > 0 && board.solUsd ? `≈ ${fmtUsd(price * board.solUsd)} per ORN` : "";
-    // A buy order takes exactly its amount: selling into one, all of it.
-    const wrongSize = !!match && exSide === "sell" && orn > 0 && Math.abs(orn * 1e9 - match.orn) > 1;
+    // Selling into a buy order: any part of one that fills in parts, an
+    // older one whole.
+    const sizeProblem = match && exSide === "sell" && orn > 0 ? exSellSizeProblem(match, Math.round(orn * 1e9)) : null;
+    const wrongSize = !!sizeProblem;
     bar.classList.toggle("warn", tooLow || tooHigh || over || wrongSize);
     const what = $("ex-rate-what");
     what.textContent = "";
@@ -11409,12 +11419,12 @@
     } else if (tooHigh) {
       val.textContent = `Buy orders are limited to ${maxSol} SOL per order`;
     } else if (wrongSize) {
-      val.textContent = `This buy order is for ${fmtOrn(match.orn)} ORN`;
+      val.textContent = sizeProblem;
     } else if (orn > 0 && sol > 0) {
       // What pressing Buy or Sell will do.
-      if (match && exSide === "buy" && orn * 1e9 > match.orn + 1) what.textContent = `Only ${fmtOrn(match.orn)} ORN at this price`;
+      if (match && orn * 1e9 > match.orn + 1) what.textContent = `Only ${fmtOrn(match.orn)} ORN at this price`;
       else what.textContent = match ? (exSide === "buy" ? "Buys now" : "Sells now") : "Waits in the order book";
-      val.textContent = board.solUsd ? `≈ ${fmtUsd(Math.min(sol, match && exSide === "buy" ? match.lamports / 1e9 : sol) * board.solUsd)}` : "";
+      val.textContent = board.solUsd ? `≈ ${fmtUsd(Math.min(sol, match ? match.lamports / 1e9 : sol) * board.solUsd)}` : "";
     } else {
       val.textContent = "Enter a price and an amount";
     }
@@ -11473,7 +11483,7 @@
     const sol = parseFloat($("ex-sol").value);
     const needVer = !buy && !match && exUnverified;
     const maxSol = (board.maxOrderLamports || 10e9) / 1e9;
-    const wrongSize = !!match && !buy && Math.abs(orn * 1e9 - match.orn) > 1;
+    const wrongSize = !!match && !buy && !!exSellSizeProblem(match, Math.round(orn * 1e9));
     const ok = !needVer && !wrongSize && orn > 0 && sol >= 0.01 && (!buy || match || sol <= maxSol) && !exOverSol() && (match || exAddrOk())
       && (match || $("ex-pw-field").hidden || $("ex-pw").value.length > 0);
     go.disabled = !ok;
