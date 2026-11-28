@@ -8946,6 +8946,13 @@
   document.querySelector("#send [data-back]").onclick = closePop;
   $("pop-shade").onclick = closePop;
   for (const b of document.querySelectorAll("[data-pop-close]")) b.onclick = closePop;
+  // The click that brings this window back to the front only does that: it
+  // doesn't also land on the dimmed backdrop and close the pop-up there.
+  let cameBackAt = 0;
+  window.addEventListener("focus", () => { cameBackAt = Date.now(); });
+  document.addEventListener("click", (e) => {
+    if (Date.now() - cameBackAt < 600 && e.target instanceof Element && e.target.matches("#pop-shade, [id$='-veil']")) { e.stopPropagation(); e.preventDefault(); }
+  }, true);
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && document.body.classList.contains("pop") && !document.querySelector('[id$="-veil"]:not([hidden])')) closePop();
   });
