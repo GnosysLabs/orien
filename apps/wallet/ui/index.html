@@ -11281,7 +11281,7 @@
     const row = (o, isBuy, maxOrn) => `<button type="button" class="ob-row ${isBuy ? "bid" : "ask"}" data-pick="${o.id}" data-funded="${offerTag(o)}" title="${esc(o.seller_name || "")}">
         <span class="ob-depth ${depthClass(o.orn, maxOrn)}" aria-hidden="true"></span>
         <span class="ob-price">${esc(exUsd() ? exPx(unitOf(o)) : fmtBookUnit(unitOf(o)))}</span>
-        <span class="ob-num">${esc(fmtOrn(o.orn))}</span>
+        <span class="ob-num">${esc(fmtOrn(o.orn))} ORN</span>
         <span class="ob-num dim">${esc(exUsd() ? exPx(o.lamports / 1e9) : fmtBookTotal(o))}</span>
       </button>`;
     const bestAsk = asksAsc[0], bestBid = bidsDesc[0];
