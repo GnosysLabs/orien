@@ -311,13 +311,25 @@ async fn main() -> Result<()> {
         None => None,
     });
     let app = app.with_max_order_lamports((args.max_order_sol.max(0.01) * 1e9) as u64);
+    // Where this server reads Solana's buy orders and sends its own
+    // transactions: the endpoints named, else the paid one the wallet's
+    // requests use (when its key is given) ahead of the free public ones,
+    // which slow down under many orders.
+    let chain_rpcs: Vec<String> = if !args.solana_rpc.is_empty() {
+        args.solana_rpc.clone()
+    } else {
+        let mut all = Vec::new();
+        if let Some(path) = &args.helius_key {
+            let key = std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?;
+            all.push(format!("https://mainnet.helius-rpc.com/?api-key={}", key.trim()));
+        }
+        all.push("https://api.mainnet-beta.solana.com".into());
+        all.push("https://solana-rpc.publicnode.com".into());
+        all
+    };
     let app = match &args.order_program {
         Some(program_id) => {
-            let rpc_owned: Vec<String> = if args.solana_rpc.is_empty() {
-                vec!["https://api.mainnet-beta.solana.com".into(), "https://solana-rpc.publicnode.com".into()]
-            } else {
-                args.solana_rpc.clone()
-            };
+            let rpc_owned = chain_rpcs.clone();
             let rpc_refs: Vec<&str> = rpc_owned.iter().map(String::as_str).collect();
             let relayer = match &args.solana_relayer_key {
                 Some(path) => Some(orien_market::orders::load_relayer_keypair(path)?),
@@ -331,11 +343,7 @@ async fn main() -> Result<()> {
     };
     let app = match &args.book_program {
         Some(program_id) => {
-            let rpc_owned: Vec<String> = if args.solana_rpc.is_empty() {
-                vec!["https://api.mainnet-beta.solana.com".into(), "https://solana-rpc.publicnode.com".into()]
-            } else {
-                args.solana_rpc.clone()
-            };
+            let rpc_owned = chain_rpcs.clone();
             let rpc_refs: Vec<&str> = rpc_owned.iter().map(String::as_str).collect();
             let relayer = match &args.solana_relayer_key {
                 Some(path) => Some(orien_market::orders::load_relayer_keypair(path)?),
