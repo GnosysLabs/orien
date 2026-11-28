@@ -38,6 +38,8 @@ use std::str::FromStr;
 pub const MAX_ORDER_LAMPORTS: u64 = 10 * LAMPORTS_PER_SOL;
 /// Minimum remaining seconds on `fill_deadline` required before a seller locks ORN.
 const MIN_FILL_SAFETY_SECONDS: i64 = 1_800;
+/// How long a seller has to finish a part of a part-filling order.
+const BOOK_FILL_WINDOW: i64 = 3_600;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum OrderRole {
@@ -352,7 +354,9 @@ pub fn create_buy_order(
         buyer_orien,
         buyer_sol: refund,
         expiry: 0,
-        max_fill_window: DEFAULT_FILL_WINDOW,
+        // A part a seller abandons goes back within the hour (its seller's
+        // wallet locks the ORN within seconds, and needs 30 minutes left).
+        max_fill_window: if book { BOOK_FILL_WINDOW } else { DEFAULT_FILL_WINDOW },
         wallet: Some(wallet.to_path_buf()),
         created: now(),
         problem: None,

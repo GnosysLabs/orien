@@ -11389,7 +11389,10 @@
   const exPlanSum = (fills) => fills.reduce((t, f) => ({ orn: t.orn + f.orn, lamports: t.lamports + f.lamports }), { orn: 0, lamports: 0 });
   // Buying from several sellers: each swap's Solana fees on top.
   function exPlanShort(fills) {
-    if (exSide !== "buy") return false;
+    if (exSide !== "buy") {
+      const most = parseFloat(String(view && view.most || "").replace(/,/g, ""));
+      return Number.isFinite(most) && exPlanSum(fills).orn / 1e9 > most + 1e-9;
+    }
     const have = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
     if (!devnetAssets.balances || !Number.isFinite(have)) return false;
     return exPlanSum(fills).lamports / 1e9 + fills.length * SOL_SWAP_FEES > have;
@@ -11583,7 +11586,19 @@
     $("ex-sol-hint").textContent = max == null ? "Min 0.01" : `${max.toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL available`;
   }
   // More than that: never changed, only warned about, and the button waits.
-  function exOverSol() { const max = exSide === "buy" ? exSolMax() : null; return max != null && parseFloat($("ex-sol").value) > max; }
+  // Buying from an order now pays only what it has; selling, what's typed
+  // (all of an order at most) must be in the wallet.
+  function exOverSol() {
+    const match = exKind === "limit" ? exMatch() : null;
+    if (exSide === "sell") {
+      const most = parseFloat(String(view && view.most || "").replace(/,/g, ""));
+      const orn = parseFloat($("ex-orn").value);
+      return Number.isFinite(most) && orn > 0 && Math.min(orn, match ? match.orn / 1e9 : orn) > most + 1e-9;
+    }
+    const max = exSolMax();
+    const sol = parseFloat($("ex-sol").value);
+    return max != null && Math.min(sol, match ? match.lamports / 1e9 : sol) > max;
+  }
   // Clicking into a number selects it, so typing replaces it, as trading
   // apps do. WebKit would drop the selection on the click's mouse-up, so
   // that one mouse-up is let pass without touching it.
