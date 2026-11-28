@@ -8320,27 +8320,29 @@
         "Click <b>Start mining</b>. Each hour you earn a share of the new ORN.",
         "To mine with the window closed, turn on <b>Keep running when closed</b> in Settings, <b>This computer</b>. To stop the computer sleeping, turn on <b>Keep this computer awake</b> there too.",
       ], "If the app updates while mining, mining starts again by itself.");
-      const BIG = "In a big window, click <b>Place order</b>; in a small one, the <b>Buy / Sell</b> tab.";
+      const SMALL = "In a small window, open the <b>Buy / Sell</b> tab first.";
+      const APPROVE = apple ? `confirm with ${bio}` : "type the wallet’s password if it has one";
       add("Getting ORN", "buy", "Buy ORN with SOL", [
         "Put SOL in this wallet first (see <b>Receive SOL or USDC</b>), with about 0.005 SOL more for Solana’s small fees.",
-        `On Home, click ${SWAP}. The Exchange opens.`,
-        "In the <b>Order book</b>, click <b>Buy</b> beside an offer you like.",
-        apple ? `Check the amounts, then click <b>Take with ${bio}</b>.` : "Check the amounts, type the wallet’s password if it has one, then click <b>Take the offer</b>.",
-        "The SOL is paid from this wallet and the ORN arrive by themselves, usually within a minute.",
+        `On Home, click ${SWAP}. The Exchange opens. ${SMALL}`,
+        "Under <b>Buy ORN</b>, on <b>Market order</b>, type how much to spend. The form shows about how many ORN you’ll get.",
+        `Click <b>Buy ORN</b>, check the amounts, then ${APPROVE} and click the button.`,
+        "The SOL is paid from this wallet and the ORN arrive by themselves, usually within a minute or two. A big buy can come from several sellers at once: one pop-up shows each of them.",
       ], "If a swap ever stops part-way, your SOL comes back by itself.");
-      add("Getting ORN", "buy-order", "Post a buy order", [
-        `On Home, click ${SWAP}.`,
-        BIG,
-        "Choose <b>Buy ORN</b>, then type how many ORN and the total SOL you’ll pay.",
-        `Click ${apple ? `<b>Buy ORN with ${bio}</b>` : "<b>Place Buy Order</b>"}. The SOL is set aside from this wallet at once.`,
-        "When a seller fills it, the ORN arrive by themselves, even with Orien Wallet closed. To cancel, click <b>Cancel</b> on it under <b>Open buys</b> (<b>Your swaps</b> in a small window).",
+      add("Getting ORN", "buy-order", "Buy ORN at your own price", [
+        `On Home, click ${SWAP}. ${SMALL}`,
+        "Under <b>Buy ORN</b>, click <b>Limit order</b>.",
+        "Type your <b>Price per ORN</b>, in SOL, and the <b>Amount</b> of ORN. The total works itself out.",
+        `Click <b>Buy ORN</b> (${APPROVE}). The SOL is set aside from this wallet at once, and your order joins the order book.`,
+        "Sellers can fill all of it or part of it. The ORN arrive by themselves as each part fills, even with Orien Wallet closed.",
+        "To cancel what’s left, click <b>Your orders</b> (<b>Your swaps</b> in a small window), then <b>Cancel</b> on it under <b>Open buys</b>. The unused SOL comes back.",
       ]);
       add("Getting ORN", "sell", "Sell ORN", [
         "Sign in and link this wallet first.",
-        `On Home, click ${SWAP}.`,
-        `To sell now, click <b>Sell</b> beside a buy offer in the <b>Order book</b>, then ${apple ? `<b>Sell with ${bio}</b>` : "<b>Sell ORN</b>"}.`,
-        `To set your own price: ${BIG.replace("In a big", "in a big")} Choose <b>Sell ORN</b>, type the ORN and the total SOL, then click ${apple ? `<b>Sell ORN with ${bio}</b>` : "<b>Place Sell Order</b>"}.`,
-        "Keep Orien Wallet open until your order is taken. <b>Keep this computer awake</b> in Settings, <b>This computer</b>, keeps it open while you’re away.",
+        `On Home, click ${SWAP}. ${SMALL}`,
+        `To sell now: under <b>Sell ORN</b>, on <b>Market order</b>, type how many ORN, click <b>Sell ORN</b>, then ${APPROVE}. It sells into the best buy orders, all or part of each.`,
+        "To set your own price: click <b>Limit order</b>, type your <b>Price per ORN</b> and the <b>Amount</b>, then click <b>Sell ORN</b>. Buyers can take all of it or part of it.",
+        "Keep Orien Wallet open until your sell order is taken. <b>Keep this computer awake</b> in Settings, <b>This computer</b>, keeps it open while you’re away.",
       ], "The SOL arrives in this wallet’s Solana balance, usually within a minute of a sale.");
     }
     if (apple) add("Security and more", "lock", `Lock with ${bio}`, [
@@ -10440,7 +10442,7 @@
       if (s.role === "buy" && s.stage === "pay") return `Your turn: send ${payText(s)} to fund`;
       if (s.role === "buy" && s.stage === "open" && s.orn_bought) return `${s.orn_bought} of ${s.orn} ORN bought · the rest live on order book`;
       if (s.role === "buy" && s.stage === "open") return "Live on order book · settles automatically";
-      if (s.role === "buy" && s.stage === "settling" && s.book) return `${s.orn_bought ? `${s.orn_bought} of ${s.orn} ORN bought · ` : ""}a part is settling (~1 min)`;
+      if (s.role === "buy" && s.stage === "settling" && s.book) return s.orn_bought ? `${s.orn_bought} of ${s.orn} ORN bought · a part is settling (~1 min)` : "A part is settling (~1 min)";
       if (s.role === "buy" && s.stage === "cancelling") return "Cancelling · returning SOL";
       if (s.role === "buy" && s.stage === "settling") return "Filled · settling (~1 min)";
       if (s.role === "sell" && s.stage === "reserving") return "Reserving buyer's SOL";
@@ -11999,7 +12001,7 @@
     if (!ready()) return;
     const isBuy = o.side === "buy";
     const sol = o.coin === "sol";
-    $("bt-title").textContent = isBuy ? "Sell into this offer" : "Take this offer";
+    $("bt-title").textContent = sol ? (isBuy ? "Sell ORN" : "Buy ORN") : isBuy ? "Sell into this offer" : "Take this offer";
     $("bt-row1-label").textContent = isBuy ? "You sell" : "You get";
     $("bt-row2-label").textContent = isBuy ? "You get" : "You pay";
     $("bt-other-label").textContent = isBuy ? "Buyer" : "Seller";
@@ -12053,7 +12055,7 @@
     const typed = !!(view && !view.unprotected && !view.biometric);
     $("bt-pw-field").hidden = !typed;
     $("bt-pw").value = "";
-    $("bt-go").textContent = $("bt-go").dataset.label = view && view.biometric ? `${isBuy ? "Sell" : "Take"} with ${bio}` : isBuy ? "Sell ORN" : "Take the offer";
+    $("bt-go").textContent = $("bt-go").dataset.label = view && view.biometric ? `${isBuy ? "Sell" : sol ? "Buy" : "Take"} with ${bio}` : isBuy ? "Sell ORN" : sol ? "Buy ORN" : "Take the offer";
     show("board-take");
     btShort = false;
     paintBtGo();

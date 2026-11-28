@@ -26,7 +26,7 @@ export const PRODUCTS: Record<Product, string> = {
 
 export const CHANGELOG: Entry[] = [
   {
-    date: '2026-11-27',
+    date: '2026-11-28',
     products: ['wallet'],
     version: '1.9.35',
     title: 'A new Exchange',
@@ -37,6 +37,10 @@ export const CHANGELOG: Entry[] = [
       'Buy orders fill in parts too: sell 50 ORN into a buy order for 1,000, and the rest stays open. Each part settles on its own, with the buyer\u2019s SOL locked on Solana the whole time.',
       'Limit orders keep a price of your own, waiting in the order book until someone meets it.',
       'Recent trades shows everyone\u2019s latest swaps; Your orders shows your own open orders and history.',
+      'A buy or sale across several orders has one pop-up for all of it, with a line for each seller or buyer, and one notification when it\u2019s done.',
+      'Up to 20 orders of each kind at once, where it was 5.',
+      'Far fewer notifications: a SOL swap is told once, when it\u2019s done, and no longer sends \u201cpay now\u201d messages or emails for a payment the wallet makes itself.',
+      'The chart shows times on your own clock, in your time zone. The User Guide\u2019s buying and selling pages are rewritten for the new Exchange.',
       'Sell orders placed before this version were closed: post them again from this version, from the same wallet. Nothing was locked, so nothing was lost.',
     ],
   },
