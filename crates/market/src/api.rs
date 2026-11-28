@@ -1353,7 +1353,9 @@ async fn take_swap(State(app): State<Arc<App>>, headers: HeaderMap, Path(id): Pa
         kind: "swap",
         open: json!({ "swap": swap.offer.id }),
     });
-    if let Some(to) = seller_email {
+    // A SOL swap runs by itself in the seller's wallet, which has just been
+    // told: no email on top. Bitcoin's seller has to act, so theirs stays.
+    if let Some(to) = seller_email.filter(|_| swap.offer.coin != "sol") {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
         tokio::task::spawn_blocking(move || {
             if let Err(error) = mailer.send_swap_taken(&to, &taker, &origin) {
@@ -1417,7 +1419,10 @@ async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(i
     } else {
         format!("{} BTC", bitcoin_amount(swap.offer.sats))
     };
-    if let Some(buyer_id) = orn_buyer {
+    // A SOL swap is paid by the buyer's wallet itself, from its own Solana
+    // balance: nothing to tell them to do, by notification or by email.
+    let buyer_acts = swap.offer.coin != "sol";
+    if let Some(buyer_id) = orn_buyer.filter(|_| buyer_acts) {
         app.tell(crate::push::Event {
             account: buyer_id,
             address: swap.taker_wallet.clone(),
@@ -1427,7 +1432,7 @@ async fn swap_offer_code(State(app): State<Arc<App>>, headers: HeaderMap, Path(i
         });
     }
     // The buyer's turn: tell them, so it can't be missed.
-    if let Some(to) = buyer_email {
+    if let Some(to) = buyer_email.filter(|_| buyer_acts) {
         let (mailer, origin) = (app.mailer.clone(), app.origin.clone());
         let btc = if swap.offer.coin == "sol" {
             format!("{} SOL", trimmed(swap.offer.lamports, 9))

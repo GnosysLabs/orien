@@ -10343,16 +10343,31 @@
       if (item.selling && item.offer.state === "held" && item.here && !item.elsewhere && !item.needs_unlock)
         say(`taken:${item.offer.id}`, `${item.taker_name || "Someone"} took your offer to sell ${fmtOrn(item.offer.orn)} ORN. Your wallet is locking the ORN for them.`);
     }
+    // A market order's swaps: one notification for all of it, at the end.
+    const grouped = (s) => !!swapGroup && swapGroup.items.some((i) => swapGroup.side === "sell" ? i.key === s.id : i.key === s.board_id);
+    // A SOL swap runs by itself: it's told once, when it's done. (Bitcoin's
+    // steps take minutes to hours and need the person, so each is told.)
     for (const s of swapList) {
       if (needsMe(s)) say(`pay:${s.id}`, `Your swap was accepted. Pay ${payText(s)} now to get ${s.orn} ORN.` + (s.pay_by ? ` ${payDeadline(s.pay_by)}.` : ""), 10 * 60 * 1000);
       if (s.coin !== "sol" && s.role === "buy" && (s.paid || s.paid_seen) && !["done", "cancelled"].includes(s.stage)) say(`paid:${s.id}`, `Payment seen. Waiting for Bitcoin to confirm it; your ${s.orn} ORN follow by themselves.`);
-      if (s.role === "sell" && s.board && s.stage === "reply") say(`locked:${s.id}`, `Your ${s.orn} ORN are locked for the buyer. Waiting for them to pay ${cost(s)}.`);
-      if (s.role === "sell" && s.stage === "claiming") say(`sent:${s.id}`, `You've been paid: ${cost(s)} is on its way to your ${coinName(s)} address.`);
-      if (s.role === "buy" && s.coin === "sol" && s.paid && !["done", "cancelled"].includes(s.stage)) say(`paid:${s.id}`, `Payment received. Your ${s.orn} ORN follow within a minute or so.`);
+      if (s.coin !== "sol" && s.role === "sell" && s.board && s.stage === "reply") say(`locked:${s.id}`, `Your ${s.orn} ORN are locked for the buyer. Waiting for them to pay ${cost(s)}.`);
+      if (s.coin !== "sol" && s.role === "sell" && s.stage === "claiming") say(`sent:${s.id}`, `You've been paid: ${cost(s)} is on its way to your ${coinName(s)} address.`);
+      if (s.role === "buy" && s.coin === "sol" && s.paid && !(s.refund && s.refund === devnetAssets.address) && !["done", "cancelled"].includes(s.stage)) say(`paid:${s.id}`, `Payment received. Your ${s.orn} ORN follow within a minute or so.`);
       if (s.coin !== "sol" && s.role === "sell" && (s.paid_seen || s.stage === "claiming")) say(`claiming:${s.id}`, `The buyer paid ${s.btc} BTC. Bitcoin is confirming it; then this app takes it. Keep Orien Wallet running.`);
+      if (s.stage === "done" && grouped(s)) { announced[`done:${s.id}`] = announced[`done:${s.id}`] || Date.now(); continue; }
       if (s.stage === "done") say(`done:${s.id}`, s.role === "sell" ? `Swap done: ${cost(s)} is in your ${coinName(s)} wallet.` : s.coin === "sol" && !s.orn_claimed ? "Your SOL went back to your SOL wallet." : `Swap done: ${s.orn} ORN are in your wallet.`);
       if (s.stage === "cancelled") say(`stopped:${s.id}`, `A swap stopped. ${s.status}`);
       if (s.problem && s.problem.startsWith("password:") && !s.finished) say(`approve:${s.id}`, s.role === "buy" ? `Approve in Orien Wallet to get your ${s.orn} ORN.` : "Approve in Orien Wallet to finish your swap.", 10 * 60 * 1000);
+    }
+    if (swapGroup) {
+      const lines = swapGroup.items.map(groupLine), done = lines.filter((l) => l.state === "done");
+      if (lines.every((l) => l.state !== "now") && done.length) {
+        const orn = swapGroup.items.filter((_, i) => lines[i].state === "done").reduce((t, i) => t + i.orn, 0);
+        const sol = swapGroup.items.filter((_, i) => lines[i].state === "done").reduce((t, i) => t + i.lamports, 0) / 1e9;
+        say(`group:${swapGroup.created}`, swapGroup.side === "buy"
+          ? `Bought ${fmtOrn(orn)} ORN for ${exPlain(sol, 4)} SOL. They're in your wallet.`
+          : `Sold ${fmtOrn(orn)} ORN for ${exPlain(sol, 4)} SOL. It's in your Solana balance.`);
+      }
     }
     localStorage.setItem(ANNOUNCED, JSON.stringify(announced));
     swapsWaiting = swapList.filter(needsMe).length + board.waiting.filter((x) => x.needs_unlock).length;
