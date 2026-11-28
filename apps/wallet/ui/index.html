@@ -744,7 +744,8 @@
   .sol-send-network img { width: 14px; height: 14px; object-fit: contain; }
   #solana-send .summary .row { gap: 12px; }
   #solana-send .summary .row > :first-child { flex: none; }
-  #solana-send .summary .mono { min-width: 0; overflow-wrap: anywhere; text-align: right; }
+  /* An address on one line, never wrapped: its letters shrink to fit (fitLine). */
+  #solana-send .summary .mono { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-align: right; }
   #solana-send .sol-send-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   #solana-send .sol-send-actions :is(.primary, .secondary) { flex: 1; min-width: min(100%, 140px); padding: 0 12px; }
   #sol-send-form { display: contents; }
@@ -8959,6 +8960,14 @@
     failed: "Transfer failed",
     expired: "Transfer expired",
   };
+  // A line that must not wrap, such as a whole address: its letters get
+  // smaller until it fits its space, down to 9px.
+  function fitLine(el) {
+    el.style.fontSize = "";
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > el.clientWidth + 0.5 && size > 9) { size -= 0.5; el.style.fontSize = `${size}px`; }
+  }
+  addEventListener("resize", () => { const to = $("sol-receipt-to"); if (to && to.textContent && !$("sol-send-receipt").hidden) fitLine(to); });
   function paintDevnetSend(state) {
     const { quote, receipt, busy, needsPassword } = state;
     $("sol-send-form").hidden = !!receipt;
@@ -9014,6 +9023,8 @@
       $("sol-send-status").textContent = receipt.state === "finalized" ? asset + " sent" : devnetSendLabels[receipt.state];
       $("sol-receipt-amount").textContent = `${receipt.amount} ${asset}`;
       $("sol-receipt-to").textContent = receipt.recipient;
+      $("sol-receipt-to").title = receipt.recipient;
+      fitLine($("sol-receipt-to"));
       const note = receipt.state === "expired" ? "This transfer can no longer land. You can start a new transfer."
         : receipt.state === "pending" && !receipt.acknowledged ? "Solana hasn’t acknowledged the submission. This screen will keep checking." : "";
       $("sol-send-status-note").textContent = note;
