@@ -175,6 +175,9 @@ pub struct View {
     pub book: bool,
     /// Buyer of a part-filling order: ORN bought so far.
     pub orn_bought: Option<String>,
+    /// The last Solana transaction this wallet sent for it (a cancel), so
+    /// the Solana activity can say what it was.
+    pub sent_sig: Option<String>,
 }
 
 fn file(dir: &Path) -> PathBuf {
@@ -1320,5 +1323,6 @@ pub fn view(o: &KeptOrder) -> View {
         finished: o.finished(),
         book: o.book,
         orn_bought: bought.map(|n| crate::money::show(n as i128)),
+        sent_sig: o.sent.as_ref().map(|(sig, _)| sig.clone()),
     }
 }

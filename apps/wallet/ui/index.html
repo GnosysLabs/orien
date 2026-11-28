@@ -5949,6 +5949,7 @@
 
   const SOL_PROGRAMS = {
     "2HnMh1nAs5cShirEhk726KjBiQr4sxxMNv2qapjdYKN9": "Buy order refund",
+    "91kXkHE87VAvHr52oKrXcMyycSc1jkyYrSgWLMAuMCdD": "Buy order",
     "DAeXj31NAoSgno7SiFX7t4tWoMDBtpN9rn8c2X7WNtYE": "ORN swap",
   };
   // What a Solana payment was for: the swap or buy order it went to or came
@@ -5978,6 +5979,11 @@
     const peer = entry.peer;
     const num = (x) => parseFloat(String(x).replace(/,/g, ""));
     const same = (a, b) => a != null && b != null && Math.abs(num(a) - num(b)) < 1e-9;
+    // A transaction this wallet sent for an order: its cancel.
+    if (!entry.amount) {
+      const sent = swaps.find((s) => s.sent_sig && s.sent_sig === entry.signature);
+      if (sent) return sent.role === "buy" ? `Cancelled buy order for ${sent.orn} ORN` : `Order for ${sent.orn} ORN`;
+    }
     const own = peer && (swaps.find((s) => s.sol_address === peer) || solPaidFor.get(peer)
       || (entry.sent && entry.time && !SOL_PROGRAMS[peer] && swaps.find((s) => s.funded_order && s.role === "buy" && s.created
         && Math.abs(entry.time - s.created) < 900 && num(entry.amount) >= num(s.sol) && num(entry.amount) < num(s.sol) + 0.01)));
@@ -5991,6 +5997,13 @@
       if (sold) return `Sold ${sold.orn} ORN`;
       const refunded = peer.startsWith("2HnM") && swaps.find((s) => s.funded_order && s.role === "buy" && same(s.sol, entry.amount));
       if (refunded) return `Refund of buy order for ${refunded.orn} ORN`;
+      // A buy order that fills in parts gives back what's left when it's
+      // cancelled or runs out, and its deposit when it's all bought.
+      if (peer.startsWith("91kX")) {
+        const closed = swaps.filter((s) => s.funded_order && s.role === "buy" && s.book && ["done", "cancelled"].includes(s.stage) && (!entry.time || !s.created || entry.time >= s.created))
+          .sort((a, b) => Math.abs((entry.time || 0) - (a.created || 0)) - Math.abs((entry.time || 0) - (b.created || 0)))[0];
+        if (closed) return closed.stage === "done" ? `Deposit back from buy order for ${closed.orn} ORN` : `Refund of buy order for ${closed.orn} ORN`;
+      }
     }
     return SOL_PROGRAMS[peer] || null;
   }
