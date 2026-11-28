@@ -933,13 +933,21 @@ fn step_book(orien: &AppOrien, dir: &Path, order: &mut KeptOrder) -> Result<(), 
             let index = order.index.ok_or("missing part number")?;
             let busy = sol.book(&program, &order_pk).map_err(|e| e.to_string())?.is_some_and(|a| a.parts.iter().any(|p| p.index == index));
             if !busy {
-                // Gone from Solana: paid if the secret came out on Orien.
+                // Gone from Solana: paid or given back. The Market's word
+                // first (it settles the part), then the lock's own secret on
+                // Orien; neither yet (validators can lag): ask again next time.
+                let market = board::my_book_orders(dir).ok().and_then(|mine| {
+                    mine["parts"].as_array()?.iter().find(|p| p["id"].as_i64() == Some(part_id))?["state"].as_str().map(str::to_string)
+                });
                 let claimed = orien.proven(&LockRef { from: orien.me(), seq }).is_ok_and(|s| s.secret.is_some());
-                order.stage = if claimed {
-                    OrderStage::Done
-                } else {
-                    OrderStage::Cancelled { why: "the part lapsed before it settled; your ORN come back when the lock ends".into() }
-                };
+                match market.as_deref() {
+                    Some("done") => order.stage = OrderStage::Done,
+                    _ if claimed => order.stage = OrderStage::Done,
+                    Some("released" | "failed") => {
+                        order.stage = OrderStage::Cancelled { why: "the part lapsed before it settled; your ORN come back when the lock ends".into() }
+                    }
+                    _ => {}
+                }
             }
             Ok(())
         }

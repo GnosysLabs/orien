@@ -10930,7 +10930,9 @@
     // As a pop-up, the checklist says how it's going: the status line only
     // when something went another way.
     $("sd-status").classList.toggle("sd-pop-quiet", !["cancelled", "refunding"].includes(s.stage));
-    $("sd-done-back").textContent = !phone && window.innerWidth >= 860 ? "Done" : "Back to Exchange";
+    // "Done" only once it is: while it still settles, the button just closes.
+    const over = ["done", "cancelled"].includes(s.stage);
+    $("sd-done-back").textContent = !phone && window.innerWidth >= 860 ? (over ? "Done" : "Close") : "Back to Exchange";
     const wide = !phone && window.innerWidth >= 860;
     const revHome = (!$("sd-pay").hidden && wide) ? $("sd-side") : $("sd-main");
     if ($("sd-review").parentNode !== revHome) revHome.prepend($("sd-review"));
