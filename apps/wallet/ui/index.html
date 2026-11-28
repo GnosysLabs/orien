@@ -2375,7 +2375,9 @@
   .recent-to .rt.on .face { box-shadow: 0 0 0 2.5px var(--ground-deep), 0 0 0 4.5px var(--select); }
   .recent-to .rt.on .rt-name { font-weight: 600; }
   .recent-to .rt .face.emoji { font-size: 22px; }
-  .recent-to .rt .rt-name { max-width: 100%; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* The whole name, on two lines if it needs them; longer ones end in "…". */
+  .recent-to .rt .rt-name { max-width: 100%; font-size: 12px; line-height: 1.25; text-align: center; overflow-wrap: anywhere;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
   /* The amount box: Max inside it, as in the extension. */
   .field .label-row { display: flex; justify-content: space-between; align-items: baseline; margin: 0 2px 7px; }
   .field .label-row label { margin: 0; }
@@ -9153,7 +9155,7 @@
     // linked to a profile. A one-off address stays out, as on Send ORN.
     const paintRecents = () => {
       const recent = [...new Set(recipients)].filter((a) => solNameOf(a)).slice(0, 8);
-      $("sol-send-recent-row").innerHTML = recent.map((a) => { const name = solNameOf(a); return `<button class="rt" type="button" data-address="${a}" title="${esc(name)}">${face(a, name)}<span class="rt-name">${esc(name.split(/\s+/)[0])}</span></button>`; }).join("");
+      $("sol-send-recent-row").innerHTML = recent.map((a) => { const name = solNameOf(a); return `<button class="rt" type="button" data-address="${a}" title="${esc(name)}">${face(a, name)}<span class="rt-name">${esc(name)}</span></button>`; }).join("");
       $("sol-send-recents").hidden = !recent.length;
     };
     paintRecents();
@@ -9469,7 +9471,7 @@
     $("recent-row").innerHTML = recent.map((a) => {
       const name = nameOf(a);
       const look = iconOf(a) ? `<span class="face emoji">${esc(iconOf(a))}</span>` : face(a, name);
-      return `<button class="rt" type="button" data-address="${a}" title="${esc(name)}">${look}<span class="rt-name">${esc(name.split(/\s+/)[0])}</span></button>`;
+      return `<button class="rt" type="button" data-address="${a}" title="${esc(name)}">${look}<span class="rt-name">${esc(name)}</span></button>`;
     }).join("");
   }
   $("recent-row").onclick = (event) => {
