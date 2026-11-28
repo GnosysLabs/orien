@@ -28,6 +28,17 @@ export const CHANGELOG: Entry[] = [
   {
     date: '2026-11-28',
     products: ['wallet'],
+    version: '1.9.37',
+    title: 'Sending SOL where Solana is hard to reach',
+    changes: [
+      'Sending SOL or USDC goes by the first Solana service that answers, orien.network\u2019s first. Send lights up in about a second, where it could stay grey for minutes if some services couldn\u2019t be reached.',
+      'Max says the fee is being checked while it is.',
+      'The Exchange keeps its price chart and the tab that\u2019s open when the window is made smaller and bigger again.',
+    ],
+  },
+  {
+    date: '2026-11-28',
+    products: ['wallet'],
     version: '1.9.36',
     title: 'Limit prices in your own currency',
     changes: [
