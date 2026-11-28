@@ -11434,14 +11434,20 @@
   function exPctPaint() {
     for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.classList.toggle("on", Number(b.dataset.pct) <= (exPct || 0));
     $("ex-pct-fill").style.width = `${exPct || 0}%`;
-    // A Limit order's share needs its price first: greyed out until then.
-    $("ex-pct").classList.toggle("off", exKind === "limit" && !(exPriceSol() > 0));
     const buy = exSide === "buy";
     const sol = Number(String(devnetAssets.balances?.sol ?? "").replace(/,/g, ""));
+    const knownSol = !!devnetAssets.balances && Number.isFinite(sol);
     const orn = view && view.most;
-    $("ex-pct-of").textContent = buy
-      ? (devnetAssets.balances && Number.isFinite(sol) ? `of your ${exPlain(sol, 4)} SOL` : "")
-      : (orn ? `of your ${orn} ORN` : "");
+    // Too little for the smallest order, once fees are kept back: there is
+    // nothing to take a share of.
+    const short = buy
+      ? knownSol && (exKind === "market" ? sol - SOL_SWAP_FEES : (exSolMax() ?? Infinity)) < EX_MIN_SOL
+      : orn != null && !(parseFloat(String(orn).replace(/,/g, "")) > 0);
+    // Greyed out then, and on a Limit order until its price is in.
+    $("ex-pct").classList.toggle("off", short || (exKind === "limit" && !(exPriceSol() > 0)));
+    if (short && exPct) { exPct = null; for (const b of document.querySelectorAll("#ex-pct [data-pct]")) b.classList.toggle("on", Number(b.dataset.pct) <= 0); $("ex-pct-fill").style.width = "0%"; }
+    const have = buy ? (knownSol ? `of your ${exPlain(sol, 4)} SOL` : "") : (orn ? `of your ${orn} ORN` : "");
+    $("ex-pct-of").innerHTML = have ? `<span>${esc(have)}</span>${short && buy ? "<span> · Not enough SOL</span>" : ""}` : "";
   }
   // Fills the form with the share chosen: of this wallet's SOL to spend on
   // a buy, of its ORN on a sale. False when it can't be worked out yet.
