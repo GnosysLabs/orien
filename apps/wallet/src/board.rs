@@ -1263,7 +1263,30 @@ pub fn drive_sol(orien: &AppOrien, dir: &Path, mine: &Value, sol: &mut Vec<crate
         if item["finished"].as_bool() == Some(true) {
             link.finished = true;
         }
-        let kept = link.swap.as_ref().and_then(|swap| sol.iter().position(|kept| &kept.id == swap));
+        let mut kept = link.swap.as_ref().and_then(|swap| sol.iter().position(|kept| &kept.id == swap));
+        // Seller: the buyer this swap was started for is gone (their take
+        // lapsed and the order went back on the book).
+        if link.selling
+            && let Some(index) = kept
+            && matches!(sol[index].swap.stage, SolStage::Preparing | SolStage::WaitingForReply)
+            && item["offer_code"].is_null()
+        {
+            let taker = item["taker_wallet"].as_str().unwrap_or_default();
+            let same_buyer = sol[index].swap.buyer.to_string() == taker;
+            if state == "open" && sol[index].swap.lock.is_none() {
+                // Nothing was locked: forgotten, so it never locks for nobody.
+                let gone = sol[index].id.clone();
+                sol.retain(|kept| kept.id != gone);
+                link.swap = None;
+                kept = None;
+            } else if state == "held" && !same_buyer {
+                // ORN locked for the earlier buyer come back when that lock
+                // ends; this buyer gets a swap of their own.
+                sol[index].swap.stage = SolStage::Cancelled { why: "the buyer didn't go on; your ORN come back when the lock ends".into() };
+                link.swap = None;
+                kept = None;
+            }
+        }
         let wallet = link.wallet.clone().unwrap_or_else(|| orien.wallet_file.clone());
         let orn = item["offer"]["orn"].as_u64().unwrap_or(0);
         let result = match (link.selling, kept) {
