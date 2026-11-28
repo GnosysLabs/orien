@@ -4900,7 +4900,7 @@
         <!-- Left column: the price chart, and the order book under it. Your
              orders and swaps: a pop-up in big windows, a tab in small ones. -->
         <div class="ex-col">
-          <div class="ex-panel" id="ex-pane-chart" data-ex-pane="history">
+          <div class="ex-panel" id="ex-pane-chart">
             <div class="ex-phead">
               <div class="ex-chart-head"><h3>ORN / SOL</h3><b id="ex-chart-last" data-no-i18n></b><span id="ex-chart-chg" data-no-i18n></span></div>
               <div class="ex-seg ex-tf" role="group" aria-label="Candle length">
@@ -10569,6 +10569,14 @@
       + swapList.filter((x) => live(x) && (side === "sell") === (x.role === "sell")).length;
   }
   wide.addEventListener("change", () => { if (typeof renderSwaps === "function") renderSwaps(); });
+  // The tabs only rule a small window. When the window shrinks to one, show
+  // the tab that's lit and nothing else: until then every panel was showing
+  // at once, and they'd all still be, squeezing the lit one to nothing.
+  // (The price chart is no tab's panel: it shows whenever there's room.)
+  wide.addEventListener("change", () => {
+    if (wide.matches || handset) return;
+    swapTab(["offers", "trade", "history", "mine"].find((t) => $(`tab-${t}-go`).classList.contains("on")) || "offers");
+  });
   $("tab-offers-go").onclick = () => swapTab("offers");
   $("tab-trade-go").onclick = () => swapTab("trade");
   $("tab-history-go").onclick = () => swapTab("history");
