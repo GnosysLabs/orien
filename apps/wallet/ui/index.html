@@ -10402,10 +10402,12 @@
   // One line for the list of swaps.
   function stageLine(s) {
     if (s.stage === "done") return "Done";
-    if (s.stage === "cancelled") return "Stopped";
+    if (s.stage === "cancelled") return s.orn_bought ? `Stopped · ${s.orn_bought} of ${s.orn} ORN bought` : "Stopped";
     if (s.funded_order) {
       if (s.role === "buy" && s.stage === "pay") return `Your turn: send ${payText(s)} to fund`;
+      if (s.role === "buy" && s.stage === "open" && s.orn_bought) return `${s.orn_bought} of ${s.orn} ORN bought · the rest live on order book`;
       if (s.role === "buy" && s.stage === "open") return "Live on order book · settles automatically";
+      if (s.role === "buy" && s.stage === "settling" && s.book) return `${s.orn_bought ? `${s.orn_bought} of ${s.orn} ORN bought · ` : ""}a part is settling (~1 min)`;
       if (s.role === "buy" && s.stage === "cancelling") return "Cancelling · returning SOL";
       if (s.role === "buy" && s.stage === "settling") return "Filled · settling (~1 min)";
       if (s.role === "sell" && s.stage === "reserving") return "Reserving buyer's SOL";
