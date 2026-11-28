@@ -421,7 +421,7 @@ impl Store {
             |r| r.get(0),
         )?;
         if open >= MAX_OFFERS {
-            bail!("you can have {MAX_OFFERS} swap offers on the board at once");
+            bail!("you can have {MAX_OFFERS} sell orders up at once: withdraw one to post another");
         }
         let at = now();
         self.db.execute(
@@ -471,7 +471,7 @@ impl Store {
             |r| r.get(0),
         )?;
         if open >= MAX_OFFERS {
-            bail!("you can have {MAX_OFFERS} swap offers on the board at once");
+            bail!("you can have {MAX_OFFERS} buy orders up at once: withdraw one to post another");
         }
         let at = now();
         self.db.execute(

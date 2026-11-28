@@ -4214,7 +4214,7 @@
     <section class="screen" id="explorer" hidden>
       <div class="topline"><button class="back" id="ex-back" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="ex-title">Explorer</h2></div>
       <form class="ex-search field" id="ex-search" autocomplete="off"><div class="box plain ex-find"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input id="ex-q" placeholder="An address, a name or a checkpoint number" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search"></div><div class="list suggest ex-found" id="ex-found" hidden></div></form>
-      <div class="problem" id="ex-problem" hidden></div>
+      <div class="problem" id="xp-problem" hidden></div>
       <div id="ex-body"></div>
     </section>
 
@@ -16063,7 +16063,7 @@
     if (push && ex.at) ex.stack.push(ex.at);
     ex.at = view;
     clearInterval(ex.timer);
-    $("ex-problem").hidden = true;
+    $("xp-problem").hidden = true;
     $("explorer").scrollTop = 0;
     $("ex-title").textContent = view.kind === "home" ? "Explorer" : view.kind === "top" ? "Top wallets" : view.kind === "checkpoint" ? `Checkpoint ${view.epoch}` : "Address";
     $("ex-search").hidden = view.kind !== "home";
@@ -16079,7 +16079,7 @@
   function openExplorer(view) { ex.stack = []; ex.at = null; exShow(view || { kind: "home" }, false); }
   $("ex-back").onclick = () => { const back = ex.stack.pop(); if (back) exShow(back, false); else { clearInterval(ex.timer); goBack("explorer"); } };
   $("go-explorer").onclick = $("go-explorer-tile").onclick = () => openExplorer();
-  function exFail(e) { $("ex-body").innerHTML = ""; problem("ex-problem", e && /not found/i.test(String(e)) ? "That isn't on the network yet." : e); }
+  function exFail(e) { $("ex-body").innerHTML = ""; problem("xp-problem", e && /not found/i.test(String(e)) ? "That isn't on the network yet." : e); }
   // Names: Market profiles with wallets they showed they hold, as on the website.
   let exNames = { q: "", rows: null }, exNameTimer = 0;
   async function exFindNames(q) {
@@ -16127,7 +16127,7 @@
   }
   $("ex-q").oninput = () => {
     clearTimeout(exNameTimer);
-    $("ex-problem").hidden = true;
+    $("xp-problem").hidden = true;
     const q = exNameQuery();
     if (/^\d{1,9}$/.test(q)) {
       exNameTimer = setTimeout(async () => {
